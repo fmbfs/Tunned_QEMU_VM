@@ -2,9 +2,10 @@
 #
 #
 #
-#################################################
+##################################################
 #		Improvments to be done:
-#		- none at the moment 28-03-2022
+#		- Make a formula to automaticly calculate
+#		the best cluster and l2_cache
 ##################################################
 #
 #
@@ -117,7 +118,7 @@ check_file(){
 #CREATE VIRTUAL DISK IMAGE
 create_image_os(){
 	echo "Creating Virtual Disk...";
-	qemu-img create -f qcow2 -o cluster_size=$Cluster_Size $OS_IMG $Disk_Size
+	qemu-img create -f qcow2 -o cluster_size=$Cluster_Size,lazy_refcounts=on $OS_IMG $Disk_Size
 	exit 0;
 }
 
@@ -126,7 +127,7 @@ os_launch(){
 	cd ${IMAGES_DIR}
 	echo "Launching OS...";
 	qemu-system-x86_64 -cpu max --enable-kvm -smp cores=${CORES},threads=${THREADS}\
-	-name 'dummy'\
+	-name "${ARGUMENT2}"\
 	-rtc base=localtime,clock=host\
 	-drive file=${OS_IMG},l2-cache-size=${L2_Cache_Size},cache=writethrough,cache-clean-interval=${Cache_Clean_Interval} -m ${VD_RAM}
 	
@@ -141,7 +142,7 @@ os_install(){
 	echo "Installing OS...";
 	qemu-system-x86_64 -cpu max --enable-kvm -smp cores=${CORES},threads=${THREADS}\
 	-cdrom ${OS_ISO}\
-	-name 'dummy'\
+	-name "${ARGUMENT2}"\
 	-rtc base=localtime,clock=host\
 	-drive file=${OS_IMG},l2-cache-size=${L2_Cache_Size},cache=writethrough,cache-clean-interval=${Cache_Clean_Interval} -m ${VD_RAM}
 	exit 0;
