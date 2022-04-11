@@ -1,0 +1,25 @@
+\BOOKMARK [2][-]{subsection.0.1}{Field notes:}{}% 1
+\BOOKMARK [1][-]{section.1}{Investigar estes topicos}{}% 2
+\BOOKMARK [2][-]{subsection.1.1}{KVM}{section.1}% 3
+\BOOKMARK [1][-]{section.2}{Qemu}{}% 4
+\BOOKMARK [1][-]{section.3}{Fine tunning}{}% 5
+\BOOKMARK [2][-]{subsection.3.1}{BEST SO FAR}{section.3}% 6
+\BOOKMARK [2][-]{subsection.3.2}{BASH SCRIPS}{section.3}% 7
+\BOOKMARK [2][-]{subsection.3.3}{BCCBPF Tools}{section.3}% 8
+\BOOKMARK [2][-]{subsection.3.4}{Tracing}{section.3}% 9
+\BOOKMARK [3][-]{subsubsection.3.4.1}{Tracing QEMU:}{subsection.3.4}% 10
+\BOOKMARK [2][-]{subsection.3.5}{NUMA}{section.3}% 11
+\BOOKMARK [2][-]{subsection.3.6}{No HZ}{section.3}% 12
+\BOOKMARK [2][-]{subsection.3.7}{mmiotrace}{section.3}% 13
+\BOOKMARK [2][-]{subsection.3.8}{Latency}{section.3}% 14
+\BOOKMARK [1][-]{section.4}{HOST preparation}{}% 15
+\BOOKMARK [2][-]{subsection.4.1}{CPU PINNING}{section.4}% 16
+\BOOKMARK [2][-]{subsection.4.2}{GPU ISOLATION}{section.4}% 17
+\BOOKMARK [1][-]{section.5}{KernelShark Before and After CPU pinning}{}% 18
+\BOOKMARK [1][-]{section.6}{Questions that need a response?}{}% 19
+\BOOKMARK [1][-]{section.7}{Benchmark tools}{}% 20
+\BOOKMARK [1][-]{section.8}{Create snapshot}{}% 21
+\BOOKMARK [1][-]{section.9}{Kernel}{}% 22
+\BOOKMARK [1][-]{section.10}{Cross compiling}{}% 23
+\BOOKMARK [1][-]{section.11}{FLUTTER APP}{}% 24
+\BOOKMARK [1][-]{section.12}{Uteis}{}% 25

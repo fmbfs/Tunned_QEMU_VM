@@ -1,0 +1,347 @@
+\documentclass[11pt, a4paper, oneside]{article}
+\usepackage[english]{babel}	% Para caracteres em tuga
+\usepackage[utf8]{inputenc} %para aceitar cedilhas
+\usepackage{ulem}
+\usepackage{adjustbox}
+\usepackage{amsmath,amsthm,amsfonts,amssymb,amscd}
+\usepackage{multirow,booktabs}
+\usepackage[table]{xcolor}
+\usepackage{xcolor}
+\usepackage{ragged2e}
+\usepackage{graphicx}
+\usepackage{subfigure}
+\usepackage{fullpage}
+\usepackage{float}
+\usepackage{lastpage}
+\usepackage{enumitem}
+\usepackage{fancyhdr}
+\usepackage{hyperref}
+\hypersetup{
+    %bookmarks=true,    	     	 % show bookmarks bar?
+    unicode=false,      	   		 % non-Latin characters in Acrobat's bookmarks
+    pdftoolbar=true,    		     % show Acrobats toolbar?
+    pdfmenubar=true,        	  	 % show Acrobats menu?
+    pdffitwindow=true,     		  	 % window fit to page when opened
+    pdfstartview={FitH},    	  	 % fits the width of the page to the window
+    pdftitle={CTW},		 % title
+    pdfauthor={Francisco Santos}% author
+    pdfsubject={INTERNAL DOC},    % subject of the document
+    pdfcreator={Francisco Santos},   				 	% creator of the document
+    pdfproducer={}, 				 	% producer of the document
+    pdfkeywords={},                  % list of keywords
+    pdfnewwindow=true,  		     % links in new window
+    colorlinks=true,    		     % false: boxed links; true: colored links
+    linkcolor=black,      		     % color of internal links
+    citecolor=black,    		     % color of links to bibliography
+    filecolor=magenta,  		     % color of file links
+    urlcolor=cyan        			 % color of external links
+}
+\usepackage{mathrsfs}
+\usepackage{wrapfig}
+\usepackage{setspace}
+\usepackage{calc}
+
+
+\usepackage{multicol} %colunas
+\setlength{\columnsep}{1cm} %distancia entre colunas
+
+\usepackage{cancel}
+\usepackage{framed} %para meter as figuras e assim onde queremos
+%\usepackage[retainorgcmds]{IEEEtrantools}
+\usepackage[margin=3cm]{geometry}
+\usepackage{amsmath}
+\newlength{\tabcont}
+\setlength{\parindent}{0.0in}
+\setlength{\parskip}{0.05in}
+\usepackage{empheq}
+\usepackage[most]{tcolorbox}
+\usepackage{xcolor}
+%para ifenizar
+\usepackage[none]{hyphenat}%%%%
+
+\colorlet{shadecolor}{orange!15}
+\parindent 0in
+\parskip 12pt
+\geometry{margin=1in, headsep=0.25in}
+
+%adiconar notas
+\theoremstyle{definition}
+\newtheorem*{note}{Nota}
+
+%Espacamento tabelas
+\setlength{\tabcolsep}{5pt} % Default value: 6pt
+\renewcommand{\arraystretch}{1.2} % Default value: 1
+
+%data auto
+\usepackage{datetime2}
+\date{} %clear date
+
+%remover as linhas
+\renewcommand{\headrulewidth}{0pt}
+\renewcommand{\footrulewidth}{0pt}
+
+%=============================================================================================================
+\begin{document}
+\sloppy
+\justifying
+
+%para retirar numero de pagina
+\pagenumbering{gobble}
+\pagestyle{fancy}
+\fancyhead{}
+\fancyfoot[L]{\tiny{CTW}}
+
+%titulo
+\Large\textbf{CRITICAL TECHWORKS (CTW)}\\
+\singlespacing
+\Large\textbf{ADVANCED COMPUTING SYSTEMS}\\
+\singlespacing
+\indent\indent\indent\small{LICENCIATURA EM ENGENHARIA ELETROTÉCNICA E DE COMPUTADORES}\\
+\singlespacing
+\indent\indent\indent\small{INSTITUTO SUPERIOR DE ENGENHARIA DO PORTO}
+\begin{spacing}{0.5}
+\indent\indent\indent\small{POLITÉCNICO DO PORTO}
+\end{spacing}
+\singlespacing
+\singlespacing
+\singlespacing
+\textbf{Lab Classes Script:}
+\singlespacing
+\indent\indent\indent\indent \textbf{Unity engine applied to Augmented Reality (AR)}
+
+
+\vfill
+\pagebreak
+%---------------------------------------------------------------------------------------------------------------------------------
+\section*{Version Control}
+\begin{center}
+\begin{tabular}{rl}
+  \textbf{Professor:} & André Rocha\\
+  \textbf{Class:} & 3NA\\
+  \textbf{Group:} & 2
+\end{tabular} 	
+\singlespacing
+\end{center}
+
+\begin{table}[H]
+	\centering
+	\resizebox{.8\textwidth}{!}{
+		\begin{tabular}{|>{\centering\arraybackslash}p{0.1\textwidth}>{\centering\arraybackslash}p{0.12\textwidth}>{\centering\arraybackslash}p{0.3\textwidth}>{\centering\arraybackslash}p{0.4\textwidth}|} 
+			\hline
+			\textbf{Version number} & \textbf{Date issued} & \textbf{Authors} & \textbf{Update information}\\
+			\hline
+		\end{tabular}
+		}
+		\resizebox{.8\textwidth}{!}{
+		\begin{tabular}{ |>{\centering\arraybackslash}p{0.1\textwidth}|>{\centering\arraybackslash}p{0.12\textwidth}|>{\centering\arraybackslash}p{0.3\textwidth}|>{\centering\arraybackslash}p{0.4\textwidth}|}
+			\textbf{V0} & 2022-03-10 & Avelino Almeida -- 1100127 & Original version of the script\\
+ 			& & Daniel Sofia$\ \ \ \ \ \ $ -- 1100404 & \\
+ 			& & Felipe Fernandes -- 1191484 & \\
+ 			& & Francisco Santos -- 1181515 & \\
+			\hline
+			\textbf{V1} & 2022-03-14 & Avelino Almeida -- 1100127 & Defining scope of the project\\
+ 			& & Daniel Sofia$\ \ \ \ \ \ $ -- 1100404 & Setting up Setup instructions\\
+ 			& & Felipe Fernandes -- 1191484 & Defining the first exercise\\
+ 			& & Francisco Santos -- 1181515 & \\
+ 			\hline
+		\end{tabular}
+		}
+\end{table}
+
+
+
+\vfill
+\pagebreak
+%---------------------------------------------------------------------------------------------------------------------------------
+%### TABELA DE CONTEUDOS ###
+
+%mudar nome table of contents
+\renewcommand*\contentsname{Table of Contents}
+
+%tabela de conteudos
+\tableofcontents
+
+
+\fancyfoot[L]{\tiny{SISTCA}}
+\vfill
+\pagebreak
+%---------------------------------------------------------------------------------------------------------------------------------
+
+%volta a colocar paginas
+\pagenumbering{arabic}
+
+\fancyfoot[L]{\tiny{SISTCA}}
+\fancyfoot[C]{}
+\fancyfoot[R]{\small{\thepage$/$\pageref{LastPage}}}
+
+%---------------------------------------------------------------------------------------------------------------------------------
+\section{Objectives}
+Considering high complexity and abstraction of object-oriented programming concepts, there is a need for innovative solution, which may serve as mean for learning these concepts.\\
+The aim of this Lab Classes Script is the description of developed interactive educational application for object-oriented-programming.\\
+The main objective of the proposed project was to create a tool for teaching graduates and specialists in technical study programs and related areas of automation using Unity~\cite{Unity} engine applyed to augmented reality and interactive learning in modelling, simulation and control. Visualization of the modelling and control processes of complex systems, components and devices in virtual and mixed realities will give students more insight and better understand the studied stuff compared with conventional learning methods.~\cite{8337533}\\
+The authors built this lab script as self explanatory as possible for basic examples, and a specific application \textcolor{red}{BIM~\cite{BIM} of an eletric cabinet}. The user then creates solutions based on examples, and can build the authors aplication in the end. He then has all the knoledge possible to start building his own application, and to try and answer the challenge proposal exposed in the last section~\ref{challenge}, in which the user creates solution for given problem using the knowledge learnt in this scrip and from other sources, which were presented to him in the introduction part of the application. After the user finishes the challenge, he will have the basic knoledge to build his own AR application.~\cite{9039853}
+
+\textcolor{red}{BIM (Building Information. Modeling) FALAR DISTO}.
+
+\textcolor{red}{CITAR O LIVRO} ~\cite{linowes2021augmented}
+
+\vfill
+\pagebreak
+%---------------------------------------------------------------------------------------------------------------------------------
+\section{Introduction}
+Unity is a simple game engine with tools and support that helps the game developers create innovative and interactive games for various platforms seamlessly. The game engine has especially built tools and features that are specific for Augmented Reality and Virtual Reality and help bring unrealistic imaginations to reality.
+
+Augmented reality support in Unity
+
+Unity's AR Foundation lets the user create applications for handheld and wearable AR devices. The AR foundation also supports various features like device tracking, raycast, gesture recognition, face tracking, meshing, point cloud detection, and so much more across different platforms. This foundation is available and requires you to download one of the platform-specific AR packages from the Package Manager. The packages available are ARKit XR Plug-in, ARCore XR Plug-in, Magic Leap XR Plug-in, and Windows XR Plug-in.  
+
+Augmented Reality development
+
+    AR Occlusions – In augmented reality computer-generated objects or materials are placed in a 3D space to add information and depth to a scene. Occlusion occurs when one real-world object or wall hides another object from the view in the virtual world to create more realistic experiences in AR games. AR Foundation in Unity can be used to achieve occlusion by applying shaders to plane objects. 
+    AR Lighting and Shadows – We can use virtual lights and cast shadows on them from virtual objects to illuminate a scene and create a realistic look and feel for it. Directional light is used to cast shadows on the real world in which light falls on virtual objects and projects shadows on the floor. Unity's AR Foundation provides different tools to experiment with the range and intensity values to create that rich and immersive environment for the viewer.   
+    Platforms Specific Rendering – Unity for AR VR game development behaves differently on different platforms. Hence, AR foundation offers the users an interface that lets them work with augmented reality platforms in Unity in a multi-platform way. ~\cite{techbooky}
+   
+\subsection{What is Unity?}
+ What Is the Unity Game Engine?
+
+The Unity game engine has often been referred to as the best video game engine for under a million dollars. It was created by Unity Technologies in 2004 as a development tool for their game, GooBall. It was later launched in 2005 at Apple's Worldwide Developers Conference. Today, the Unity game engine flies under the banner of "democratizing game development and enabling everyone to create rich interactive 3D content, " according to the Unity website. It is estimated that there are over 1.3 million registered Unity developers (do names like Cartoon Network, Coca-Cola, Disney, LEGO, or NASA ring a bell?) and that there are over 300,000 active developers monthly. A 2012 survey conducted by video game magazine Game Developer states that 53.1$\%$ of mobile developers reported using Unity to make games. I know what you're thinking: "Gee Mike, you sure listed a lot of numbers, but numbers have only ever brought me heartache and pain." I don't know much about that, but I do agree that it's time to move on to the next section.
+
+The Ease of the Unity Editor
+
+The first thing you will notice when you create a project in Unity is just how visual everything is. This is an engine that focuses a lot on simplifying the game development workflow, and nowhere is that more apparent than with the Unity Editor. The Power of Scripting\\
+There are a great many game engines in existence that have a visual editor. Many of these engines lack the power required to build significant or complex games due to their canned approach to behaviors. With Unity, object behaviors aren't limited to built-in modules that come packaged with the engine. Instead, Unity allows for powerful behaviors written in any of three robust languages: JavaScript, C$\#$, and Boo. Furthermore, all three languages can be used at the same time within a project to allow people of different technology backgrounds to contribute to a project at the same time. The fact that the languages are used as scripts allows for fast compilation times, quick iterations, and flexibility of design. This common language approach to game development ensures that you can begin making games quickly using knowledge you already have (or is easily attained).
+
+One Source to Rule Them All!
+
+Probably the most impressive feature of the Unity engine is the ability to build your projects for multiple platforms with incredible ease.~\cite{informit}
+
+An end-to-end creation platform
+
+\subsection{Unity for AR?}
+Unity has custom resources to bring your immersive vision to life. Our industry-leading software development platform pairs tools purpose-built for Augmented Reality creators and a unified workflow across devices that lets you focus on pushing the boundaries of your imagination.~\cite{unityar}
+
+\vfill
+\pagebreak
+%---------------------------------------------------------------------------------------------------------------------------------
+\section{Setup}
+\begin{enumerate}
+	\item First turn on the computer :D;
+	\item Go to the \href{https://Unity3d.com/pt/get-Unity/download}{Unity} website and click on the button to choose the version of Unity for download:
+	 \begin{figure}[H]
+		\begin{center}
+			\includegraphics[width = 0.75\textwidth]{./figs/passo1.pdf}		
+			\caption{Choose Unity version to.}
+			\label{fig:passo1}
+		\end{center}
+	\end{figure}
+	\item Then choose the individual plan (1) and then go to the Student plan and click sign up (2):
+	\begin{figure}[H]
+		\begin{center}
+			\includegraphics[width = 0.65\textwidth]{./figs/passo2.pdf}		
+			\caption{Choose student version.}
+			\label{fig:passo2}
+		\end{center}
+	\end{figure}
+	\item On this page click Start:
+	\begin{figure}[H]
+		\begin{center}
+			\includegraphics[width = 0.65\textwidth]{./figs/passo3.pdf}		
+			\caption{Click start to register.}
+			\label{fig:passo3}
+		\end{center}
+	\end{figure}
+	\item After download, click on the icon with Admin rights to install:
+	\begin{figure}[H]
+		\begin{center}
+			\includegraphics[width = 0.20\textwidth]{./figs/icon_inst.pdf}		
+			\caption{File.exe for installation - It needs Admin rights.}
+			\label{fig:icon}
+		\end{center}
+	\end{figure} 	
+	\item VUFORiA ~\cite{Vuforia}
+\end{enumerate}
+
+
+
+
+\vfill
+\pagebreak
+%---------------------------------------------------------------------------------------------------------------------------------
+\section{Functionalities}
+
+
+textotextotextotextotextotextotextotextotextotextotextotextotextotextot extotextotextotextotextotextotextotextotexto
+
+\vfill
+\pagebreak
+%_________________________________________________________________
+\subsection{Variables and data structure}
+
+\vfill
+\pagebreak
+
+%---------------------------------------------------------------------------------------------------------------------------------
+\section{Exercises}
+In this section the authors propose two different exercises for the user to try and test his skills. The exercises are made in a step by step guide, so in the end the user will be able to replicate with 100$\%$ accuaricy the experience that the authors present.
+The difficult level of the exercises vaires, the firs one is a more basic one, and the second one is a bit more complex.
+%_________________________________________________________________
+\subsection{Exercise A: More aprochable}
+
+\vfill
+\pagebreak
+%_________________________________________________________________
+\subsection{Exercise B: BIM eletric cabinet}
+
+Volts, current, power, temperature, dimensions, weight
+
+
+\vfill
+\pagebreak
+%---------------------------------------------------------------------------------------------------------------------------------
+\section{Solutions}
+
+
+textotextotextotextotextotextotextotextotextotextotextotextotextotextote xtotextotextotextotextotextotextotextotexto
+
+\vfill
+\pagebreak
+%_________________________________________________________________
+\subsection{Exercise A:}
+
+\vfill
+\pagebreak
+%_________________________________________________________________
+\subsection{Exercise B:}
+
+\vfill
+\pagebreak
+%---------------------------------------------------------------------------------------------------------------------------------
+\section{Challenge}
+\label{challenge}
+
+identificar modulos lab de potencia\\
+da para colocar um video a explicar\\
+
+
+\vfill
+\pagebreak
+%---------------------------------------------------------------------------------------------------------------------------------
+%================================================================================
+% BIBLIOGRAPHY
+%================================================================================
+\section{Bibliography}
+%NOTA: NAO ESQUECER DE COLOCAR A COMPILAR COM BIBLIOGRAFIA!
+%\singlespace
+%\small
+%\nocite{*}
+\bibliographystyle{ieeetr}
+
+\bibliography{refs/report}
+
+\normalsize
+
+
+\vfill
+\pagebreak
+%================================================================================================================================
+\end{document}
