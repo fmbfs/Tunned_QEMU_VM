@@ -311,6 +311,110 @@ qemu command accepts a simple -D switch which can create a log file. So for exam
 
 You can access more logging/debugging options via QEMU Monitor (e.g. qemu -monitor stdio).\\
 
+%----------------------------------------------------------------
+\subsection{Arguments}
+https://www.qemu.org/docs/master/system/invocation.html?highlight=smp
+
+-smp [[cpus=]n][,maxcpus=maxcpus][,sockets=sockets][,dies=dies][,clusters=clusters][,cores=cores][,threads=threads]\\
+
+    Simulate a SMP system with ‘n’ CPUs initially present on the machine type board. On boards supporting CPU hotplug, the optional ‘maxcpus’ parameter can be set to enable further CPUs to be added at runtime. When both parameters are omitted, the maximum number of CPUs will be calculated from the provided topology members and the initial CPU count will match the maximum number. When only one of them is given then the omitted one will be set to its counterpart’s value. Both parameters may be specified, but the maximum number of CPUs must be equal to or greater than the initial CPU count. Product of the CPU topology hierarchy must be equal to the maximum number of CPUs. Both parameters are subject to an upper limit that is determined by the specific machine type chosen.\\
+
+    To control reporting of CPU topology information, values of the topology parameters can be specified. Machines may only support a subset of the parameters and different machines may have different subsets supported which vary depending on capacity of the corresponding CPU targets. So for a particular machine type board, an expected topology hierarchy can be defined through the supported sub-option. Unsupported parameters can also be provided in addition to the sub-option, but their values must be set as 1 in the purpose of correct parsing.\\
+
+    Either the initial CPU count, or at least one of the topology parameters must be specified. The specified parameters must be greater than zero, explicit configuration like “cpus=0” is not allowed. Values for any omitted parameters will be computed from those which are given.\\
+
+    For example, the following sub-option defines a CPU topology hierarchy (2 sockets totally on the machine, 2 cores per socket, 2 threads per core) for a machine that only supports sockets/cores/threads. Some members of the option can be omitted but their values will be automatically computed:\\
+
+    -smp 8,sockets=2,cores=2,threads=2,maxcpus=8\\
+
+    The following sub-option defines a CPU topology hierarchy (2 sockets totally on the machine, 2 dies per socket, 2 cores per die, 2 threads per core) for PC machines which support sockets/dies/cores/threads. Some members of the option can be omitted but their values will be automatically computed:\\
+
+    -smp 16,sockets=2,dies=2,cores=2,threads=2,maxcpus=16\\
+
+    The following sub-option defines a CPU topology hierarchy (2 sockets totally on the machine, 2 clusters per socket, 2 cores per cluster, 2 threads per core) for ARM virt machines which support sockets/clusters /cores/threads. Some members of the option can be omitted but their values will be automatically computed:\\
+
+    -smp 16,sockets=2,clusters=2,cores=2,threads=2,maxcpus=16\\
+
+    Historically preference was given to the coarsest topology parameters when computing missing values (ie sockets preferred over cores, which were preferred over threads), however, this behaviour is considered liable to change. Prior to 6.2 the preference was sockets over cores over threads. Since 6.2 the preference is cores over sockets over threads.\\
+
+    For example, the following option defines a machine board with 2 sockets of 1 core before 6.2 and 1 socket of 2 cores after 6.2:\\
+
+    -smp 2\\
+
+-numa node[,mem=size][,cpus=firstcpu[-lastcpu]][,nodeid=node][,initiator=initiator]\\
+-numa node[,memdev=id][,cpus=firstcpu[-lastcpu]][,nodeid=node][,initiator=initiator]\\
+-numa dist,src=source,dst=destination,val=distance\\
+-numa cpu,node-id=node[,socket-id=x][,core-id=y][,thread-id=z]\\
+-numa hmat-lb,initiator=node,target=node,hierarchy=hierarchy,data-type=tpye[,latency=lat][,bandwidth=bw]\\
+-numa hmat-cache,node-id=node,size=size,level=level[,associativity=str][,policy=str][,line=size]\\
+
+    Define a NUMA node and assign RAM and VCPUs to it. Set the NUMA distance from a source node to a destination node. Set the ACPI Heterogeneous Memory Attributes for the given nodes.\\
+
+    Legacy VCPU assignment uses ‘cpus’ option where firstcpu and lastcpu are CPU indexes. Each ‘cpus’ option represent a contiguous range of CPU indexes (or a single VCPU if lastcpu is omitted). A non-contiguous set of VCPUs can be represented by providing multiple ‘cpus’ options. If ‘cpus’ is omitted on all nodes, VCPUs are automatically split between them.\\
+
+    For example, the following option assigns VCPUs 0, 1, 2 and 5 to a NUMA node:\\
+
+    -numa node,cpus=0-2,cpus=5\\
+
+    ‘cpu’ option is a new alternative to ‘cpus’ option which uses ‘socket-id|core-id|thread-id’ properties to assign CPU objects to a node using topology layout properties of CPU. The set of properties is machine specific, and depends on used machine type/’smp’ options. It could be queried with ‘hotpluggable-cpus’ monitor command. ‘node-id’ property specifies node to which CPU object will be assigned, it’s required for node to be declared with ‘node’ option before it’s used with ‘cpu’ option.\\
+
+    For example:\\
+
+    -M pc \\
+    -smp 1,sockets=2,maxcpus=2 \\
+    -numa node,nodeid=0 -numa node,nodeid=1 \\
+    -numa cpu,node-id=0,socket-id=0 -numa cpu,node-id=1,socket-id=1\\
+
+    Legacy ‘mem’ assigns a given RAM amount to a node (not supported for 5.1 and newer machine types). ‘memdev’ assigns RAM from a given memory backend device to a node. If ‘mem’ and ‘memdev’ are omitted in all nodes, RAM is split equally between them.\\
+
+    ‘mem’ and ‘memdev’ are mutually exclusive. Furthermore, if one node uses ‘memdev’, all of them have to use it.\\
+
+    ‘initiator’ is an additional option that points to an initiator NUMA node that has best performance (the lowest latency or largest bandwidth) to this NUMA node. Note that this option can be set only when the machine property ‘hmat’ is set to ‘on’.\\
+
+    Following example creates a machine with 2 NUMA nodes, node 0 has CPU. node 1 has only memory, and its initiator is node 0. Note that because node 0 has CPU, by default the initiator of node 0 is itself and must be itself.\\
+
+    -machine hmat=on \\
+    -m 2G,slots=2,maxmem=4G \\
+    -object memory-backend-ram,size=1G,id=m0 \\
+    -object memory-backend-ram,size=1G,id=m1 \\
+    -numa node,nodeid=0,memdev=m0 \
+    -numa node,nodeid=1,memdev=m1,initiator=0 \\\
+    -smp 2,sockets=2,maxcpus=2  \\
+    -numa cpu,node-id=0,socket-id=0 \\
+    -numa cpu,node-id=0,socket-id=1\\
+
+    source and destination are NUMA node IDs. distance is the NUMA distance from source to destination. The distance from a node to itself is always 10. If any pair of nodes is given a distance, then all pairs must be given distances. Although, when distances are only given in one direction for each pair of nodes, then the distances in the opposite directions are assumed to be the same. If, however, an asymmetrical pair of distances is given for even one node pair, then all node pairs must be provided distance values for both directions, even when they are symmetrical. When a node is unreachable from another node, set the pair’s distance to 255.\\
+
+    Note that the -numa option doesn’t allocate any of the specified resources, it just assigns existing resources to NUMA nodes. This means that one still has to use the -m, -smp options to allocate RAM and VCPUs respectively.\\
+
+    Use ‘hmat-lb’ to set System Locality Latency and Bandwidth Information between initiator and target NUMA nodes in ACPI Heterogeneous Attribute Memory Table (HMAT). Initiator NUMA node can create memory requests, usually it has one or more processors. Target NUMA node contains addressable memory.\\
+
+    In ‘hmat-lb’ option, node are NUMA node IDs. hierarchy is the memory hierarchy of the target NUMA node: if hierarchy is ‘memory’, the structure represents the memory performance; if hierarchy is ‘first-level|second-level|third-level’, this structure represents aggregated performance of memory side caches for each domain. type of ‘data-type’ is type of data represented by this structure instance: if ‘hierarchy’ is ‘memory’, ‘data-type’ is ‘access|read|write’ latency or ‘access|read|write’ bandwidth of the target memory; if ‘hierarchy’ is ‘first-level|second-level|third-level’, ‘data-type’ is ‘access|read|write’ hit latency or ‘access|read|write’ hit bandwidth of the target memory side cache.\\
+
+    lat is latency value in nanoseconds. bw is bandwidth value, the possible value and units are NUM[M|G|T], mean that the bandwidth value are NUM byte per second (or MB/s, GB/s or TB/s depending on used suffix). Note that if latency or bandwidth value is 0, means the corresponding latency or bandwidth information is not provided.\\
+
+    In ‘hmat-cache’ option, node-id is the NUMA-id of the memory belongs. size is the size of memory side cache in bytes. level is the cache level described in this structure, note that the cache level 0 should not be used with ‘hmat-cache’ option. associativity is the cache associativity, the possible value is ‘none/direct(direct-mapped)/complex(complex cache indexing)’. policy is the write policy. line is the cache Line size in bytes.\\
+
+    For example, the following options describe 2 NUMA nodes. Node 0 has 2 cpus and a ram, node 1 has only a ram. The processors in node 0 access memory in node 0 with access-latency 5 nanoseconds, access-bandwidth is 200 MB/s; The processors in NUMA node 0 access memory in NUMA node 1 with access-latency 10 nanoseconds, access-bandwidth is 100 MB/s. And for memory side cache information, NUMA node 0 and 1 both have 1 level memory cache, size is 10KB, policy is write-back, the cache Line size is 8 bytes:\\
+
+    -machine hmat=on \\
+    -m 2G \\
+    -object memory-backend-ram,size=1G,id=m0 \\
+    -object memory-backend-ram,size=1G,id=m1 \\
+    -smp 2,sockets=2,maxcpus=2 \\
+    -numa node,nodeid=0,memdev=m0 \\
+    -numa node,nodeid=1,memdev=m1,initiator=0 \\
+    -numa cpu,node-id=0,socket-id=0 \\
+    -numa cpu,node-id=0,socket-id=1 \\
+    -numa hmat-lb,initiator=0,target=0,hierarchy=memory,data-type=access-latency,latency=5 \\
+    -numa hmat-lb,initiator=0,target=0,hierarchy=memory,data-type=access-bandwidth,bandwidth=200M \\
+    -numa hmat-lb,initiator=0,target=1,hierarchy=memory,data-type=access-latency,latency=10 \\
+    -numa hmat-lb,initiator=0,target=1,hierarchy=memory,data-type=access-bandwidth,bandwidth=100M \\
+    -numa hmat-cache,node-id=0,size=10K,level=1,associativity=direct,policy=write-back,line=8 \\
+    -numa hmat-cache,node-id=1,size=10K,level=1,associativity=direct,policy=write-back,line=8\\
+
+
+
 \vfill
 \pagebreak
 %----------------------------------------------------
@@ -509,6 +613,7 @@ https://www.youtube.com/watch?v=zUYCXBlUcYI\\
 19:57 talks about how insecure this is.\\
 there is eBPF and BPF.\\
 
+HTOP as well\\
 
 %-----------------------------------------------
 \subsection{Tracing}
@@ -729,29 +834,6 @@ O tempo mostrado é o que demorou la dentro.\\
 
 Start just enables tracing, record puts it into a file.
 
-%------------------------------------------------------------------
-\subsection{NUMA}
-Non Uniform Memory Access\\
-See if it is worth explore.\\
-
-https://www.youtube.com/watch?v=w3yT8zJe0Uw\\
-13'33''
-
-See RT-Tests. They are anotehr set of tools.\\
-
-Basic Definition\\
-
-A node refers to the physical box, i.e. cpu sockets with north/south switches connecting memory systems and extension cards, e.g. disks, nics, and accelerators\\
-
-A cpu socket is the connector to these systems and the cpu cores, you plug in chips with multiple cpu cores. This creates a split in the cache memory space, hence the need for NUMA aware code.\\
-
-A cpu core is an independent computing with its own computing pipeline, logical units, and memory controller. Each cpu core will be able to service a number of cpu threads, each having an independent instruction stream but sharing the cores memory controller and other logical units.\\
-
-CPUs (chips) and each chip may have multiple cores. Each core can execute one (or sometimes multiple) stream of instructions.\\
-
-
-\vfill
-\pagebreak
 
 %------------------------------------------------------------------
 \subsection{No HZ}
@@ -790,12 +872,16 @@ The reports we can let them run for a while or time it or just apend it to ls
 \pagebreak
 %------------------------------------------------------------------
 \section{HOST preparation}
+https://theydiffer.com/difference-between-a-cpu-and-a-core/\\
+One thing to consider is that a core is inside a CPU, and depending on its architectural design, a CPU may have multiple cores.\\
+
 \begin{enumerate}
 	\item run check.sh to see if IOMMU and VT-D is enabled and suported in your chip and Ensuring that the groups are valid, and confirm that iommu is on: dmesg | grep -i -e DMAR -e IOMMU;
 	\item 
 \end{enumerate}
 %...........................................
 \subsection{Multi Threading}
+https://johnysswlab.com/crash-course-introduction-to-parallelism-multithreading/\\
 Multi threading is possible on a single CPU machine, just like multiple programs running at once on your PC. The CPU time is just shared between all the processes and threads. Obviously there is no gain if you split up a single calculation into several threads on a single CPU system, but on the other hand there can be other requirements than pure calculation power wich lead to a multi threaded program design. Simple example: a GUI program, updating/repainting the GUI in one thread and performing whatever action the user requests in another thread.\\
 
 Real world examples of parallelism:\\
@@ -807,7 +893,9 @@ Real world examples of parallelism:\\
 	\item CI scripts working on large code bases (e.g. doing clang-format) can be speed up on multiple core CPU's easily.
 \end{itemize}
 
-Multi-threading predates multi.core CPU's, the 'classical' approach multithread teaching is starting with a single-core and showing all possible execution orders for N processes competing for compute time. JAVAPOINT aqui\\
+
+https://www.javatpoint.com/multithreading-models-in-operating-system\\
+Multi-threading predates multi.core CPU's, the 'classical' approach multithread teaching is starting with a single-core and showing all possible execution orders for N processes competing for compute time.\\
 Multiple threads (and processes) exist in single-core computers, anything before 2004 was single-core, and they ran a lot of programs with a lot of threads. You need to picture a thread (or process) as a unit requesting compute time to the operating system, it does not matter the amount of threads/processes and cores, the logic is the same: the operative system distributes the available computer power to the demanding threads and processes.\\
 
 So what are some real world examples where we can use parallelism in projects ?\\
@@ -816,20 +904,105 @@ Simulations have been using parallelism since inception.\\
 
 
 %...........................................
-\subsection{CPU PINNING}
+\subsection{CPU PINNING affinity is the same}
+https://wiki.archlinux.org/title/PCI$\_$passthrough$\_$via$\_$OVMF$\#$Prerequisites\\
+
 if we want to have a really good performance this is it.\\
 We allocate a CPU to work on a specific task, it prevents unpredicted process to disturb the normal behaviour.\\
-System managment threads will still run on this CPU. And it is ok, because some are for the linux kernel, and are needed.
+System managment threads will still run on this CPU. And it is ok, because some are for the linux kernel, and are needed.\\
 
 See cpu topology:\\
 lscpu -e\\
 
+As such, the local CPU cache benefits (L1/L2/L3) are lost each time the host scheduler reschedules the virtual CPU thread on a different physical CPU. This can noticeably harm performance on the guest. CPU pinning aims to resolve this by limiting which physical CPUs the virtual CPUs are allowed to run on. The ideal setup is a one to one mapping such that the virtual CPU cores match physical CPU cores while taking hyperthreading/SMT into account. \\
 
-teste=\$(echo \$ola | awk '{print \$5}')\\
-arr=(\$(echo \${teste} | tr ":" $"\backslash n"$))
+Hyper-threading/SMT is simply a very efficient way of running two threads on one CPU core at any given time.\\
+You will want to take into consideration that the CPU pinning you choose will greatly depend on what you do with your host while your virtual machine is running. \\
+
+If l3 s equal just need to pair it based on the threads, if L3 is splitted we need to group by L3 group\\
+do man taskset to have more straw\\
+taskset antes do comando qemu resolve esta merda\\
+it is big endian for high byte transfered first\\
+https://www.allaboutcircuits.com/uploads/articles/techart$\_$endian$\_$3.JPG\\
+It has inverser priority 1000000 is the 8th cpu, while 0000001 is the first\\
+Convert that to hex\\
+
+ver o process id do qemu \\
+ps -a | grep qemu
+
+lstopo --of console --no-io --no-caches\\
+
+-smp [cpus=]n[,maxcpus=cpus][,cores=cores][,threads=threads][,dies=dies][,sockets=sockets]
+                set the number of CPUs to 'n' [default=1]
+                maxcpus= maximum number of total cpus, including
+                offline CPUs for hotplug, etc
+                cores= number of CPU cores on one socket (for PC, it's on one die)
+                threads= number of threads on one CPU core
+                dies= number of CPU dies on one socket (for PC only)
+                sockets= number of discrete sockets in the system
+
+usar o system monitor para apanhar o uso do CPU
+
+htop PID para filtrar logo \\
+
+Dont forget that we need to pin a different CPU for each machine that we want to run simultaneous.\\
+
+try this?\\
+for i in 0 1 2 3; do
+    vcpu="\$vcpu -vcpu vcpunum=\$i,affinity=\$i"
+done\\
+
+\textbf{Problem?}\\
+The smp when used to for 1 process, 4 cores, 8 threads, gives worst performance than 1 processa 1 core. Why??\\
+
+%----------------------------------------------------
+\subsubsection{NUMA}
+Non Uniform Memory Access\\
+See if it is worth explore.\\
+
+https://www.youtube.com/watch?v=w3yT8zJe0Uw\\
+13'33''
+
+See RT-Tests. They are anotehr set of tools.\\
+
+Basic Definition\\
+
+A node refers to the physical box, i.e. cpu sockets with north/south switches connecting memory systems and extension cards, e.g. disks, nics, and accelerators\\
+
+A cpu socket is the connector to these systems and the cpu cores, you plug in chips with multiple cpu cores. This creates a split in the cache memory space, hence the need for NUMA aware code.\\
+
+A cpu core is an independent computing with its own computing pipeline, logical units, and memory controller. Each cpu core will be able to service a number of cpu threads, each having an independent instruction stream but sharing the cores memory controller and other logical units.\\
+
+CPUs (chips) and each chip may have multiple cores. Each core can execute one (or sometimes multiple) stream of instructions.\\
+
+numastat -c qemu (run this with the VM running)
+
+Generally, optimal performance on NUMA systems is achieved by limiting guest size to the amount of resources on a single NUMA node. Avoid unnecessarily splitting resources across NUMA nodes.\\
+Use the numastat tool to view per-NUMA-node memory statistics for processes and the operating system.\\
+
+\textbf{NUMA vCPU Pinning}\\
+ vCPU pinning provides similar advantages to task pinning on bare metal systems. Since vCPUs run as user-space tasks on the host operating system, pinning increases cache efficiency. One example of this is an environment where all vCPU threads are running on the same physical socket, therefore sharing a L3 cache domain.\\
+Combining vCPU pinning with numatune can avoid NUMA misses. The performance impacts of NUMA misses are significant, generally starting at a 10$\%$ performance hit or higher. vCPU pinning and numatune should be configured together.\\
+If the virtual machine is performing storage or network I/O tasks, it can be beneficial to pin all vCPUs and memory to the same physical socket that is physically connected to the I/O adapter. \\
+
+The lstopo tool can be used to visualize NUMA topology. It can also help verify that vCPUs are binding to cores on the same physical socket. Refer to the following Knowledgebase article for more information on lstopo: https://access.redhat.com/solutions/62879\\
+
+Pinning causes increased complexity when there are many more vCPUs than physical cores. \\
+
+The easiest and most significant way to improve performance so far is to use CPU pinning in conjunction with a host-passthrough CPU mode. \\
 
 
+%----------------------------------------------------
+\subsubsection{Hyper threading enabled}
+enable enlightenments qemu\\
+https://bbs.archlinux.org/viewtopic.php?id=233713\\
+https://blog.wikichoon.com/2014/07/enabling-hyper-v-enlightenments-with-kvm.html\\
 
+os novos parametros alocados ao cpu...\\
+They enable Hyper-V enlightenments and those serious decrease CPU bottleneck.
+
+\vfill
+\pagebreak
 %...........................................
 \subsection{GPU ISOLATION}
 Warning: Once you reboot after this procedure, whatever GPU you have configured will no longer be usable on the host until you reverse the manipulation. Make sure the GPU you intend to use on the host is properly configured before doing this - your motherboard should be set to display using the host GPU.\\

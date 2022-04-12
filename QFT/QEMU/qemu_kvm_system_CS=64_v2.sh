@@ -30,26 +30,40 @@ set_variables(){
 	#Virtual disks (VD) path
 	QEMU_VD="${BASE_DIR}/Virtual_Disks"
 
-	#OS --> Windows 10
+	## QEMU name and OS --> Windows 10
 	OS_ISO="${IMAGES_DIR}/Win10_21H2_English_x64.iso"
 	VD_NAME="${ARGUMENT2}.qcow2"
 	OS_IMG="${QEMU_VD}/${VD_NAME}"
 
-	#QEMU
+    # Name
+    OPTS="$OPTS -name ${ARGUMENT2}"
+
+    # Processor
+    CORES="4"
+	THREADS="2"
+    OPTS="$OPTS -cpu max,hv_relaxed,hv_spinlocks=0x1fff,hv_vapic,hv_time"
+    #OPTS="$OPTS -smp cores=${CORES},threads=${THREADS}"
+    OPTS="$OPTS -enable-kvm"
+
+    # Machine
+    #see what is type q35
+    OPTS="$OPTS -machine accel=kvm"
+
+    # Hardware clock
+	OPTS="$OPTS -rtc base=localtime,clock=host"
+    
+	# IMAGE
 	Disk_Size="40G"
 	Cluster_Size="64K"
 	L2_Cache_Size="5M"
-	#1Mb for 8Gb using 64Kb
-	#RAM
-	VD_RAM="8G"
-
-	#CACHE CLEAN IN SECONDS
+    #1Mb for 8Gb using 64Kb
+    #CACHE CLEAN IN SECONDS
 	Cache_Clean_Interval="60"
-
-	#CPU Tunning
-	#SMP="8"
-	CORES="4"
-	THREADS="2"
+    OPTS="$OPTS -drive file=${OS_IMG},l2-cache-size=${L2_Cache_Size},cache=writethrough,cache-clean-interval=${Cache_Clean_Interval}"
+    
+    # RAM
+    VD_RAM="8G"  
+	OPTS="$OPTS -m ${VD_RAM}"
 }
 
 #HELP MENU
@@ -120,7 +134,7 @@ check_file(){
 create_image_os(){
 	echo "Creating Virtual Disk...";
 	qemu-img create -f qcow2 -o cluster_size=$Cluster_Size,lazy_refcounts=on $OS_IMG $Disk_Size
-	exit 0;
+	exit 1;
 }
 
 #LAUNCH QEMU-KVM
@@ -129,36 +143,23 @@ os_launch(){
 	echo "Launching OS...";
 	#hexadecimal afinity for cpu placement
 	taskset 0x80 \
-	qemu-system-x86_64 \
-	-cpu max,kvm=off,hv_relaxed,hv_spinlocks=0x1fff,hv_vapic,hv_time \
-	-enable-kvm \
-	-machine accel=kvm \
-	-name "${ARGUMENT2}" \
-	-rtc base=localtime,clock=host \
-	-drive file=${OS_IMG},l2-cache-size=${L2_Cache_Size},cache=writethrough,cache-clean-interval=${Cache_Clean_Interval} -m ${VD_RAM}
-
+    qemu-system-x86_64 $OPTS
 	#sem o smp faz 1 proc 1 core
 	#com smp faz 4 cores e 8 threads...
-	#-smp cores=${CORES},threads=${THREADS} \
+	# \
 	# we see it in lstopo --of console --no-io --no-caches
 	#we pin core 0 
 	#-vga virtio -display gtk,gl=on\
-	exit 0;
+	exit 1;
 }
 
 #INTALL THE OPERATING SYSTEM N THE VIRTUAL MACHINE
 os_install(){
 	cd ${IMAGES_DIR}
 	echo "Installing OS...";
-	taskset 0x80 \
-	qemu-system-x86_64 -cpu max,kvm=off,hv_relaxed,hv_spinlocks=0x1fff,hv_vapic,hv_time \
-	-smp cores=${CORES},threads=${THREADS} \
-	-enable-kvm \
-	-cdrom ${OS_ISO}\
-	-name "${ARGUMENT2}"\
-	-rtc base=localtime,clock=host\
-	-drive file=${OS_IMG},l2-cache-size=${L2_Cache_Size},cache=writethrough,cache-clean-interval=${Cache_Clean_Interval} -m ${VD_RAM}
-	exit 0;
+	qemu-system-x86_64 $OPTS \
+    -cdrom ${OS_ISO}
+	exit 1;
 }
 
 #--------------------------------------------------------------------
@@ -166,3 +167,21 @@ os_install(){
 set_variables
 process_args
 check_file
+
+
+
+
+
+
+
+# Turn off QEMU-window video
+#OPTS="$OPTS -vga none"
+
+# Graphic card passthrough (AMD Radeon R9 280x)
+#OPTS="$OPTS -device vfio-pci,host=01:00.0,multifunction=on"
+#OPTS="$OPTS -device vfio-pci,host=01:00.1"
+
+# System drive
+#OPTS="$OPTS -drive id=disk0,if=none,cache=none,format=raw,file=/mnt/ssd-linux/winvm/img"
+#OPTS="$OPTS -device driver=virtio-scsi-pci,id=scsi0"
+#OPTS="$OPTS -device scsi-hd,drive=disk0"
