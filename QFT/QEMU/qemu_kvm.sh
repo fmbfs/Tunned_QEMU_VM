@@ -38,6 +38,11 @@ set_variables(){
     # Processor
     CORES="4"
 	THREADS="2"
+<<<<<<< HEAD
+=======
+	#-smp 2 cores=${CORES},threads=${THREADS} there is no need.
+
+>>>>>>> testes
 	# IMAGE
 	Disk_Size="40G"
 	Cluster_Size="64K"
@@ -49,30 +54,52 @@ set_variables(){
     VD_RAM="8G"  
 
 	#Pinned CPU
+<<<<<<< HEAD
 	CPU_PINNED="7"
+=======
+	CPU_PINNED="3,7"
+>>>>>>> testes
 
 	#QEMU ARGUMENTS
 	QEMU_ARGS=(
 				"-name" "${ARGUMENT2}" \
 				"-cpu" "max,hv_relaxed,hv_spinlocks=0x1fff,hv_vapic,hv_time" \
+<<<<<<< HEAD
 				"-smp" "cores=${CORES},threads=${THREADS}" \
+=======
+>>>>>>> testes
 				"-enable-kvm" \
 				"-machine" "accel=kvm" \
 				"-m" "${VD_RAM}" \
 				"-rtc" "base=localtime,clock=host" \
 				"-drive" "file=${OS_IMG},l2-cache-size=${L2_Cache_Size},cache=writethrough,cache-clean-interval=${Cache_Clean_Interval}" \
+<<<<<<< HEAD
+=======
+				#"-vga"  "virtio" \
+				#"-display" "gtk,gl=on" 
+>>>>>>> testes
 			)
 }
 
 #HELP MENU
 show_help(){
 	echo ""
+<<<<<<< HEAD
     echo "./create_system.sh [options]"
     echo "Options:"
     echo "  -osi -> Install the OS via CDROM"
     echo "  -osc -> Creates a qcow2 image for OS"
     echo "  -osl -> Launch qemu OS machine."
     echo "  -help -> Show this help."
+=======
+    echo "./qemu_kvm.sh [options]"
+    echo "Options:"
+    echo "  -i -> Install the OS via CDROM"
+    echo "  -c -> Creates a qcow2 image for OS"
+    echo "  -l -> Launch qemu OS machine."
+	echo "  -lp -> Launch qemu OS machine with Pinned CPU."
+    echo "  -h -> Show this help."
+>>>>>>> testes
     echo ""
     exit 0
 }
@@ -85,6 +112,7 @@ process_args(){
 		show_help
 		shift
 		;;
+<<<<<<< HEAD
 	"-osi")
 		os_install
 		shift
@@ -98,11 +126,34 @@ process_args(){
 		shift
 		;;
 	"-help")
+=======
+	"-i")
+		os_install
+		shift
+		;;
+	"-c")
+		create_image_os
+		shift
+		;;
+	"-l")
+		os_launch
+		shift
+		;;
+	"-lp")
+		os_launch_pinned
+		shift
+		;;
+	"-h")
+>>>>>>> testes
 		show_help
 		shift
 		;;
 	*)
+<<<<<<< HEAD
 		echo "Unrecognised option"
+=======
+		echo "Unrecognised option. -h for help."
+>>>>>>> testes
 		shift
 		;;
 	esac	
@@ -139,10 +190,26 @@ create_image_os(){
 os_launch(){
 	cd ${IMAGES_DIR}
 	echo "Launching OS..."
+<<<<<<< HEAD
     echo "$QEMU_ARGS"
 	#hexadecimal afinity for cpu placement
     taskset -c $CPU_PINNED \
     qemu-system-x86_64 $QEMU_ARGS
+=======
+    echo "${QEMU_ARGS[@]}"
+    qemu-system-x86_64 ${QEMU_ARGS[@]}
+	exit 1;
+}
+
+#LAUNCH QEMU-KVM
+os_launch_pinned(){
+	cd ${IMAGES_DIR}
+	echo "Launching OS with pinned CPU: ${CPU_PINNED}..."
+    echo "${QEMU_ARGS[@]}"
+	#hexadecimal afinity for cpu placement
+    taskset -c $CPU_PINNED \
+    qemu-system-x86_64 ${QEMU_ARGS[@]}
+>>>>>>> testes
 	exit 1;
 }
 

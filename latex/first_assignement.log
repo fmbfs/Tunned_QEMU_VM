@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.14159265-2.6-1.40.20 (TeX Live 2019/Debian) (preloaded format=pdflatex 2022.3.31)  12 APR 2022 09:58
+This is pdfTeX, Version 3.14159265-2.6-1.40.20 (TeX Live 2019/Debian) (preloaded format=pdflatex 2022.3.31)  13 APR 2022 16:33
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -2287,493 +2287,607 @@ Underfull \hbox (badness 10000) in paragraph at lines 901--904
  []
 
 
-Overfull \hbox (12.8443pt too wide) in paragraph at lines 908--909
-\OT1/cmr/m/n/14.4 https://wiki.archlinux.org/title/PCI$[]$passthrough$[]$via$[]
-$OVMF$#$Prerequisites 
+Overfull \hbox (69.92519pt too wide) in paragraph at lines 907--910
+\OT1/cmr/m/n/14.4 Why do we want cpu pin-ning? https://www.youtube.com/watch?v=
+pDWCgmvcGPY 
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 908--909
-
- []
-
-
-Underfull \hbox (badness 10000) in paragraph at lines 910--913
+Underfull \hbox (badness 10000) in paragraph at lines 907--910
 
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 914--916
+Overfull \hbox (29.8443pt too wide) in paragraph at lines 912--913
+[]\OT1/cmr/m/n/14.4 https://wiki.archlinux.org/title/PCI$[]$passthrough$[]$via$
+[]$OVMF$#$Prerequisites 
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 912--913
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 914--917
 
  []
 
 [37]
-Underfull \hbox (badness 10000) in paragraph at lines 917--918
+Underfull \hbox (badness 10000) in paragraph at lines 918--920
 
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 919--921
+Underfull \hbox (badness 10000) in paragraph at lines 921--922
 
  []
 
 
-Overfull \hbox (0.95003pt too wide) in paragraph at lines 922--929
+Underfull \hbox (badness 10000) in paragraph at lines 923--925
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 926--927
+
+ []
+
+
+Overfull \hbox (0.95003pt too wide) in paragraph at lines 928--935
 \OT1/cmr/m/n/14.4 https://www.allaboutcircuits.com/uploads/articles/techart$[]$
 endian$[]$3.JPG 
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 922--929
+Underfull \hbox (badness 10000) in paragraph at lines 928--935
+
+ []
+
+[38]
+Underfull \hbox (badness 10000) in paragraph at lines 939--940
 
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 933--934
-
- []
-
-
-Overfull \hbox (131.86324pt too wide) in paragraph at lines 935--943
+Overfull \hbox (131.86324pt too wide) in paragraph at lines 941--949
 []\OT1/cmr/m/n/14.4 -smp [cpus=]n[,maxcpus=cpus][,cores=cores][,threads=threads
 ][,dies=dies][,sockets=sockets]
  []
 
-[38]
-Underfull \hbox (badness 10000) in paragraph at lines 946--947
+
+Underfull \hbox (badness 10000) in paragraph at lines 952--953
 
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 948--949
+Underfull \hbox (badness 10000) in paragraph at lines 954--955
 
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 950--954
+Underfull \hbox (badness 10000) in paragraph at lines 956--960
 
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 958--960
+Underfull \hbox (badness 10000) in paragraph at lines 961--963
 
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 964--965
+Underfull \hbox (badness 10000) in paragraph at lines 964--967
 
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 966--967
-
- []
-
-
-Underfull \hbox (badness 10000) in paragraph at lines 968--969
-
- []
-
-
-Underfull \hbox (badness 10000) in paragraph at lines 970--971
-
- []
-
-
-Underfull \hbox (badness 10000) in paragraph at lines 972--973
+Underfull \hbox (badness 10000) in paragraph at lines 968--973
 
  []
 
 [39]
-Underfull \hbox (badness 10000) in paragraph at lines 974--975
+Underfull \hbox (badness 10000) in paragraph at lines 974--976
 
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 978--980
+Underfull \hbox (badness 10000) in paragraph at lines 977--979
 
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 981--985
+Underfull \hbox (badness 10000) in paragraph at lines 980--985
 
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 986--987
+Underfull \hbox (badness 10000) in paragraph at lines 986--989
 
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 988--989
+Underfull \hbox (badness 10000) in paragraph at lines 990--999
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 1000--1004
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 1005--1006
 
  []
 
 [40]
-Underfull \hbox (badness 10000) in paragraph at lines 990--991
+Underfull \hbox (badness 10000) in paragraph at lines 1007--1012
 
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 995--998
+Underfull \hbox (badness 10000) in paragraph at lines 1013--1020
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 1021--1028
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 1029--1030
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 1032--1035
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 1036--1040
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 1041--1044
+
+ []
+
+[41]
+Underfull \hbox (badness 10000) in paragraph at lines 1048--1049
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 1050--1051
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 1052--1053
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 1054--1055
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 1056--1057
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 1058--1059
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 1062--1064
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 1065--1069
+
+ []
+
+[42]
+Underfull \hbox (badness 10000) in paragraph at lines 1070--1071
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 1072--1073
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 1074--1075
+
+ []
+
+
+Overfull \hbox (3.55653pt too wide) in paragraph at lines 1076--1079
+\OT1/cmr/m/n/14.4 20minutos do video https://www.youtube.com/watch?v=pDWCgmvcGP
+Y 
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 1082--1085
+
+ []
+
+[43]
+Underfull \hbox (badness 10000) in paragraph at lines 1099--1102
 \OT1/cmr/m/n/14.4 https://blog.wikichoon.com/2014/07/enabling-hyper-v-enlighten
 ments-
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 995--998
+Underfull \hbox (badness 10000) in paragraph at lines 1099--1102
 
  []
 
-[41]
-Underfull \hbox (badness 10000) in paragraph at lines 1006--1007
-
- []
-
-
-Underfull \hbox (badness 10000) in paragraph at lines 1008--1009
-
- []
-
-[42]
-Underfull \hbox (badness 10000) in paragraph at lines 1016--1020
-
- []
-
-[43] [44]
-Underfull \hbox (badness 10000) in paragraph at lines 1055--1057
+[44]
+Underfull \hbox (badness 10000) in paragraph at lines 1118--1119
 
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 1058--1067
+Underfull \hbox (badness 10000) in paragraph at lines 1120--1121
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 1136--1138
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 1139--1141
 
  []
 
 [45]
-Underfull \hbox (badness 10000) in paragraph at lines 1068--1069
+Underfull \hbox (badness 10000) in paragraph at lines 1142--1143
+[]\OT1/cmr/m/n/14.4 https://www.kernel.org/doc/html/latest/admin-guide/kernel-
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 1142--1143
+
+ []
+
+[46]
+Underfull \hbox (badness 10000) in paragraph at lines 1151--1155
+
+ []
+
+[47] [48]
+Underfull \hbox (badness 10000) in paragraph at lines 1190--1192
 
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 1079--1080
+Underfull \hbox (badness 10000) in paragraph at lines 1193--1202
+
+ []
+
+[49]
+Underfull \hbox (badness 10000) in paragraph at lines 1203--1204
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 1214--1215
 \OT1/cmr/m/n/14.4 -name 'clus-ter' -rtc base=localtime,clock=host -drive
  []
 
 
-Overfull \hbox (121.52267pt too wide) in paragraph at lines 1079--1080
+Overfull \hbox (121.52267pt too wide) in paragraph at lines 1214--1215
 \OT1/cmr/m/n/14.4 file=/home/franciscosantos/Desktop/QEMU/Virtual$[]$Disks/disk
 2.qcow2,cache=writethrough
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 1083--1086
+Underfull \hbox (badness 10000) in paragraph at lines 1218--1221
 
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 1087--1113
+Underfull \hbox (badness 10000) in paragraph at lines 1222--1248
 
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 1087--1113
+Underfull \hbox (badness 10000) in paragraph at lines 1222--1248
 
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 1087--1113
+Underfull \hbox (badness 10000) in paragraph at lines 1222--1248
 
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 1087--1113
+Underfull \hbox (badness 10000) in paragraph at lines 1222--1248
 
  []
 
-[46]
-Underfull \hbox (badness 6001) in paragraph at lines 1114--1116
+[50]
+Underfull \hbox (badness 6001) in paragraph at lines 1249--1251
 \OT1/cmr/m/n/14.4 IF UEFI we have to change the xml file. See book-mark
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 1114--1116
+Underfull \hbox (badness 10000) in paragraph at lines 1249--1251
 
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 1117--1130
+Underfull \hbox (badness 10000) in paragraph at lines 1252--1265
 
  []
 
-[47]
-Underfull \hbox (badness 2846) in paragraph at lines 1136--1142
+[51]
+Underfull \hbox (badness 2846) in paragraph at lines 1271--1277
 \OT1/cmr/m/n/14.4 qemu-system-x86$[]$64 -name 'dummy3' -cpu max -enable-kvm -sm
 p
  []
 
 
-Overfull \hbox (308.58034pt too wide) in paragraph at lines 1136--1142
+Overfull \hbox (308.58034pt too wide) in paragraph at lines 1271--1277
 \OT1/cmr/m/n/14.4 cores=1,threads=20 -drive file=/home/franciscosantos/Desktop/
 QEMU/Virtual$[]$Disks/snapshot.qcow2,cache=writethrough
  []
 
 
-Underfull \hbox (badness 2846) in paragraph at lines 1143--1152
+Underfull \hbox (badness 2846) in paragraph at lines 1278--1287
 \OT1/cmr/m/n/14.4 qemu-system-x86$[]$64 -name 'dummy3' -cpu max -enable-kvm -sm
 p
  []
 
 
-Underfull \hbox (badness 7326) in paragraph at lines 1143--1152
+Underfull \hbox (badness 7326) in paragraph at lines 1278--1287
 \OT1/cmr/m/n/14.4 Desktop/QEMU/Virtual$[]$Disks/snapshot.qcow2,cache=writethrou
 gh -m
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 1153--1157
+Underfull \hbox (badness 10000) in paragraph at lines 1288--1292
 
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 1158--1161
+Underfull \hbox (badness 10000) in paragraph at lines 1293--1296
 \OT1/cmr/m/n/14.4 https://techpiezo.com/linux/use-and-implementation-of-backing
 -file-and-
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 1158--1161
+Underfull \hbox (badness 10000) in paragraph at lines 1293--1296
 
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 1158--1161
+Underfull \hbox (badness 10000) in paragraph at lines 1293--1296
 
  []
 
-[48]
-Underfull \hbox (badness 10000) in paragraph at lines 1163--1164
-
- []
-
-
-Underfull \hbox (badness 10000) in paragraph at lines 1165--1173
+[52]
+Underfull \hbox (badness 10000) in paragraph at lines 1298--1299
 
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 1165--1173
+Underfull \hbox (badness 10000) in paragraph at lines 1300--1308
 
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 1165--1173
+Underfull \hbox (badness 10000) in paragraph at lines 1300--1308
 
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 1174--1175
+Underfull \hbox (badness 10000) in paragraph at lines 1300--1308
 
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 1176--1186
+Underfull \hbox (badness 10000) in paragraph at lines 1309--1310
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 1311--1321
 \OT1/cmr/m/n/14.4 https://mathiashueber.com/performance-tweaks-gaming-on-virtua
 l-
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 1176--1186
-
- []
-
-[49]
-Underfull \hbox (badness 10000) in paragraph at lines 1187--1188
-
- []
-
-[50]
-Underfull \hbox (badness 10000) in paragraph at lines 1193--1194
-
- []
-
-
-Underfull \hbox (badness 10000) in paragraph at lines 1195--1196
-
- []
-
-
-Underfull \hbox (badness 10000) in paragraph at lines 1197--1199
-
- []
-
-
-Underfull \hbox (badness 10000) in paragraph at lines 1200--1202
-
- []
-
-
-Underfull \hbox (badness 10000) in paragraph at lines 1203--1206
-
- []
-
-
-Underfull \hbox (badness 10000) in paragraph at lines 1207--1208
-
- []
-
-
-Underfull \hbox (badness 10000) in paragraph at lines 1209--1210
-
- []
-
-
-Underfull \hbox (badness 10000) in paragraph at lines 1211--1212
-
- []
-
-
-Underfull \hbox (badness 10000) in paragraph at lines 1213--1214
-
- []
-
-[51]
-Underfull \hbox (badness 10000) in paragraph at lines 1215--1216
-
- []
-
-
-Underfull \hbox (badness 10000) in paragraph at lines 1217--1218
-
- []
-
-
-Underfull \hbox (badness 10000) in paragraph at lines 1219--1220
-
- []
-
-
-Underfull \hbox (badness 10000) in paragraph at lines 1221--1222
-
- []
-
-
-Underfull \hbox (badness 10000) in paragraph at lines 1223--1224
-
- []
-
-
-Underfull \hbox (badness 10000) in paragraph at lines 1226--1227
-
- []
-
-[52]
-Underfull \hbox (badness 10000) in paragraph at lines 1234--1238
-
- []
-
-
-Underfull \hbox (badness 10000) in paragraph at lines 1239--1240
-
- []
-
-
-Underfull \hbox (badness 10000) in paragraph at lines 1241--1242
-
- []
-
-
-Underfull \hbox (badness 10000) in paragraph at lines 1243--1244
-
- []
-
-
-Underfull \hbox (badness 10000) in paragraph at lines 1245--1246
+Underfull \hbox (badness 10000) in paragraph at lines 1311--1321
 
  []
 
 [53]
-Underfull \hbox (badness 10000) in paragraph at lines 1255--1256
+Underfull \hbox (badness 10000) in paragraph at lines 1322--1323
 
  []
 
 [54]
-Underfull \hbox (badness 10000) in paragraph at lines 1262--1268
+Underfull \hbox (badness 10000) in paragraph at lines 1328--1329
 
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 1269--1271
+Underfull \hbox (badness 10000) in paragraph at lines 1330--1331
 
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 1272--1273
+Underfull \hbox (badness 10000) in paragraph at lines 1332--1334
 
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 1274--1275
+Underfull \hbox (badness 10000) in paragraph at lines 1335--1337
 
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 1276--1278
+Underfull \hbox (badness 10000) in paragraph at lines 1338--1341
 
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 1279--1280
+Underfull \hbox (badness 10000) in paragraph at lines 1342--1343
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 1344--1345
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 1346--1347
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 1348--1349
+
+ []
+
+[55]
+Underfull \hbox (badness 10000) in paragraph at lines 1350--1351
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 1352--1353
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 1354--1355
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 1356--1357
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 1358--1359
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 1361--1362
+
+ []
+
+[56]
+Underfull \hbox (badness 10000) in paragraph at lines 1369--1373
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 1374--1375
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 1376--1377
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 1378--1379
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 1380--1381
+
+ []
+
+[57]
+Underfull \hbox (badness 10000) in paragraph at lines 1390--1391
+
+ []
+
+[58]
+Underfull \hbox (badness 10000) in paragraph at lines 1397--1403
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 1404--1406
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 1407--1408
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 1409--1410
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 1411--1413
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 1414--1415
 
  []
 
 
 AED: lastpage setting LastPage
-[55]
-Package atveryend Info: Empty hook `BeforeClearDocument' on input line 1285.
-Package atveryend Info: Empty hook `AfterLastShipout' on input line 1285.
+[59]
+Package atveryend Info: Empty hook `BeforeClearDocument' on input line 1420.
+Package atveryend Info: Empty hook `AfterLastShipout' on input line 1420.
  (./first_assignement.aux)
-Package atveryend Info: Executing hook `AtVeryEndDocument' on input line 1285.
-Package atveryend Info: Executing hook `AtEndAfterFileList' on input line 1285.
+Package atveryend Info: Executing hook `AtVeryEndDocument' on input line 1420.
+Package atveryend Info: Executing hook `AtEndAfterFileList' on input line 1420.
 
-
-
-Package rerunfilecheck Warning: File `first_assignement.out' has changed.
-(rerunfilecheck)                Rerun to get outlines right
-(rerunfilecheck)                or use package `bookmark'.
-
-Package rerunfilecheck Info: Checksums for `first_assignement.out':
-(rerunfilecheck)             Before: 0FA1334811A351519D29892D02C27824;1534
-(rerunfilecheck)             After:  4E67348955C3CF81309F51DE02189648;1627.
-
-LaTeX Warning: Label(s) may have changed. Rerun to get cross-references right.
-
-Package atveryend Info: Empty hook `AtVeryVeryEnd' on input line 1285.
+Package rerunfilecheck Info: File `first_assignement.out' has not changed.
+(rerunfilecheck)             Checksum: 1267C72FFEF36D2C00266FC9E0897393;1690.
+Package atveryend Info: Empty hook `AtVeryVeryEnd' on input line 1420.
  ) 
 Here is how much of TeX's memory you used:
- 30133 strings out of 483065
- 603565 string characters out of 5963550
+ 30151 strings out of 483065
+ 603740 string characters out of 5963550
  911529 words of memory out of 5000000
- 44445 multiletter control sequences out of 15000+600000
+ 44448 multiletter control sequences out of 15000+600000
  539361 words of font info for 51 fonts, out of 8000000 for 9000
  81 hyphenation exceptions out of 8191
  64i,12n,103p,955b,522s stack positions out of 5000i,500n,10000p,200000b,80000s
-pdfTeX warning (dest): name{subsection.3.8} has been referenced but does not 
-exist, replaced by a fixed one
-
- </home/franciscosantos/.texlive2019/texmf-var/fonts/pk/ljfour/jknappen/ec/tcrm
-1440.600pk></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmbx10
-.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmbx12.pfb><
-/usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi12.pfb></usr/s
-hare/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmr10.pfb></usr/share/te
-xlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmr12.pfb></usr/share/texlive/t
-exmf-dist/fonts/type1/public/amsfonts/cm/cmr6.pfb></usr/share/texlive/texmf-dis
-t/fonts/type1/public/amsfonts/cm/cmsy10.pfb></usr/share/texlive/texmf-dist/font
-s/type1/public/amsfonts/cm/cmti12.pfb>
-Output written on first_assignement.pdf (55 pages, 198237 bytes).
+ </home/franciscosantos/.texlive2019/texmf-var/fonts/pk/ljfour/jknappen/ec/tc
+rm1440.600pk></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmbx
+10.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmbx12.pfb
+></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi12.pfb></usr
+/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmr10.pfb></usr/share/
+texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmr12.pfb></usr/share/texlive
+/texmf-dist/fonts/type1/public/amsfonts/cm/cmr6.pfb></usr/share/texlive/texmf-d
+ist/fonts/type1/public/amsfonts/cm/cmsy10.pfb></usr/share/texlive/texmf-dist/fo
+nts/type1/public/amsfonts/cm/cmti12.pfb>
+Output written on first_assignement.pdf (59 pages, 206565 bytes).
 PDF statistics:
- 543 PDF objects out of 1000 (max. 8388607)
- 446 compressed objects within 5 object streams
- 115 named destinations out of 1000 (max. 500000)
- 373 words of extra memory for PDF output out of 10000 (max. 10000000)
+ 583 PDF objects out of 1000 (max. 8388607)
+ 481 compressed objects within 5 object streams
+ 130 named destinations out of 1000 (max. 500000)
+ 389 words of extra memory for PDF output out of 10000 (max. 10000000)
 

@@ -902,9 +902,13 @@ So what are some real world examples where we can use parallelism in projects ?\
 almost any computer hungry program where time is a constraint has moved to parallelism. Video games is the easiest example for any person, you have tons of individual small entities computing a lot of things (sound, light, bounces, interactions, logic).\\
 Simulations have been using parallelism since inception.\\
 
-
 %...........................................
-\subsection{CPU PINNING affinity is the same}
+\subsection{CPU PINNING--Affinity}
+Why do we want cpu pinning? https://www.youtube.com/watch?v=pDWCgmvcGPY\\
+The main reason is the performance, the latency and performance \& latency.\\
+CPU cachee is the main reason. (see the video)\\
+
+
 https://wiki.archlinux.org/title/PCI$\_$passthrough$\_$via$\_$OVMF$\#$Prerequisites\\
 
 if we want to have a really good performance this is it.\\
@@ -918,6 +922,8 @@ As such, the local CPU cache benefits (L1/L2/L3) are lost each time the host sch
 
 Hyper-threading/SMT is simply a very efficient way of running two threads on one CPU core at any given time.\\
 You will want to take into consideration that the CPU pinning you choose will greatly depend on what you do with your host while your virtual machine is running. \\
+
+In this writing, we have discussed the “taskset” command tool and its options to set the CPU affinity of a given process. The “taskset” command is a Linux tool that helps to assign the CPU core to a process to execute and run only on the designated CPU cores. We have also checked how to set CPU affinity for the process in a running state.\\
 
 If l3 s equal just need to pair it based on the threads, if L3 is splitted we need to group by L3 group\\
 do man taskset to have more straw\\
@@ -955,8 +961,84 @@ done\\
 \textbf{Problem?}\\
 The smp when used to for 1 process, 4 cores, 8 threads, gives worst performance than 1 processa 1 core. Why??\\
 
+Configure set of CPUS dedicated for CPU pinning:\\
+ls to /etc/systemd/system.conf\\
+find CPUAffinity= cpus to pin for the host to boot\\
+
+Via kernel we say tht we want to remove a particular cpu from scheduler completly:\\
+N implies the use of the last cpu by default.\\
+isolcpus=       [KNL,SMP,ISOL] Isolate a given set of CPUs from disturbance.
+                        [Deprecated - use cpusets instead]
+                        Format: [flag-list,]<cpu-list>\\
+
+                        Specify one or more CPUs to isolate from disturbances
+                        specified in the flag list (default: domain):\\
+
+                        nohz\\
+                          Disable the tick when a single task runs.\\
+
+                          A residual 1Hz tick is offloaded to workqueues, which you
+                          need to affine to housekeeping through the global
+                          workqueue's affinity configured via the
+                          /sys/devices/virtual/workqueue/cpumask sysfs file, or
+                          by using the 'domain' flag described below.\\
+
+                          NOTE: by default the global workqueue runs on all CPUs,
+                          so to protect individual CPUs the 'cpumask' file has to
+                          be configured manually after bootup.\\
+
+                        domain\\
+                          Isolate from the general SMP balancing and scheduling
+                          algorithms. Note that performing domain isolation this way
+                          is irreversible: it's not possible to bring back a CPU to
+                          the domains once isolated through isolcpus. It's strongly
+                          advised to use cpusets instead to disable scheduler load
+                          balancing through the "cpuset.sched$\_$load$\_$balance" file.
+                          It offers a much more flexible interface where CPUs can
+                          move in and out of an isolated set anytime.\\
+
+                          You can move a process onto or off an "isolated" CPU via
+                          the CPU affinity syscalls or cpuset.\\
+                          <cpu number> begins at 0 and the maximum value is
+                          "number of CPUs in system - 1".\\
+
+                        managed$\_$irq\\
+
+                          Isolate from being targeted by managed interrupts
+                          which have an interrupt mask containing isolated
+                          CPUs. The affinity of managed interrupts is
+                          handled by the kernel and cannot be changed via
+                          the /proc/irq/* interfaces.\\
+
+                          This isolation is best effort and only effective
+                          if the automatically assigned interrupt mask of a
+                          device queue contains isolated and housekeeping
+                          CPUs. If housekeeping CPUs are online then such
+                          interrupts are directed to the housekeeping CPU
+                          so that IO submitted on the housekeeping CPU
+                          cannot disturb the isolated CPU.\\
+
+                          If a queue's affinity mask contains only isolated
+                          CPUs then this parameter has no effect on the
+                          interrupt routing decision, though interrupts are
+                          only delivered when tasks running on those
+                          isolated CPUs submit IO. IO submitted on
+                          housekeeping CPUs has no influence on those
+                          queues.\\
+
+                        The format of <cpu-list> is described above.\\
+
+
+We can edit sudo nano /etc/systemd/system.conf to use all other cpus and not the ones we want
+but it doees not isolate.\\
+But for this we just use taskset directly\\
+
+check interrupts command:\\
+cat /proc/interrupts \\
+Without an IO-APIC, interrupts from hardware will be delivered only to the CPU which boots the operating system (usually CPU$\#$0).\\
 %----------------------------------------------------
 \subsubsection{NUMA}
+it is tied together to cpu pinning\\
 Non Uniform Memory Access\\
 See if it is worth explore.\\
 
@@ -991,6 +1073,26 @@ Pinning causes increased complexity when there are many more vCPUs than physical
 
 The easiest and most significant way to improve performance so far is to use CPU pinning in conjunction with a host-passthrough CPU mode. \\
 
+NUMA node(s): we only have 1 available\\
+lscpu\\
+20minutos do video https://www.youtube.com/watch?v=pDWCgmvcGPY
+
+
+
+A single thread can not be split between multiple cores:
+\\
+A program needs to be written to have more than one thread (one per core), or there needs to be more than one program. If not then you won't use the cores.\\
+
+Writing programs to use more cores is not trivial, and not all problems can be parallelised (written to run on more than one core). If a problem contains 20$\%$ essentially sequential code, then with an infinite number of processors, it will be no faster than 20$\%$ of original execution time (500$\%$ speed increase). Then there are the overheads (communication between threads).
+
+If you don't have any application for the cores, then you are better off selling it, and getting a cheaper machine.
+
+Each core will have a ton of parallelism, to deal with a single thread, but this is not visible. Now we are struggling to make a single core any faster, as we add cores. This works well at first.
+
+Unix systems (such as Gnu/Linux e.g. Ubuntu), do a good job of using extra cores, up to around 2→4. Microsoft's Windows, gets improvements when you have a core for the virus scanner, and one for the defragmenter, and one for everything else.
+
+After that it will only make a difference if you have applications designed for multi-core.
+
 
 %----------------------------------------------------
 \subsubsection{Hyper threading enabled}
@@ -1001,6 +1103,14 @@ https://blog.wikichoon.com/2014/07/enabling-hyper-v-enlightenments-with-kvm.html
 os novos parametros alocados ao cpu...\\
 They enable Hyper-V enlightenments and those serious decrease CPU bottleneck.
 
+%----------------------------------------------------
+\subsubsection{IRQ AFFINITY}
+https://cs.uwaterloo.ca/~brecht/servers/apic/SMP-affinity.txt
+
+The only reason to look at this value is that 
+SMP affinity will only work for IO-APIC enabled device drivers.
+
+
 \vfill
 \pagebreak
 %...........................................
@@ -1009,6 +1119,29 @@ Warning: Once you reboot after this procedure, whatever GPU you have configured 
 
 Most use cases for PCI passthroughs relate to performance-intensive domains such as video games and GPU-accelerated tasks. While a PCI passthrough on its own is a step towards reaching native performance, there are still a few ajustments on the host and guest to get the most out of your virtual machine. \\
 
+\begin{enumerate}
+	\item all commands must be sudo;
+	\item go to /etc/default;
+	\item open grub (with nano or vim);
+	\item on the DEFAULT line add isocpus=cpu number or range. In a range you can use N to specify the last;
+	\item save the document;
+	\item update-grub;
+	\item reboot host;
+	\item stress test
+		\item isntall stress if you dont have it, then run;
+			\item stress -c 8 in one terminal and htop in the otehr and seee that all cpus except 7 are beeing stressed;
+			\item taskset -c "isolated cpu" stress -c 1 (1 is it is only 1) and check.
+\end{enumerate}
+
+grub line to edit like this. preempt voluntary helps with ram allocation and implies fast boot .\\
+GRUB CMDLINE LINUX DEFAULT="quiet splash intel iommu=on preempt=voluntary isolcpus=7"\\
+
+examples\\
+isolcpus=1,2,10-20,100-2000:2/25\\
+
+https://www.kernel.org/doc/html/latest/admin-guide/kernel-parameters.html?highlight=isolcpus\\
+
+CPUSETS 
 
 \vfill
 \pagebreak
