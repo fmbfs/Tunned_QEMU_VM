@@ -30,36 +30,53 @@ set_variables(){
 	#Virtual disks (VD) path
 	QEMU_VD="${BASE_DIR}/Virtual_Disks"
 
-	#OS --> Windows 10
+	## QEMU name and OS --> Windows 10
 	OS_ISO="${IMAGES_DIR}/Win10_21H2_English_x64.iso"
 	VD_NAME="${ARGUMENT2}.qcow2"
 	OS_IMG="${QEMU_VD}/${VD_NAME}"
 
-	#QEMU
+    # Processor
+    CORES="4"
+	THREADS="2"
+	#-smp 2 cores=${CORES},threads=${THREADS} there is no need.
+
+	# IMAGE
 	Disk_Size="40G"
-	Cluster_Size="128K"
-	L2_Cache_Size="2.5M"
-	#1Mb for 8Gb using 64Kb
-	#RAM
-	VD_RAM="4G"
-
-	#CACHE CLEAN IN SECONDS
+	Cluster_Size="64K"
+	L2_Cache_Size="5M"
+    #1Mb for 8Gb using 64Kb
+    #CACHE CLEAN IN SECONDS
 	Cache_Clean_Interval="60"
+	 # RAM
+    VD_RAM="8G"  
 
-	#CPU Tunning
-	CORES="2"
-	THREADS="4"
+	#Pinned CPU
+	CPU_PINNED="3,7"
+
+	#QEMU ARGUMENTS
+	QEMU_ARGS=(
+				"-name" "${ARGUMENT2}" \
+				"-cpu" "max,hv_relaxed,hv_spinlocks=0x1fff,hv_vapic,hv_time" \
+				"-enable-kvm" \
+				"-machine" "accel=kvm" \
+				"-m" "${VD_RAM}" \
+				"-rtc" "base=localtime,clock=host" \
+				"-drive" "file=${OS_IMG},l2-cache-size=${L2_Cache_Size},cache=writethrough,cache-clean-interval=${Cache_Clean_Interval}" \
+				#"-vga"  "virtio" \
+				#"-display" "gtk,gl=on" 
+			)
 }
 
 #HELP MENU
 show_help(){
 	echo ""
-    echo "./create_system.sh [options]"
+    echo "./qemu_kvm.sh [options]"
     echo "Options:"
-    echo "  -osi -> Install the OS via CDROM"
-    echo "  -osc -> Creates a qcow2 image for OS"
-    echo "  -osl -> Launch qemu OS machine."
-    echo "  -help -> Show this help."
+    echo "  -i -> Install the OS via CDROM"
+    echo "  -c -> Creates a qcow2 image for OS"
+    echo "  -l -> Launch qemu OS machine."
+	echo "  -lp -> Launch qemu OS machine with Pinned CPU."
+    echo "  -h -> Show this help."
     echo ""
     exit 0
 }
@@ -72,24 +89,28 @@ process_args(){
 		show_help
 		shift
 		;;
-	"-osi")
+	"-i")
 		os_install
 		shift
 		;;
-	"-osc")
+	"-c")
 		create_image_os
 		shift
 		;;
-	"-osl")
+	"-l")
 		os_launch
 		shift
 		;;
-	"-help")
+	"-lp")
+		os_launch_pinned
+		shift
+		;;
+	"-h")
 		show_help
 		shift
 		;;
 	*)
-		echo "Unrecognised option"
+		echo "Unrecognised option. -h for help."
 		shift
 		;;
 	esac	
@@ -119,33 +140,37 @@ check_file(){
 create_image_os(){
 	echo "Creating Virtual Disk...";
 	qemu-img create -f qcow2 -o cluster_size=$Cluster_Size,lazy_refcounts=on $OS_IMG $Disk_Size
-	exit 0;
+	exit 1;
 }
 
 #LAUNCH QEMU-KVM
 os_launch(){
 	cd ${IMAGES_DIR}
-	echo "Launching OS...";
-	qemu-system-x86_64 -cpu max --enable-kvm -smp cores=${CORES},threads=${THREADS}\
-	-name "${ARGUMENT2}"\
-	-rtc base=localtime,clock=host\
-	-drive file=${OS_IMG},l2-cache-size=${L2_Cache_Size},cache=writethrough,cache-clean-interval=${Cache_Clean_Interval} -m ${VD_RAM}
-	
-	#-vga virtio -display gtk,gl=on\
-	#-usb -device usb-tablet -netdev user,id=mynet1 -device virtio-net,netdev=mynet1,mac=02:ca:fe:f0:0d:02\
-	exit 0;
+	echo "Launching OS..."
+    echo "${QEMU_ARGS[@]}"
+    qemu-system-x86_64 ${QEMU_ARGS[@]}
+	exit 1;
+}
+
+#LAUNCH QEMU-KVM
+os_launch_pinned(){
+	cd ${IMAGES_DIR}
+	echo "Launching OS with pinned CPU: ${CPU_PINNED}..."
+    echo "${QEMU_ARGS[@]}"
+	#hexadecimal afinity for cpu placement
+    taskset -c $CPU_PINNED \
+    qemu-system-x86_64 ${QEMU_ARGS[@]}
+	exit 1;
 }
 
 #INTALL THE OPERATING SYSTEM N THE VIRTUAL MACHINE
 os_install(){
 	cd ${IMAGES_DIR}
 	echo "Installing OS...";
-	qemu-system-x86_64 -cpu max --enable-kvm -smp cores=${CORES},threads=${THREADS}\
-	-cdrom ${OS_ISO}\
-	-name "${ARGUMENT2}"\
-	-rtc base=localtime,clock=host\
-	-drive file=${OS_IMG},l2-cache-size=${L2_Cache_Size},cache=writethrough,cache-clean-interval=${Cache_Clean_Interval} -m ${VD_RAM}
-	exit 0;
+	taskset -c $CPU_PINNED \
+	qemu-system-x86_64 $QEMU_ARGS \
+    -cdrom ${OS_ISO}
+	exit 1;
 }
 
 #--------------------------------------------------------------------
