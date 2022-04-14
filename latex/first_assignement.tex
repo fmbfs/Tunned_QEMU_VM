@@ -1141,7 +1141,24 @@ isolcpus=1,2,10-20,100-2000:2/25\\
 
 https://www.kernel.org/doc/html/latest/admin-guide/kernel-parameters.html?highlight=isolcpus\\
 
-CPUSETS 
+CPUSETS no need\\
+
+nohz_full= cpu number to completly isolate the cpu from the kernel\\
+
+To run process in isolated cpus we do \\
+sudo chrt -r 1 taskset.., we set the priority to 1. See chrt man for more info\\
+
+Melhor para o cenario servdor.\\
+
+%...........................................
+\subsection{Huge pages}
+QEMU will use 2MiB sized transparent huge pages automatically without any explicit configuration in QEMU or Libvirt, subject to some important caveats.\\
+
+The described procedures have some drawbacks but will not necessarily net you a great performance advantage. According to Red Hat benchmarks, you should not expect more than a 2% performance gain from this over #Transparent huge pages.\\
+
+%...........................................
+\subsection{CPU governor}
+watch lscpu\\
 
 \vfill
 \pagebreak
@@ -1212,6 +1229,10 @@ But...
 Uset -rtc!
 
 qemu-system-x86$\_$64 -cpu max -enable-kvm -smp cores=1,threads=20 -name 'cluster' -rtc base=localtime,clock=host -drive file=/home/franciscosantos/Desktop/QEMU/Virtual$\_$Disks/disk2.qcow2,cache=writethrough -m 4G
+
+TO use on the guest:\\
+Stress teste: use the sme url but with stress, see link tabs
+www.cpux.net/cpu-benchmark.online
 
 %----------------------------------------------------    
 \section{Create snapshot}

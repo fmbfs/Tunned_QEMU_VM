@@ -15,48 +15,45 @@
 #!/bin/bash
 
 # Default
-#BASE_DIR is the path where .sh is
+# BASE_DIR is the path where .sh is
 BASE_DIR="${PWD}"
-ARGUMENT1="$1"
-ARGUMENT2="$2"
+ARG1="$1"
+ARG2="$2"
 
 #--------------------------------------------------------------------
-#FUNCTIONS
+# FUNCTIONS
 
 set_variables(){
-	#OS .iso Paths
-	IMAGES_DIR="${BASE_DIR}/Iso_Images/Windows"
+	# OS .iso Paths
+	ISO_DIR="${BASE_DIR}/Iso_Images/Windows"
 
-	#Virtual disks (VD) path
+	# Virtual disks (VD) path
 	QEMU_VD="${BASE_DIR}/Virtual_Disks"
 
-	## QEMU name and OS --> Windows 10
-	OS_ISO="${IMAGES_DIR}/Win10_21H2_English_x64.iso"
-	VD_NAME="${ARGUMENT2}.qcow2"
+	# QEMU name and OS --> Windows 10
+	OS_ISO="${ISO_DIR}/Win10_21H2_English_x64.iso"
+	VD_NAME="${ARG2}.qcow2"
 	OS_IMG="${QEMU_VD}/${VD_NAME}"
-
-    # Processor
-    CORES="4"
-	THREADS="2"
-	#-smp 2 cores=${CORES},threads=${THREADS} there is no need.
 
 	# IMAGE
 	Disk_Size="40G"
 	Cluster_Size="64K"
 	L2_Cache_Size="5M"
-    #1Mb for 8Gb using 64Kb
-    #CACHE CLEAN IN SECONDS
+    # 1Mb for 8Gb using 64Kb
+
+    # CACHE CLEAN IN SECONDS
 	Cache_Clean_Interval="60"
-	 # RAM
+
+	# RAM
     VD_RAM="8G"  
 
-	#Pinned CPU
-	CPU_PINNED="3,7"
+	# Pinned vCPU
+	vCPU_PINNED="7"
 
-	#QEMU ARGUMENTS
+	# QEMU ARGUMENTS
 	QEMU_ARGS=(
-				"-name" "${ARGUMENT2}" \
-				"-cpu" "max,hv_relaxed,hv_spinlocks=0x1fff,hv_vapic,hv_time" \
+				"-name" "${ARG2}" \
+				"-cpu" "max,kvm=off,hv_relaxed,hv_spinlocks=0x1fff,hv_vapic,hv_time" \
 				"-enable-kvm" \
 				"-machine" "accel=kvm" \
 				"-m" "${VD_RAM}" \
@@ -67,10 +64,10 @@ set_variables(){
 			)
 }
 
-#HELP MENU
+# HELP MENU
 show_help(){
 	echo ""
-    echo "./qemu_kvm.sh [options]"
+    echo "${0} [options]"
     echo "Options:"
     echo "  -i -> Install the OS via CDROM"
     echo "  -c -> Creates a qcow2 image for OS"
@@ -81,9 +78,9 @@ show_help(){
     exit 0
 }
 
-#SWITHC ARGUMENTS
+# SWITHC ARGUMENTS
 process_args(){
-	case "${ARGUMENT1}" in
+	case "${ARG1}" in
 	"")
 		echo "No arguments provided,check below. "
 		show_help
@@ -116,10 +113,10 @@ process_args(){
 	esac	
 }
 
-#CHECK IF FILE ALREADY EXISTS
+# CHECK IF FILE ALREADY EXISTS
 check_file(){
 	# Scenario - File exists and is not a directory
-	if test -f "$OS_IMG";
+	if test -f "${OS_IMG}";
 	then
 		echo "${OS_IMG} exists!"
 		while true; 
@@ -136,45 +133,47 @@ check_file(){
 	fi
 }
 
-#CREATE VIRTUAL DISK IMAGE
+# CREATE VIRTUAL DISK IMAGE
 create_image_os(){
 	echo "Creating Virtual Disk...";
-	qemu-img create -f qcow2 -o cluster_size=$Cluster_Size,lazy_refcounts=on $OS_IMG $Disk_Size
+	qemu-img create -f qcow2 -o cluster_size=${Cluster_Size},lazy_refcounts=on ${OS_IMG} ${Disk_Size}
 	exit 1;
 }
 
-#LAUNCH QEMU-KVM
+# LAUNCH QEMU-KVM
 os_launch(){
-	cd ${IMAGES_DIR}
+	cd ${ISO_DIR}
 	echo "Launching OS..."
     echo "${QEMU_ARGS[@]}"
     qemu-system-x86_64 ${QEMU_ARGS[@]}
 	exit 1;
 }
 
-#LAUNCH QEMU-KVM
+# LAUNCH QEMU-KVM
 os_launch_pinned(){
-	cd ${IMAGES_DIR}
-	echo "Launching OS with pinned CPU: ${CPU_PINNED}..."
+	cd ${ISO_DIR}
+	echo "Launching OS with pinned vCPU --> ${vCPU_PINNED}..."
     echo "${QEMU_ARGS[@]}"
-	#hexadecimal afinity for cpu placement
-    taskset -c $CPU_PINNED \
+	#only use when 2 cpus are needed
+    #sudo chrt -r 1 \
+	taskset -c ${vCPU_PINNED} \
     qemu-system-x86_64 ${QEMU_ARGS[@]}
 	exit 1;
 }
 
-#INTALL THE OPERATING SYSTEM N THE VIRTUAL MACHINE
+# INTALL THE OPERATING SYSTEM N THE VIRTUAL MACHINE
 os_install(){
 	cd ${IMAGES_DIR}
 	echo "Installing OS...";
-	taskset -c $CPU_PINNED \
-	qemu-system-x86_64 $QEMU_ARGS \
+	echo "${QEMU_ARGS[@]}"
+	taskset -c ${vCPU_PINNED} \
+	qemu-system-x86_64 ${QEMU_ARGS[@]} \
     -cdrom ${OS_ISO}
 	exit 1;
 }
 
 #--------------------------------------------------------------------
-#MAIN
+# MAIN
 set_variables
 process_args
 check_file
