@@ -1035,7 +1035,7 @@ But for this we just use taskset directly\\
 
 check interrupts command:\\
 cat /proc/interrupts \\
-Without an IO-APIC, interrupts from hardware will be delivered only to the CPU which boots the operating system (usually CPU#0).\\
+Without an IO-APIC, interrupts from hardware will be delivered only to the CPU which boots the operating system (usually CPU$\#$0).\\
 %----------------------------------------------------
 \subsubsection{NUMA}
 it is tied together to cpu pinning\\
@@ -1075,8 +1075,24 @@ The easiest and most significant way to improve performance so far is to use CPU
 
 NUMA node(s): we only have 1 available\\
 lscpu\\
-
 20minutos do video https://www.youtube.com/watch?v=pDWCgmvcGPY
+
+
+
+A single thread can not be split between multiple cores:
+\\
+A program needs to be written to have more than one thread (one per core), or there needs to be more than one program. If not then you won't use the cores.\\
+
+Writing programs to use more cores is not trivial, and not all problems can be parallelised (written to run on more than one core). If a problem contains 20$\%$ essentially sequential code, then with an infinite number of processors, it will be no faster than 20$\%$ of original execution time (500$\%$ speed increase). Then there are the overheads (communication between threads).
+
+If you don't have any application for the cores, then you are better off selling it, and getting a cheaper machine.
+
+Each core will have a ton of parallelism, to deal with a single thread, but this is not visible. Now we are struggling to make a single core any faster, as we add cores. This works well at first.
+
+Unix systems (such as Gnu/Linux e.g. Ubuntu), do a good job of using extra cores, up to around 2→4. Microsoft's Windows, gets improvements when you have a core for the virus scanner, and one for the defragmenter, and one for everything else.
+
+After that it will only make a difference if you have applications designed for multi-core.
+
 
 %----------------------------------------------------
 \subsubsection{Hyper threading enabled}
