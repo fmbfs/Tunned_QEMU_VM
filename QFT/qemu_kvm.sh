@@ -1,5 +1,6 @@
 
-#
+#!/bin/bash
+
 #
 #
 ##################################################
@@ -10,9 +11,20 @@
 #
 #
 #
+#------------------------------------------------------------------
 
-#--------------------------------------------------------------------
-#!/bin/bash
+#Default error handeling
+set -euo pipefail
+#set -euox pipefail
+
+#------------------------------------------------------------------
+#FUNCTIONS
+#print_error -- Error handler function
+print_error()
+{
+    echo "Error: $1"; exit 1
+}
+
 
 # Default
 # BASE_DIR is the path where .sh is
@@ -174,6 +186,7 @@ os_install(){
 
 #--------------------------------------------------------------------
 # MAIN
+./host_check.sh
 set_variables
 process_args
 check_file

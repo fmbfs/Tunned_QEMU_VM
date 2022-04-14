@@ -1,5 +1,5 @@
 #!/bin/bash
-#------------------------------------------------------------------
+
 #Defaults 
 #default error handeling
 set -euo pipefail
@@ -16,10 +16,8 @@ print_error()
 #iommu_on -- Confirm that IOMMU is on and able
 iommu_on()
 {
-    echo "Confirm Input-Output Memory Management Unit (IOMMU)..."
-    #dmesg | grep -i -e DMAR -e IOMMU
     if [[  "$(2> /dev/null dmesg)" =~ "DMAR: IOMMU enabled" ]]; then
-        echo "OK"
+        :
     else 
         print_error "Not OK"
     fi
@@ -28,21 +26,14 @@ iommu_on()
 #iommu_vdt_check -- Check if IOMMU and VT-D are enabled or not
 iommu_vdt_check()
 {
-    echo "Check IOMMU and VT-D enabled..."
     if compgen -G "/sys/kernel/iommu_groups/*/devices/*" > /dev/null; then
-        echo "AMD's IOMMU / Intel's VT-D is enabled in the BIOS/UEFI."
+        :
     else
-        echo "AMD's IOMMU / Intel's VT-D is not enabled in the BIOS/UEFI"
-        exit 0
+        print_error "Not OK"
     fi
 } #iommu_vdt_check end
 
-#l3_cache_number -- Check cpu L3 cache number
-#it is missing comparing the first with the others 
-#and so on logic half an array verificar o grupo 
-#com menos cpus e talvez usar o ultimo
-#pedir ao valtaer pra corre ro lscpu -e no servidor
-#array=((0,1,2),(3,4,5))
+#l3_cache_number -- Check vCPU L3 cache number
 l3_cache_number()
 {
     arr_l3=()
@@ -62,15 +53,9 @@ l3_cache_number()
         cpu=$((${cpu}+1))
         #To grab the output of the lscpu command
     done <<< $(lscpu -e)
-
-    echo "OK. All L3 caches are equal."
+    echo "vCPUS..."
     echo "${arr_l3[@]}"
-    #usar lscpu -p talvez seja mais rapido pois sai parcelado o output
-    #Note the server has more than one L3 group!
-    #Since all cores are connected to the same L3 in this example, 
-    #it does not matter much how many CPUs you pin and isolate as 
-    #long as you do it in the proper thread pairs. For instance, 
-    #(0 e o 6), (1 e o 7), etc. 
+    #this is not usefull at the moment
 
 } #l3_cache_number end
 
@@ -96,6 +81,8 @@ cores_check()
     echo "Cores..."
     echo "${arr_cores[@]}"
 
+     #this is not usefull at the moment
+
 } #cores_check end
 
 #valid_groups -- Ensuring that the groups are valid
@@ -113,8 +100,8 @@ valid_groups()
 
 #------------------------------------------------------------------
 #MAIN
-#iommu_on
-#iommu_vdt_check
-l3_cache_number
-cores_check
+iommu_on
+iommu_vdt_check
+#l3_cache_number
+#cores_check
 #valid_groups
