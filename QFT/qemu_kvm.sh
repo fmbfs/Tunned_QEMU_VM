@@ -60,7 +60,7 @@ set_variables(){
     VD_RAM="8G"  
 
 	# Pinned vCPU
-	vCPU_PINNED="7"
+	vCPU_PINNED="3,7"
 
 	# QEMU ARGUMENTS
 	QEMU_ARGS=(
@@ -168,8 +168,8 @@ os_launch_pinned(){
     echo "${QEMU_ARGS[@]}"
 	#only use when 2 cpus are needed
     #sudo chrt -r 1 \
-	taskset -c ${vCPU_PINNED} \
-    qemu-system-x86_64 ${QEMU_ARGS[@]}
+	#taskset -c ${vCPU_PINNED} \
+	qemu-system-x86_64 ${QEMU_ARGS[@]}
 	exit 1;
 }
 
@@ -178,7 +178,7 @@ os_install(){
 	cd ${IMAGES_DIR}
 	echo "Installing OS...";
 	echo "${QEMU_ARGS[@]}"
-	taskset -c ${vCPU_PINNED} \
+	#taskset -c ${vCPU_PINNED} \
 	qemu-system-x86_64 ${QEMU_ARGS[@]} \
     -cdrom ${OS_ISO}
 	exit 1;

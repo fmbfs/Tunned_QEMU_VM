@@ -1141,7 +1141,17 @@ isolcpus=1,2,10-20,100-2000:2/25\\
 
 https://www.kernel.org/doc/html/latest/admin-guide/kernel-parameters.html?highlight=isolcpus\\
 
-CPUSETS no need\\
+cset\\
+we can create a group of isolated cpus withour reboot\\
+sudo cset shield -c 3,7 -k on
+
+we can reset them via \\
+sudo cset shield -r\\
+
+we can check the list: \\
+cset set -l\\
+
+
 
 nohz_full= cpu number to completly isolate the cpu from the kernel\\
 
