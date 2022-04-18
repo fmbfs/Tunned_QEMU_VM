@@ -25,12 +25,17 @@ print_error()
     echo "Error: $1"; exit 1
 }
 
-
 # Default
 # BASE_DIR is the path where .sh is
 BASE_DIR="${PWD}"
-ARG1="$1"
-ARG2="$2"
+
+#if no argument is passed we assume it to be launched pinned
+ARG1="${1:--lp}"
+ARG2="${2:-disk}"
+
+#Args for CPU isolation and pinning
+ARG3="${3:-3}"
+ARG4="${4:-7}"
 
 #--------------------------------------------------------------------
 # FUNCTIONS
@@ -60,7 +65,7 @@ set_variables(){
     VD_RAM="8G"  
 
 	# Pinned vCPU
-	vCPU_PINNED="3,7"
+	vCPU_PINNED="${ARG3},${ARG4}"
 
 	# QEMU ARGUMENTS
 	QEMU_ARGS=(
@@ -178,7 +183,6 @@ os_install(){
 	cd ${IMAGES_DIR}
 	echo "Installing OS...";
 	echo "${QEMU_ARGS[@]}"
-	#taskset -c ${vCPU_PINNED} \
 	qemu-system-x86_64 ${QEMU_ARGS[@]} \
     -cdrom ${OS_ISO}
 	exit 1;

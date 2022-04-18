@@ -1141,17 +1141,21 @@ isolcpus=1,2,10-20,100-2000:2/25\\
 
 https://www.kernel.org/doc/html/latest/admin-guide/kernel-parameters.html?highlight=isolcpus\\
 
-cset\\
+cset -- python app, see man page\\
 we can create a group of isolated cpus withour reboot\\
-sudo cset shield -c 3,7 -k on
+sudo cset shield --cpu=\${vCPU_PINNED} --kthread=on
 
 we can reset them via \\
 sudo cset shield -r\\
 
+with shield is simple, with proc is more complex\\
+https://manpages.debian.org/unstable/cpuset/cset-shield.1.en.html\\
+
 we can check the list: \\
 cset set -l\\
 
-
+You can exec new processes in specific cpusets and move tasks around existing cpusets. See the cset-proc(1).\\
+We can create persistent cpusets.\\
 
 nohz_full= cpu number to completly isolate the cpu from the kernel\\
 
@@ -1446,6 +1450,11 @@ nproc no terminal dá-nos o numero de processadores que o host tem.\\
 
 Find inside files:\\
 grep -r 'switch$\_$fpu$\_$return*'
+
+
+#to cal a function inside a script
+. ./cset.sh && list_cset
+
 
 %================================================================================================================================
 \end{document}
