@@ -171,12 +171,18 @@ os_launch(){
 os_launch_pinned(){
 	cd ${ISO_DIR}
 	echo "Launching OS with pinned vCPU --> ${vCPU_PINNED}..."
-    echo "${QEMU_ARGS[@]}"
+    echo "QEMU arguments: ${QEMU_ARGS[@]}"
+	echo " "
 	#only use when 2 cpus are needed
-    sudo chrt -r 1 \
-	taskset -c ${vCPU_PINNED} \
-	qemu-system-x86_64 ${QEMU_ARGS[@]}
-	exit 1;
+    #sudo chrt -r 1 \
+	#taskset -c ${vCPU_PINNED} \
+	create_cset
+	echo " "
+	sudo cset shield -e \
+	qemu-system-x86_64 -- ${QEMU_ARGS[@]}
+	echo " "
+	delete_cset
+	#exit 1;
 }
 
 # INTALL THE OPERATING SYSTEM N THE VIRTUAL MACHINE
@@ -189,8 +195,23 @@ os_install(){
 	exit 1;
 }
 
+#create cpu set
+create_cset(){
+    sudo cset shield --cpu=${vCPU_PINNED} --threads --kthread=on
+}
+
+#delete_cset
+delete_cset(){
+    sudo cset shield -r
+}
 #--------------------------------------------------------------------
 # MAIN
 ./host_check.sh
 set_variables
 process_args
+
+
+#rn on other terminal to check
+#cset set -l 
+#ps -a | grep qemu | awk '{ print $1 }' | xargs -I{} taskset -c -p {}
+#htop
