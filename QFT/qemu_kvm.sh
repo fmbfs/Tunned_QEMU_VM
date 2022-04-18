@@ -152,6 +152,7 @@ check_file(){
 
 # CREATE VIRTUAL DISK IMAGE
 create_image_os(){
+	check_file
 	echo "Creating Virtual Disk...";
 	qemu-img create -f qcow2 -o cluster_size=${Cluster_Size},lazy_refcounts=on ${OS_IMG} ${Disk_Size}
 	exit 1;
@@ -172,8 +173,8 @@ os_launch_pinned(){
 	echo "Launching OS with pinned vCPU --> ${vCPU_PINNED}..."
     echo "${QEMU_ARGS[@]}"
 	#only use when 2 cpus are needed
-    #sudo chrt -r 1 \
-	#taskset -c ${vCPU_PINNED} \
+    sudo chrt -r 1 \
+	taskset -c ${vCPU_PINNED} \
 	qemu-system-x86_64 ${QEMU_ARGS[@]}
 	exit 1;
 }
@@ -193,4 +194,3 @@ os_install(){
 ./host_check.sh
 set_variables
 process_args
-check_file

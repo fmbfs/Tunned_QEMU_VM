@@ -613,7 +613,7 @@ https://www.youtube.com/watch?v=zUYCXBlUcYI\\
 19:57 talks about how insecure this is.\\
 there is eBPF and BPF.\\
 
-HTOP as well\\
+HTOP as well, and it can be personalized.\\
 
 %-----------------------------------------------
 \subsection{Tracing}
@@ -1164,6 +1164,17 @@ sudo chrt -r 1 taskset.., we set the priority to 1. See chrt man for more info\\
 
 Melhor para o cenario servdor.\\
 
+Linux control groups. I think it is the solution\\
+
+To check the affinity:\\
+ps -a | grep qemu\\
+ 	169570 pts/1    00:00:08 qemu-system-x86\\
+taskset -c -p 169570\\
+	pid 169570's current affinity list: 3,7\\
+
+
+
+
 %...........................................
 \subsection{Huge pages}
 QEMU will use 2MiB sized transparent huge pages automatically without any explicit configuration in QEMU or Libvirt, subject to some important caveats.\\
@@ -1449,12 +1460,14 @@ sudo find . -name QEMU -> procurar merdas\\
 nproc no terminal dá-nos o numero de processadores que o host tem.\\
 
 Find inside files:\\
-grep -r 'switch$\_$fpu$\_$return*'
+grep -r 'switch$\_$fpu$\_$return*'\\
 
 
-#to cal a function inside a script
-. ./cset.sh && list_cset
+#to cal a function inside a script\\
+. ./cset.sh && list_cset\\
 
+look pid filter by chromium and grab the first column\\
+ps ax | grep chromium | awk '{print}'
 
 %================================================================================================================================
 \end{document}

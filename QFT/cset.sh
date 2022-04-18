@@ -15,8 +15,7 @@ create_cset(){
 
 #execute something inside the set
 execute_in_cset(){
-    #sudo cset shield -e gnome-terminal
-    sudo cset shield -e qemu_kvm.sh
+    sudo cset shield -e gnome-terminal
 }
 
 #list cpu sets
