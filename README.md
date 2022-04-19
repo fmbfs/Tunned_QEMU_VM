@@ -42,5 +42,6 @@ QEMU_ARGS=( \
 "-device" "virtio-blk-pci,drive=disk0" \
 )
 
-
+Merge error, run this:
+git reset --merge
 

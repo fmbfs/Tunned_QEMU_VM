@@ -11,29 +11,30 @@
 #
 #
 #
-#------------------------------------------------------------------
-
-#Default error handeling
-set -euo pipefail
-#set -euox pipefail
 
 #------------------------------------------------------------------
-#FUNCTIONS
+#DEFAULTS
+set -euox pipefail
+
+# BASE_DIR is the path where .sh is
+BASE_DIR="${PWD}"
+
+#if no argument is passed we assume it to be launched pinned
+ARG1="${1:--lp}"
+ARG2="${2:-disk}"
+
+#Args for CPU isolation and pinning
+ARG3=($( ./host_check_group.sh | awk '{print $2}'))
+ARG4=($( ./host_check_group.sh | awk '{print $3}'))
+
+#--------------------------------------------------------------------
+# FUNCTIONS
+
 #print_error -- Error handler function
 print_error()
 {
     echo "Error: $1"; exit 1
 }
-
-
-# Default
-# BASE_DIR is the path where .sh is
-BASE_DIR="${PWD}"
-ARG1="$1"
-ARG2="$2"
-
-#--------------------------------------------------------------------
-# FUNCTIONS
 
 set_variables(){
 	# OS .iso Paths
@@ -79,7 +80,11 @@ set_variables(){
 >>>>>>> testes
 =======
 	# Pinned vCPU
+<<<<<<< HEAD
 	vCPU_PINNED="7"
+>>>>>>> testes
+=======
+	vCPU_PINNED="${ARG3},${ARG4}"
 >>>>>>> testes
 
 	# QEMU ARGUMENTS
@@ -212,6 +217,7 @@ check_file(){
 
 # CREATE VIRTUAL DISK IMAGE
 create_image_os(){
+	check_file
 	echo "Creating Virtual Disk...";
 	qemu-img create -f qcow2 -o cluster_size=${Cluster_Size},lazy_refcounts=on ${OS_IMG} ${Disk_Size}
 	exit 1;
@@ -236,29 +242,55 @@ os_launch(){
 os_launch_pinned(){
 	cd ${ISO_DIR}
 	echo "Launching OS with pinned vCPU --> ${vCPU_PINNED}..."
-    echo "${QEMU_ARGS[@]}"
+    echo "QEMU arguments: ${QEMU_ARGS[@]}"
+	echo " "
 	#only use when 2 cpus are needed
     #sudo chrt -r 1 \
+<<<<<<< HEAD
 	taskset -c ${vCPU_PINNED} \
     qemu-system-x86_64 ${QEMU_ARGS[@]}
 >>>>>>> testes
 	exit 1;
+=======
+	#taskset -c ${vCPU_PINNED} \
+	create_cset
+	echo " "
+	sudo cset shield -e \
+	qemu-system-x86_64 -- ${QEMU_ARGS[@]}
+	echo " "
+	delete_cset
+	#exit 1;
+>>>>>>> testes
 }
 
-# INTALL THE OPERATING SYSTEM N THE VIRTUAL MACHINE
+# INSTALL THE OPERATING SYSTEM N THE VIRTUAL MACHINE
 os_install(){
 	cd ${IMAGES_DIR}
 	echo "Installing OS...";
 	echo "${QEMU_ARGS[@]}"
-	taskset -c ${vCPU_PINNED} \
 	qemu-system-x86_64 ${QEMU_ARGS[@]} \
     -cdrom ${OS_ISO}
 	exit 1;
 }
 
+#create cpu set
+create_cset(){
+    sudo cset shield --cpu=${vCPU_PINNED} --threads --kthread=on
+}
+
+#delete_cset
+delete_cset(){
+    sudo cset shield -r
+}
+
 #--------------------------------------------------------------------
 # MAIN
-./host_check.sh
+
 set_variables
 process_args
-check_file
+
+
+#rn on other terminal to check
+#cset set -l 
+#ps -a | grep qemu | awk '{ print $1 }' | xargs -I{} taskset -c -p {}
+#htop
