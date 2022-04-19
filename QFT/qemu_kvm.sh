@@ -11,21 +11,11 @@
 #
 #
 #
-#------------------------------------------------------------------
-
-#Default error handeling
-set -euo pipefail
-#set -euox pipefail
 
 #------------------------------------------------------------------
-#FUNCTIONS
-#print_error -- Error handler function
-print_error()
-{
-    echo "Error: $1"; exit 1
-}
+#DEFAULTS
+set -euox pipefail
 
-# Default
 # BASE_DIR is the path where .sh is
 BASE_DIR="${PWD}"
 
@@ -34,11 +24,17 @@ ARG1="${1:--lp}"
 ARG2="${2:-disk}"
 
 #Args for CPU isolation and pinning
-ARG3="${3:-3}"
-ARG4="${4:-7}"
+ARG3=($( ./host_check_group.sh | awk '{print $2}'))
+ARG4=($( ./host_check_group.sh | awk '{print $3}'))
 
 #--------------------------------------------------------------------
 # FUNCTIONS
+
+#print_error -- Error handler function
+print_error()
+{
+    echo "Error: $1"; exit 1
+}
 
 set_variables(){
 	# OS .iso Paths
@@ -185,7 +181,7 @@ os_launch_pinned(){
 	#exit 1;
 }
 
-# INTALL THE OPERATING SYSTEM N THE VIRTUAL MACHINE
+# INSTALL THE OPERATING SYSTEM N THE VIRTUAL MACHINE
 os_install(){
 	cd ${IMAGES_DIR}
 	echo "Installing OS...";
@@ -204,9 +200,10 @@ create_cset(){
 delete_cset(){
     sudo cset shield -r
 }
+
 #--------------------------------------------------------------------
 # MAIN
-./host_check.sh
+
 set_variables
 process_args
 

@@ -1141,6 +1141,7 @@ isolcpus=1,2,10-20,100-2000:2/25\\
 
 https://www.kernel.org/doc/html/latest/admin-guide/kernel-parameters.html?highlight=isolcpus\\
 
+sudo apt-get install cpuset\\
 cset -- python app, see man page\\
 we can create a group of isolated cpus withour reboot\\
 sudo cset shield --cpu=\${vCPU_PINNED} --kthread=on
@@ -1467,7 +1468,16 @@ grep -r 'switch$\_$fpu$\_$return*'\\
 . ./cset.sh && list_cset\\
 
 look pid filter by chromium and grab the first column\\
-ps ax | grep chromium | awk '{print}'
+ps -a | grep qemu | awk '{ print \$1 }' | xargs -I{} taskset -c -p {}
+
+To parse a line\\
+lscpu -p | sed -n '5 p'\\
+
+Array:\\
+echo "\${cpu[0]:0:1}"
+
+Clear variables\\
+exec env --ignore-environment /bin/bash
 
 %================================================================================================================================
 \end{document}
