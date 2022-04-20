@@ -1200,7 +1200,13 @@ it bought the simulation to 22 secs\\
 Nikhil Santhosh\\
 from 30 secs\\
 
+together with all the other changes so far, I've configured HugePages (8 is our host max) dynamically with mem prealloc, then changing qemu processes priority after boot to be 99 (the highest in kernel).\\
 
+This is all done via running one script. Since it is changing kernel stuff it needs to be runned as sudo su.\\
+
+I feel that my qemu is more responsive and fast. but you have to try in your side.\\
+
+%...........................................
 \subsection{HugePages}
 
 https://linuxconfig.org/how-to-enable-hugepages-on-linux
@@ -1215,6 +1221,25 @@ The performance improvement is less bookkeeping of memory.\\
 Sort of like how a warehouse only handles cases of product, not individually wrapped loose single products. Lots of overhead unless they are in hugeboxes..\\
 
 https://www.educba.com/linux-hugepages/\\
+
+
+
+The <hugepages/> element will cause guest RAM to be allocated from the default huge pages size pool, and will cause immediate allocation of those huge pages at QEMU startup. Huge pages are always locked into host RAM.\\
+
+The <locked/> element is used to control other QEMU memory allocations that are separate from guest RAM. It ensures all non-guest RAM pages are also locked into host RAM.\\
+
+If you are not trying to overcommit host RAM, then using huge pages on the host side is a very good idea for maximizing performance as it improves page table hit rates. This is true regardless of whether the guest OS in turn uses huge pages. This performance benefit will apply to all workloads and all guest OS.\\
+
+The KSM feature for when you are trying to overcommit host RAM (ie run many guests whose total RAM exceeds available host RAM). It tries to share RAM pages between guests to avoid risk of swapping during overcommit. KSM has a quite significant penalty in CPU consumption though, so its a tradeoff as to whether it is useful for a particular workload and/or guest OS.\\
+
+Note that -mem-path /dev/hugepages will fall back to allocating normal RAM if it doesn’t have enough hugepages, triggering (b) to fail. Using -mem-prealloc enforces the allocation using hugepages\\
+
+Care should be taken with the size of hugepage used; postcopy with 2MB hugepages works well, however 1GB hugepages are likely to be problematic since it takes ~1 second to transfer a 1GB hugepage across a 10Gbps link, and until the full page is transferred the destination thread is blocked.\\
+%...........................................
+\subsection{Linux Process Scheduler Tuning}
+
+Aqui!
+
 
 %...........................................
 \subsection{CPU governor}
@@ -1511,7 +1536,13 @@ Array:\\
 echo "\${cpu[0]:0:1}"
 
 Clear variables\\
-exec env --ignore-environment /bin/bash
+exec env --ignore-environment /bin/bash\\
+\\
+source in bash need to be locally done, so if we need inside a function we put it inside function.\\
+vmstat -s\\
+man vmstat for statistics\\
+
+long-command & sleep 300; do-this-after-five-minutes\\
 
 %================================================================================================================================
 \end{document}

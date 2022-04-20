@@ -9,7 +9,5 @@ sched(){
     PARENT_PID=$(pstree -pa $(pidof qemu-system-x86_64) | grep ${ARG2} | cut -d','  -f2 | cut -d' ' -f1)
     # set all threads of parent PID to SCHED_FIFO 99 priority
     pstree -pa $PARENT_PID | cut -d','  -f2 | cut -d' ' -f1 | xargs -L1 echo "chrt -f -p 99" | bash
-    echo "schedling..."
+    echo "Changing to highest priority (99) done!"
 }
-
-sched

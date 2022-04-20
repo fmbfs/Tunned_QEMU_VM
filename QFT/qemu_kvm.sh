@@ -21,7 +21,8 @@
 set -euo pipefail
 
 # BASE_DIR is the path where .sh is
-BASE_DIR="${PWD}"
+BASE_DIR=$(dirname "${BASH_SOURCE[0]}")
+[[ "${BASE_DIR}" == "." ]] && BASE_DIR=$(pwd)
 
 #if no argument is passed we assume it to be launched pinned
 ARG1="${1:--lp}"
@@ -171,6 +172,19 @@ os_launch(){
 	exit 1;
 }
 
+#RUN QEMU ARGS AND THEN FREE RESOURCES
+run_qemu(){
+	#run VM
+	sudo cset shield -e \
+	qemu-system-x86_64 -- ${QEMU_ARGS[@]}
+	
+	#free resources
+	#the sleep may or maynot be needed
+	sleep 5
+	delete_cset
+	free_hugepages
+}
+
 # LAUNCH QEMU-KVM ISOLATED AND PINNED
 os_launch_pinned(){
 	source huge_pages_conf.sh
@@ -185,20 +199,11 @@ os_launch_pinned(){
 
 	run_qemu &
 	sleep 20
+
 	cd ${BASE_DIR}
 	source ./sched_fifo.sh
+	sched
 }
-
-#run qemu args and then free resources
-run_qemu(){
-		#run VM
-		sudo cset shield -e \
-		qemu-system-x86_64 -- ${QEMU_ARGS[@]}
-		
-		#free resources
-		delete_cset
-		free_hugepages
-	}
 
 # INSTALL THE OPERATING SYSTEM N THE VIRTUAL MACHINE
 os_install(){
