@@ -1,9 +1,10 @@
 #!/bin/bash
 
-#Defaults 
-#default error handeling
-set -euo pipefail
+#------------------------------------------------------------------
+#DEFAULTS
+#x will print all
 #set -euox pipefail
+set -euo pipefail
 
 #------------------------------------------------------------------
 #FUNCTIONS

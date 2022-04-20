@@ -12,9 +12,12 @@
 #
 #
 
+#RUN it as sudo su!
+
 #------------------------------------------------------------------
 #DEFAULTS
-#x will print all, dont do it
+#x will print all
+#set -euox pipefail
 set -euo pipefail
 
 # BASE_DIR is the path where .sh is
@@ -68,6 +71,7 @@ set_variables(){
 				"-name" "${ARG2}" \
 				"-cpu" "max,kvm=off,hv_relaxed,hv_spinlocks=0x1fff,hv_vapic,hv_time" \
 				"-enable-kvm" \
+				"-mem-prealloc"\
 				"-machine" "accel=kvm" \
 				"-m" "${VD_RAM}" \
 				"-rtc" "base=localtime,clock=host" \
@@ -169,13 +173,22 @@ os_launch(){
 
 # LAUNCH QEMU-KVM ISOLATED AND PINNED
 os_launch_pinned(){
+	source huge_pages_conf.sh
+	source cset_conf.sh
+	
 	cd ${ISO_DIR}
 	echo "Launching OS with pinned vCPU --> ${vCPU_PINNED}..."
+	#allocate resources
 	create_cset
+	page_size
+	allocate_hugepages
 
+	#run VM
 	sudo cset shield -e \
 	qemu-system-x86_64 -- ${QEMU_ARGS[@]}
-
+	
+	#free resources
+	free_hugepages
 	delete_cset
 	exit 1;
 }
@@ -187,16 +200,6 @@ os_install(){
 	qemu-system-x86_64 ${QEMU_ARGS[@]} \
     -cdrom ${OS_ISO}
 	exit 1;
-}
-
-#create cpu set
-create_cset(){
-    sudo cset shield --cpu=${vCPU_PINNED} --threads --kthread=on
-}
-
-#delete_cset
-delete_cset(){
-    sudo cset shield -r
 }
 
 #--------------------------------------------------------------------
