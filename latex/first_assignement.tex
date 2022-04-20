@@ -1209,9 +1209,12 @@ QEMU will use 2MiB sized transparent huge pages automatically without any explic
 
 The described procedures have some drawbacks but will not necessarily net you a great performance advantage. According to Red Hat benchmarks, you should not expect more than a 2$\%$ performance gain from this over $\#$Transparent huge pages.\\
 
+Huge pages are a mechanism to manage memory in larger "chunks" than the usual 4KiB (in Linux, no idea what Windows does tbh). This is more efficient than managing many small chunks of memory, and it's easier for the operating system to keep track of said memory, which can improve performance.\\
 
+The performance improvement is less bookkeeping of memory.\\
+Sort of like how a warehouse only handles cases of product, not individually wrapped loose single products. Lots of overhead unless they are in hugeboxes..\\
 
-
+https://www.educba.com/linux-hugepages/\\
 
 %...........................................
 \subsection{CPU governor}
