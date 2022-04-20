@@ -75,7 +75,7 @@ set_variables(){
 				"-machine" "accel=kvm" \
 				"-m" "${VD_RAM}" \
 				"-rtc" "base=localtime,clock=host" \
-				"-drive" "file=${OS_IMG},l2-cache-size=${L2_Cache_Size},cache=writethrough,cache-clean-interval=${Cache_Clean_Interval}" 
+				"-drive" "file=${OS_IMG},l2-cache-size=${L2_Cache_Size},cache=writethrough,cache-clean-interval=${Cache_Clean_Interval}" \
 				#"-vga"  "virtio" \
 				#"-display" "gtk,gl=on" 
 			)
@@ -179,19 +179,26 @@ os_launch_pinned(){
 	cd ${ISO_DIR}
 	echo "Launching OS with pinned vCPU --> ${vCPU_PINNED}..."
 	#allocate resources
-	create_cset
 	page_size
 	allocate_hugepages
+	create_cset
 
-	#run VM
-	sudo cset shield -e \
-	qemu-system-x86_64 -- ${QEMU_ARGS[@]}
-	
-	#free resources
-	free_hugepages
-	delete_cset
-	exit 1;
+	run_qemu &
+	sleep 20
+	cd ${BASE_DIR}
+	source ./sched_fifo.sh
 }
+
+#run qemu args and then free resources
+run_qemu(){
+		#run VM
+		sudo cset shield -e \
+		qemu-system-x86_64 -- ${QEMU_ARGS[@]}
+		
+		#free resources
+		delete_cset
+		free_hugepages
+	}
 
 # INSTALL THE OPERATING SYSTEM N THE VIRTUAL MACHINE
 os_install(){

@@ -20,13 +20,14 @@ page_size(){
     fi
 }
 
-#recomended huge pages size
+#allocate huge pages size
 allocate_hugepages(){
     sysctl -w vm.nr_hugepages=$(nproc)
 
     for i in $(find /sys/devices/system/node/node* -maxdepth 0 -type d);
     do
-        echo 3 > "$i/hugepages/hugepages-1048576kB/nr_hugepages";
+        #16 means 16G os ram allocated to huge pages. 8 is enough for our laptop
+        echo 8 > "$i/hugepages/hugepages-1048576kB/nr_hugepages";
     done
 
     echo "1GB pages successfully enabled"
@@ -36,6 +37,7 @@ list(){
     grep Huge /proc/meminfo
 }
 
+#free allocated huge pages size
 free_hugepages(){
     
     sysctl -w vm.nr_hugepages=$(nproc)
@@ -46,5 +48,4 @@ free_hugepages(){
     done
 
     echo "1GB pages successfully disabled"
-
 }

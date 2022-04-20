@@ -9,4 +9,3 @@ create_cset(){
 delete_cset(){
     sudo cset shield -r
 }
-
