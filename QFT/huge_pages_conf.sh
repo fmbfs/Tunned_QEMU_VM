@@ -1,6 +1,9 @@
 #!/bin/bash
 
-#It is recommended to use the largest supported hugepage size for the best performance.
+#------------------------------------------------------------------
+# FUNTIONS
+
+# It is recommended to use the largest supported hugepage size for the best performance.
 page_size(){
     if [ "$(cat /proc/cpuinfo | grep -oh pse | uniq)" = "pse" ]; then 
         #echo "2048K = OK"
@@ -20,7 +23,7 @@ page_size(){
     fi
 }
 
-#allocate huge pages size
+# Allocate huge pages size
 allocate_hugepages(){
     sysctl -w vm.nr_hugepages=$(nproc)
 
@@ -33,11 +36,12 @@ allocate_hugepages(){
     echo "1GB pages successfully enabled"
 }
 
+# List huge pages info
 list(){
     grep Huge /proc/meminfo
 }
 
-#free allocated huge pages size
+# Free allocated huge pages size
 free_hugepages(){
     
     sysctl -w vm.nr_hugepages=$(nproc)
