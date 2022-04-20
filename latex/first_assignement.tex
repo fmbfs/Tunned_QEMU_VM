@@ -855,18 +855,7 @@ nao foi o gajo que inventou mas talvez seja de interesse.\\
 
 \vfill
 \pagebreak
-%------------------------------------------------------------------
-\subsection{Latency}
-What is it? https://www.youtube.com/watch?v=Tkra8g0gXAU\\
-The time from when an event is suppose to happen to the time it actually does happen.\\
 
-trace-cmd record says we want to record it to a file.\\ 
-19:39\\
-trace-cm list -e will list all available events.\\
-
-The reports we can let them run for a while or time it or just apend it to ls
-
-31' for hystogram latency.\\
 
 \vfill
 \pagebreak
@@ -1144,7 +1133,7 @@ https://www.kernel.org/doc/html/latest/admin-guide/kernel-parameters.html?highli
 sudo apt-get install cpuset\\
 cset -- python app, see man page\\
 we can create a group of isolated cpus withour reboot\\
-sudo cset shield --cpu=\${vCPU_PINNED} --kthread=on
+sudo cset shield --cpu=\${vCPU$\_$PINNED} --kthread=on
 
 we can reset them via \\
 sudo cset shield -r\\
@@ -1158,7 +1147,7 @@ cset set -l\\
 You can exec new processes in specific cpusets and move tasks around existing cpusets. See the cset-proc(1).\\
 We can create persistent cpusets.\\
 
-nohz_full= cpu number to completly isolate the cpu from the kernel\\
+nohz$\_$full= cpu number to completly isolate the cpu from the kernel\\
 
 To run process in isolated cpus we do \\
 sudo chrt -r 1 taskset.., we set the priority to 1. See chrt man for more info\\
@@ -1173,14 +1162,84 @@ ps -a | grep qemu\\
 taskset -c -p 169570\\
 	pid 169570's current affinity list: 3,7\\
 
+%------------------------------------------------------------------
+\subsection{Memory tunning and Latency}
+What is it? https://www.youtube.com/watch?v=Tkra8g0gXAU\\
+The time from when an event is suppose to happen to the time it actually does happen.\\
 
+trace-cmd record says we want to record it to a file.\\ 
+19:39\\
+trace-cm list -e will list all available events.\\
 
+The reports we can let them run for a while or time it or just apend it to ls
+
+31' for hystogram latency.\\
+
+http://52.40.97.209/posts/qemu-optimization/post.php$\#$memory\\
+
+"
+
+Preallocated Memory
+Preallocating memory is one of the easiest ways to improve VM performance. This setting does exactly what it says, it dedicates and area of memory that is the entire size of the guest VM's memory so that new blocks of memory do not have to be allocated by the host as the guest requests them. This does however leave all memory preallocated to the VM unusable by the host until the guest is halted.\\
+
+Preallocated memory can be enabled with one QEMU argument. -mem-prealloc\\
+
+we just need to add this -mem-prealloc to qemu\\
+
+From nikhil test:
+[Yesterday 5:27 PM] Nikhil Santhosh\\
+so I tried it out.. there is no improvement in performance\\
+\\
+Nikhil Santhosh\\
+but.. I saw that it improved the performance of the VM in the CPU isolation method\\
+\\
+Nikhil Santhosh\\
+it bought the simulation to 22 secs\\
+ like 1\\
+
+Nikhil Santhosh\\
+from 30 secs\\
+
+together with all the other changes so far, I've configured HugePages (8 is our host max) dynamically with mem prealloc, then changing qemu processes priority after boot to be 99 (the highest in kernel).\\
+
+This is all done via running one script. Since it is changing kernel stuff it needs to be runned as sudo su.\\
+
+I feel that my qemu is more responsive and fast. but you have to try in your side.\\
 
 %...........................................
-\subsection{Huge pages}
+\subsection{HugePages}
+
+https://linuxconfig.org/how-to-enable-hugepages-on-linux
+
 QEMU will use 2MiB sized transparent huge pages automatically without any explicit configuration in QEMU or Libvirt, subject to some important caveats.\\
 
-The described procedures have some drawbacks but will not necessarily net you a great performance advantage. According to Red Hat benchmarks, you should not expect more than a 2% performance gain from this over #Transparent huge pages.\\
+The described procedures have some drawbacks but will not necessarily net you a great performance advantage. According to Red Hat benchmarks, you should not expect more than a 2$\%$ performance gain from this over $\#$Transparent huge pages.\\
+
+Huge pages are a mechanism to manage memory in larger "chunks" than the usual 4KiB (in Linux, no idea what Windows does tbh). This is more efficient than managing many small chunks of memory, and it's easier for the operating system to keep track of said memory, which can improve performance.\\
+
+The performance improvement is less bookkeeping of memory.\\
+Sort of like how a warehouse only handles cases of product, not individually wrapped loose single products. Lots of overhead unless they are in hugeboxes..\\
+
+https://www.educba.com/linux-hugepages/\\
+
+
+
+The <hugepages/> element will cause guest RAM to be allocated from the default huge pages size pool, and will cause immediate allocation of those huge pages at QEMU startup. Huge pages are always locked into host RAM.\\
+
+The <locked/> element is used to control other QEMU memory allocations that are separate from guest RAM. It ensures all non-guest RAM pages are also locked into host RAM.\\
+
+If you are not trying to overcommit host RAM, then using huge pages on the host side is a very good idea for maximizing performance as it improves page table hit rates. This is true regardless of whether the guest OS in turn uses huge pages. This performance benefit will apply to all workloads and all guest OS.\\
+
+The KSM feature for when you are trying to overcommit host RAM (ie run many guests whose total RAM exceeds available host RAM). It tries to share RAM pages between guests to avoid risk of swapping during overcommit. KSM has a quite significant penalty in CPU consumption though, so its a tradeoff as to whether it is useful for a particular workload and/or guest OS.\\
+
+Note that -mem-path /dev/hugepages will fall back to allocating normal RAM if it doesn’t have enough hugepages, triggering (b) to fail. Using -mem-prealloc enforces the allocation using hugepages\\
+
+Care should be taken with the size of hugepage used; postcopy with 2MB hugepages works well, however 1GB hugepages are likely to be problematic since it takes ~1 second to transfer a 1GB hugepage across a 10Gbps link, and until the full page is transferred the destination thread is blocked.\\
+%...........................................
+\subsection{Linux Process Scheduler Tuning}
+
+Aqui!
+
 
 %...........................................
 \subsection{CPU governor}
@@ -1464,8 +1523,8 @@ Find inside files:\\
 grep -r 'switch$\_$fpu$\_$return*'\\
 
 
-#to cal a function inside a script\\
-. ./cset.sh && list_cset\\
+to cal a function inside a script\\
+. ./cset.sh \&\& list$\_$cset\\
 
 look pid filter by chromium and grab the first column\\
 ps -a | grep qemu | awk '{ print \$1 }' | xargs -I{} taskset -c -p {}
@@ -1477,7 +1536,13 @@ Array:\\
 echo "\${cpu[0]:0:1}"
 
 Clear variables\\
-exec env --ignore-environment /bin/bash
+exec env --ignore-environment /bin/bash\\
+\\
+source in bash need to be locally done, so if we need inside a function we put it inside function.\\
+vmstat -s\\
+man vmstat for statistics\\
+
+long-command & sleep 300; do-this-after-five-minutes\\
 
 %================================================================================================================================
 \end{document}

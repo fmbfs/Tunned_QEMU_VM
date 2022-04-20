@@ -11,19 +11,21 @@
 \BOOKMARK [3][-]{subsubsection.3.4.1}{Tracing QEMU:}{subsection.3.4}% 11
 \BOOKMARK [2][-]{subsection.3.5}{No HZ}{section.3}% 12
 \BOOKMARK [2][-]{subsection.3.6}{mmiotrace}{section.3}% 13
-\BOOKMARK [2][-]{subsection.3.7}{Latency}{section.3}% 14
-\BOOKMARK [1][-]{section.4}{HOST preparation}{}% 15
-\BOOKMARK [2][-]{subsection.4.1}{Multi Threading}{section.4}% 16
-\BOOKMARK [2][-]{subsection.4.2}{CPU PINNING\205Affinity}{section.4}% 17
-\BOOKMARK [3][-]{subsubsection.4.2.1}{NUMA}{subsection.4.2}% 18
-\BOOKMARK [3][-]{subsubsection.4.2.2}{Hyper threading enabled}{subsection.4.2}% 19
-\BOOKMARK [3][-]{subsubsection.4.2.3}{IRQ AFFINITY}{subsection.4.2}% 20
-\BOOKMARK [2][-]{subsection.4.3}{GPU ISOLATION}{section.4}% 21
-\BOOKMARK [1][-]{section.5}{KernelShark Before and After CPU pinning}{}% 22
-\BOOKMARK [1][-]{section.6}{Questions that need a response?}{}% 23
-\BOOKMARK [1][-]{section.7}{Benchmark tools}{}% 24
-\BOOKMARK [1][-]{section.8}{Create snapshot}{}% 25
-\BOOKMARK [1][-]{section.9}{Kernel}{}% 26
-\BOOKMARK [1][-]{section.10}{Cross compiling}{}% 27
-\BOOKMARK [1][-]{section.11}{FLUTTER APP}{}% 28
-\BOOKMARK [1][-]{section.12}{Uteis}{}% 29
+\BOOKMARK [1][-]{section.4}{HOST preparation}{}% 14
+\BOOKMARK [2][-]{subsection.4.1}{Multi Threading}{section.4}% 15
+\BOOKMARK [2][-]{subsection.4.2}{CPU PINNING\205Affinity}{section.4}% 16
+\BOOKMARK [3][-]{subsubsection.4.2.1}{NUMA}{subsection.4.2}% 17
+\BOOKMARK [3][-]{subsubsection.4.2.2}{Hyper threading enabled}{subsection.4.2}% 18
+\BOOKMARK [3][-]{subsubsection.4.2.3}{IRQ AFFINITY}{subsection.4.2}% 19
+\BOOKMARK [2][-]{subsection.4.3}{GPU ISOLATION}{section.4}% 20
+\BOOKMARK [2][-]{subsection.4.4}{Memory tunning and Latency}{section.4}% 21
+\BOOKMARK [2][-]{subsection.4.5}{HugePages}{section.4}% 22
+\BOOKMARK [2][-]{subsection.4.6}{CPU governor}{section.4}% 23
+\BOOKMARK [1][-]{section.5}{KernelShark Before and After CPU pinning}{}% 24
+\BOOKMARK [1][-]{section.6}{Questions that need a response?}{}% 25
+\BOOKMARK [1][-]{section.7}{Benchmark tools}{}% 26
+\BOOKMARK [1][-]{section.8}{Create snapshot}{}% 27
+\BOOKMARK [1][-]{section.9}{Kernel}{}% 28
+\BOOKMARK [1][-]{section.10}{Cross compiling}{}% 29
+\BOOKMARK [1][-]{section.11}{FLUTTER APP}{}% 30
+\BOOKMARK [1][-]{section.12}{Uteis}{}% 31

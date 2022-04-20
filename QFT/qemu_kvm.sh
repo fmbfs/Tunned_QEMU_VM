@@ -12,12 +12,17 @@
 #
 #
 
+#RUN it as sudo su!
+
 #------------------------------------------------------------------
 #DEFAULTS
-set -euox pipefail
+#x will print all
+#set -euox pipefail
+set -euo pipefail
 
 # BASE_DIR is the path where .sh is
-BASE_DIR="${PWD}"
+BASE_DIR=$(dirname "${BASH_SOURCE[0]}")
+[[ "${BASE_DIR}" == "." ]] && BASE_DIR=$(pwd)
 
 #if no argument is passed we assume it to be launched pinned
 ARG1="${1:--lp}"
@@ -31,8 +36,7 @@ ARG4=($( ./host_check_group.sh | awk '{print $3}'))
 # FUNCTIONS
 
 #print_error -- Error handler function
-print_error()
-{
+print_error(){
     echo "Error: $1"; exit 1
 }
 
@@ -101,6 +105,7 @@ set_variables(){
 				"-cpu" "max,kvm=off,hv_relaxed,hv_spinlocks=0x1fff,hv_vapic,hv_time" \
 >>>>>>> testes
 				"-enable-kvm" \
+				"-mem-prealloc"\
 				"-machine" "accel=kvm" \
 				"-m" "${VD_RAM}" \
 				"-rtc" "base=localtime,clock=host" \
@@ -130,11 +135,20 @@ show_help(){
     echo "${0} [options]"
 >>>>>>> testes
     echo "Options:"
+<<<<<<< HEAD
     echo "  -i -> Install the OS via CDROM"
     echo "  -c -> Creates a qcow2 image for OS"
     echo "  -l -> Launch qemu OS machine."
 	echo "  -lp -> Launch qemu OS machine with Pinned CPU."
     echo "  -h -> Show this help."
+>>>>>>> testes
+=======
+    echo "  -i -----> Install the OS via CDROM"
+    echo "  -c -----> Creates a qcow2 image for OS"
+    echo "  -l -----> Launch qemu OS machine."
+	echo "  -lp ----> Launch qemu OS machine with Pinned CPU."
+	echo "  -a -----> Show QEMU args that are currently beeing deployed."
+    echo "  -h -----> Show this help."
 >>>>>>> testes
     echo ""
     exit 0
@@ -177,6 +191,10 @@ process_args(){
 		;;
 	"-lp")
 		os_launch_pinned
+		shift
+		;;
+	"-a")
+		echo "qemu-system-x86_64 ${QEMU_ARGS[@]}"
 		shift
 		;;
 	"-h")
@@ -228,20 +246,40 @@ os_launch(){
 	cd ${ISO_DIR}
 	echo "Launching OS..."
 <<<<<<< HEAD
+<<<<<<< HEAD
     echo "$QEMU_ARGS"
 	#hexadecimal afinity for cpu placement
     taskset -c $CPU_PINNED \
     qemu-system-x86_64 $QEMU_ARGS
 =======
     echo "${QEMU_ARGS[@]}"
+=======
+>>>>>>> testes
     qemu-system-x86_64 ${QEMU_ARGS[@]}
 	exit 1;
 }
 
-# LAUNCH QEMU-KVM
+#RUN QEMU ARGS AND THEN FREE RESOURCES
+run_qemu(){
+	#run VM
+	sudo cset shield -e \
+	qemu-system-x86_64 -- ${QEMU_ARGS[@]}
+	
+	#free resources
+	#the sleep may or maynot be needed
+	sleep 5
+	delete_cset
+	free_hugepages
+}
+
+# LAUNCH QEMU-KVM ISOLATED AND PINNED
 os_launch_pinned(){
+	source huge_pages_conf.sh
+	source cset_conf.sh
+	
 	cd ${ISO_DIR}
 	echo "Launching OS with pinned vCPU --> ${vCPU_PINNED}..."
+<<<<<<< HEAD
     echo "QEMU arguments: ${QEMU_ARGS[@]}"
 	echo " "
 	#only use when 2 cpus are needed
@@ -261,36 +299,31 @@ os_launch_pinned(){
 	delete_cset
 	#exit 1;
 >>>>>>> testes
+=======
+	#allocate resources
+	page_size
+	allocate_hugepages
+	create_cset
+
+	run_qemu &
+	sleep 20
+
+	cd ${BASE_DIR}
+	source ./sched_fifo.sh
+	sched
+>>>>>>> testes
 }
 
 # INSTALL THE OPERATING SYSTEM N THE VIRTUAL MACHINE
 os_install(){
 	cd ${IMAGES_DIR}
 	echo "Installing OS...";
-	echo "${QEMU_ARGS[@]}"
 	qemu-system-x86_64 ${QEMU_ARGS[@]} \
     -cdrom ${OS_ISO}
 	exit 1;
 }
 
-#create cpu set
-create_cset(){
-    sudo cset shield --cpu=${vCPU_PINNED} --threads --kthread=on
-}
-
-#delete_cset
-delete_cset(){
-    sudo cset shield -r
-}
-
 #--------------------------------------------------------------------
 # MAIN
-
 set_variables
 process_args
-
-
-#rn on other terminal to check
-#cset set -l 
-#ps -a | grep qemu | awk '{ print $1 }' | xargs -I{} taskset -c -p {}
-#htop
