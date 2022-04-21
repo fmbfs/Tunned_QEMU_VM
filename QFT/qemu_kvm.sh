@@ -35,11 +35,6 @@ ARG4=($( ./host_check_group.sh | awk '{print $3}'))
 #--------------------------------------------------------------------
 # FUNCTIONS
 
-#print_error -- Error handler function
-print_error(){
-    echo "Error: $1"; exit 1
-}
-
 set_variables(){
 	# OS .iso Paths
 	ISO_DIR="${BASE_DIR}/Iso_Images/Windows"

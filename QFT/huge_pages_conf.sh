@@ -1,6 +1,18 @@
 #!/bin/bash
 
 #------------------------------------------------------------------
+#DEFAULTS
+
+#x will print all
+#set -euox pipefail
+set -euo pipefail
+
+#print_error -- Error handler function
+print_error(){
+    echo "Error: $1"; exit 1
+}
+
+#------------------------------------------------------------------
 # FUNTIONS
 
 # It is recommended to use the largest supported hugepage size for the best performance.
@@ -10,7 +22,7 @@ page_size(){
         :
     else 
         #echo "2048K = NO"
-        print_error
+        print_error "HP_1 Not OK"
     fi
 
     #1G = 1048576kB
@@ -19,7 +31,7 @@ page_size(){
         :
     else 
         #echo "1G = NO"
-        print_error
+        print_error "HP_2 Not OK"
     fi
 }
 
@@ -53,3 +65,5 @@ free_hugepages(){
 
     echo "1GB pages successfully disabled"
 }
+
+#page_size
