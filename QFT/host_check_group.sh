@@ -1,40 +1,37 @@
 #!/bin/bash
 
 #------------------------------------------------------------------
-#DEFAULTS
-#x will print all
-#set -euox pipefail
-set -euo pipefail
+# FUNTIONS
 
-#------------------------------------------------------------------
-#FUNCTIONS
 #print_error -- Error handler function
-print_error()
-{
+print_error(){
     echo "Error: $1"; exit 1
-} #print_error  end
+}
 
-#iommu_on -- Confirm that IOMMU is on and able
+
+# iommu_on -- Confirm that IOMMU is on and able
 iommu_on()
 {
     if [[  "$(2> /dev/null dmesg)" =~ "DMAR: IOMMU enabled" ]]; then
-        :
+        echo "iommu_on"
+        #:
     else 
-        print_error "Not OK"
+        print_error "HC_1 Not OK"
     fi
-} #iommu_on end
+}
 
-#iommu_vdt_check -- Check if IOMMU and VT-D are enabled or not
+# iommu_vdt_check -- Check if IOMMU and VT-D are enabled or not
 iommu_vdt_check()
 {
     if compgen -G "/sys/kernel/iommu_groups/*/devices/*" > /dev/null; then
-        :
+        echo "iommu_vdt"
+        #:
     else
-        print_error "Not OK"
+        print_error "HC_2 Not OK"
     fi
-} #iommu_vdt_check end
+}
 
-#Check vCPU L3 cache number and groups the last threads
+# Check vCPU L3 cache number and groups the last threads
 grouping()
 {
     i=-4
@@ -82,14 +79,13 @@ grouping()
         done
     else
         echo "L3 cache not equal..."
-        print_error
+        print_error "HC_3 Not OK"
     fi
     echo "group: ${group[@]}"
 }
 
 #------------------------------------------------------------------
-#MAIN
-
+# MAIN
 iommu_on
 iommu_vdt_check
 grouping

@@ -20,11 +20,11 @@
 #set -euox pipefail
 set -euo pipefail
 
-# BASE_DIR is the path where .sh is
+# BASE_DIR is the path
 BASE_DIR=$(dirname "${BASH_SOURCE[0]}")
 [[ "${BASE_DIR}" == "." ]] && BASE_DIR=$(pwd)
 
-#if no argument is passed we assume it to be launched pinned
+#If no argument is passed we assume it to be launched pinned
 ARG1="${1:--lp}"
 ARG2="${2:-disk}"
 
@@ -34,11 +34,6 @@ ARG4=($( ./host_check_group.sh | awk '{print $3}'))
 
 #--------------------------------------------------------------------
 # FUNCTIONS
-
-#print_error -- Error handler function
-print_error(){
-    echo "Error: $1"; exit 1
-}
 
 set_variables(){
 	# OS .iso Paths
@@ -190,7 +185,7 @@ process_args(){
 		shift
 		;;
 	"-lp")
-		os_launch_pinned
+		os_launch_tuned
 		shift
 		;;
 	"-a")
@@ -259,25 +254,26 @@ os_launch(){
 	exit 1;
 }
 
-#RUN QEMU ARGS AND THEN FREE RESOURCES
+# RUN QEMU ARGS AND THEN FREE RESOURCES
 run_qemu(){
 	#run VM
 	sudo cset shield -e \
 	qemu-system-x86_64 -- ${QEMU_ARGS[@]}
 	
 	#free resources
-	#the sleep may or maynot be needed
-	sleep 5
+	#back to 95% 
+	sysctl kernel.sched_rt_runtime_us=950000
 	delete_cset
 	free_hugepages
 }
 
 # LAUNCH QEMU-KVM ISOLATED AND PINNED
-os_launch_pinned(){
+os_launch_tuned(){
 	source huge_pages_conf.sh
 	source cset_conf.sh
 	
 	cd ${ISO_DIR}
+<<<<<<< HEAD
 	echo "Launching OS with pinned vCPU --> ${vCPU_PINNED}..."
 <<<<<<< HEAD
     echo "QEMU arguments: ${QEMU_ARGS[@]}"
@@ -300,10 +296,16 @@ os_launch_pinned(){
 	#exit 1;
 >>>>>>> testes
 =======
+=======
+	echo "Launching OS with pinned vCPU's --> ${vCPU_PINNED}..."
+>>>>>>> testes
 	#allocate resources
 	page_size
 	allocate_hugepages
 	create_cset
+
+	#sched_rt_runtime_us to 98%
+	sysctl kernel.sched_rt_runtime_us=980000
 
 	run_qemu &
 	sleep 20
