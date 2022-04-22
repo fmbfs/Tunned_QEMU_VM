@@ -71,17 +71,6 @@ set_variables(){
 	VD_NAME="${ARG2}.qcow2"
 	OS_IMG="${QEMU_VD}/${VD_NAME}"
 
-<<<<<<< HEAD
-    # Processor
-    CORES="4"
-	THREADS="2"
-<<<<<<< HEAD
-=======
-	#-smp 2 cores=${CORES},threads=${THREADS} there is no need.
-
->>>>>>> testes
-=======
->>>>>>> testes
 	# IMAGE
 	Disk_Size="40G"
 	Cluster_Size="64K"
@@ -94,82 +83,36 @@ set_variables(){
 	# RAM
     VD_RAM="8G"  
 
-<<<<<<< HEAD
-	#Pinned CPU
-<<<<<<< HEAD
-	CPU_PINNED="7"
-=======
-	CPU_PINNED="3,7"
->>>>>>> testes
-=======
 	# Pinned vCPU
-<<<<<<< HEAD
-	vCPU_PINNED="7"
->>>>>>> testes
-=======
 	vCPU_PINNED="${ARG3},${ARG4}"
->>>>>>> testes
 
 	
 	# QEMU ARGUMENTS
 	QEMU_ARGS=(
-<<<<<<< HEAD
-				"-name" "${ARGUMENT2}" \
-				"-cpu" "max,hv_relaxed,hv_spinlocks=0x1fff,hv_vapic,hv_time" \
-<<<<<<< HEAD
-				"-smp" "cores=${CORES},threads=${THREADS}" \
-=======
->>>>>>> testes
-=======
 				"-name" "${ARG2}" \
 				"-cpu" "max,kvm=off,hv_relaxed,hv_spinlocks=0x1fff,hv_vapic,hv_time" \
->>>>>>> testes
 				"-enable-kvm" \
 				"-mem-prealloc" \
 				"-machine" "accel=kvm" \
 				"-m" "${VD_RAM}" \
 				"-rtc" "base=localtime,clock=host" \
 				"-drive" "file=${OS_IMG},l2-cache-size=${L2_Cache_Size},cache=writethrough,cache-clean-interval=${Cache_Clean_Interval}" \
-<<<<<<< HEAD
-=======
 				#"-vga"  "virtio" \
 				#"-display" "gtk,gl=on" 
->>>>>>> testes
 			)
 }
 
 # HELP MENU
 show_help(){
 	echo ""
-<<<<<<< HEAD
-<<<<<<< HEAD
-    echo "./create_system.sh [options]"
-    echo "Options:"
-    echo "  -osi -> Install the OS via CDROM"
-    echo "  -osc -> Creates a qcow2 image for OS"
-    echo "  -osl -> Launch qemu OS machine."
-    echo "  -help -> Show this help."
-=======
-    echo "./qemu_kvm.sh [options]"
-=======
     echo "${0} [options]"
->>>>>>> testes
     echo "Options:"
-<<<<<<< HEAD
-    echo "  -i -> Install the OS via CDROM"
-    echo "  -c -> Creates a qcow2 image for OS"
-    echo "  -l -> Launch qemu OS machine."
-	echo "  -lp -> Launch qemu OS machine with Pinned CPU."
-    echo "  -h -> Show this help."
->>>>>>> testes
-=======
     echo "  -i -----> Install the OS via CDROM"
     echo "  -c -----> Creates a qcow2 image for OS"
     echo "  -l -----> Launch qemu OS machine."
 	echo "  -lt ----> Launch qemu OS machine with Pinned CPU."
 	echo "  -a -----> Show QEMU args that are currently beeing deployed."
     echo "  -h -----> Show this help."
->>>>>>> testes
     echo ""
     exit 0
 }
@@ -182,21 +125,6 @@ process_args(){
 		show_help
 		shift
 		;;
-<<<<<<< HEAD
-	"-osi")
-		os_install
-		shift
-		;;
-	"-osc")
-		create_image_os
-		shift
-		;;
-	"-osl")
-		os_launch
-		shift
-		;;
-	"-help")
-=======
 	"-i")
 		os_install
 		shift
@@ -218,16 +146,11 @@ process_args(){
 		shift
 		;;
 	"-h")
->>>>>>> testes
 		show_help
 		shift
 		;;
 	*)
-<<<<<<< HEAD
-		echo "Unrecognised option"
-=======
 		echo "Unrecognised option. -h for help."
->>>>>>> testes
 		shift
 		;;
 	esac	
@@ -264,21 +187,7 @@ create_image_os(){
 # LAUNCH QEMU-KVM
 os_launch(){
 	cd ${ISO_DIR}
-<<<<<<< HEAD
-	echo "Launching OS..."
-<<<<<<< HEAD
-<<<<<<< HEAD
-    echo "$QEMU_ARGS"
-	#hexadecimal afinity for cpu placement
-    taskset -c $CPU_PINNED \
-    qemu-system-x86_64 $QEMU_ARGS
-=======
-    echo "${QEMU_ARGS[@]}"
-=======
->>>>>>> testes
-=======
 	echo "Launching untuned VM..."
->>>>>>> testes
     qemu-system-x86_64 ${QEMU_ARGS[@]}
 	exit 1;
 }
@@ -302,36 +211,7 @@ os_launch_tuned(){
 	source cset_conf.sh
 	
 	cd ${ISO_DIR}
-<<<<<<< HEAD
-<<<<<<< HEAD
-	echo "Launching OS with pinned vCPU --> ${vCPU_PINNED}..."
-<<<<<<< HEAD
-    echo "QEMU arguments: ${QEMU_ARGS[@]}"
-	echo " "
-	#only use when 2 cpus are needed
-    #sudo chrt -r 1 \
-<<<<<<< HEAD
-	taskset -c ${vCPU_PINNED} \
-    qemu-system-x86_64 ${QEMU_ARGS[@]}
->>>>>>> testes
-	exit 1;
-=======
-	#taskset -c ${vCPU_PINNED} \
-	create_cset
-	echo " "
-	sudo cset shield -e \
-	qemu-system-x86_64 -- ${QEMU_ARGS[@]}
-	echo " "
-	delete_cset
-	#exit 1;
->>>>>>> testes
-=======
-=======
-	echo "Launching OS with pinned vCPU's --> ${vCPU_PINNED}..."
->>>>>>> testes
-=======
 	echo "Launching tunned VM..."
->>>>>>> testes
 	#allocate resources
 	page_size >/dev/null
 	create_cset >/dev/null
@@ -345,7 +225,6 @@ os_launch_tuned(){
 	cd ${BASE_DIR}
 	source sched_fifo.sh
 	sched
->>>>>>> testes
 }
 
 # INSTALL THE OPERATING SYSTEM N THE VIRTUAL MACHINE
