@@ -2,12 +2,15 @@
 
 #------------------------------------------------------------------
 # FUNTIONS
+#trap for debug
+trap(){
+	echo "trap trap trap!!!!!!"
+}
 
 #print_error -- Error handler function
 print_error(){
     echo "Error: $1"; exit 1
 }
-
 
 # iommu_on -- Confirm that IOMMU is on and able
 iommu_on()
@@ -86,6 +89,7 @@ grouping()
 
 #------------------------------------------------------------------
 # MAIN
+
 iommu_on
 iommu_vdt_check
 grouping

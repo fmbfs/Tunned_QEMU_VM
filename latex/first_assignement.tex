@@ -179,7 +179,7 @@ Open source, é 5 estrelas, o problema é que está sempre a mudar!
 \vfill
 \pagebreak
 %----------------------------------------------------
-\subsection{KVM}
+\section{KVM}
 https://www.youtube.com/watch?v=G21c-sbggk4\\
 3:44 to install the program that checks if the machine can run KVM.\\
 Kernel based Machines, for hardware acceleration. It gives the opportunitie to run coomands that affect directly the hardware.\\
@@ -198,6 +198,9 @@ It is not supported by every processors linux-kvm.org/page/Processor$\_$support\
 
 What is an hypervisor? https://www.youtube.com/watch?v=6k6gtzseq2A$\&$list=PLLsor6GJ$\_$BEEucicHgBjtYurGv7judmrwI$\&$index=3
 
+\subsection{kvm tunning}
+
+look into it
 
 \vfill
 \pagebreak
@@ -413,6 +416,12 @@ https://www.qemu.org/docs/master/system/invocation.html?highlight=smp
     -numa hmat-cache,node-id=0,size=10K,level=1,associativity=direct,policy=write-back,line=8 \\
     -numa hmat-cache,node-id=1,size=10K,level=1,associativity=direct,policy=write-back,line=8\\
 
+\vfill
+\pagebreak
+%----------------------------------------------------
+\section{Virtualization VS Emulation}
+
+Insert here stuff
 
 
 \vfill
@@ -1206,6 +1215,26 @@ This is all done via running one script. Since it is changing kernel stuff it ne
 
 I feel that my qemu is more responsive and fast. but you have to try in your side.\\
 
+
+grep -i huge /proc/meminfo\\
+
+HugePages Total is the size of the pool of huge pages and is configured 
+				using /proc/sys/vm/nr$\_$hugepages\\
+HugePages Free  is the number of huge pages in the pool that are not yet
+                allocated.\\
+HugePages Rsvd  is short for "reserved," and is the number of huge pages for
+                which a commitment to allocate from the pool has been made,
+                but no allocation has yet been made.  Reserved huge pages
+                guarantee that an application will be able to allocate a
+                huge page from the pool of huge pages at fault time.\\
+HugePages Surp  is short for "surplus," and is the number of huge pages in
+                the pool above the value in /proc/sys/vm/nr$\_$hugepages. The
+                maximum number of surplus huge pages is controlled by
+                /proc/sys/vm/nr$\_$overcommit$\_$hugepages.\\
+Hugepagesize    is the default hugepage size (in Kb).\\
+
+
+
 %...........................................
 \subsection{HugePages}
 
@@ -1235,6 +1264,9 @@ The KSM feature for when you are trying to overcommit host RAM (ie run many gues
 Note that -mem-path /dev/hugepages will fall back to allocating normal RAM if it doesn’t have enough hugepages, triggering (b) to fail. Using -mem-prealloc enforces the allocation using hugepages\\
 
 Care should be taken with the size of hugepage used; postcopy with 2MB hugepages works well, however 1GB hugepages are likely to be problematic since it takes ~1 second to transfer a 1GB hugepage across a 10Gbps link, and until the full page is transferred the destination thread is blocked.\\
+
+
+
 %...........................................
 \subsection{Linux Process Scheduler Tuning}
 
@@ -1249,7 +1281,7 @@ watch lscpu\\
 \pagebreak
 %----------------------------------------------------
 \section{Guest tune}
-
+Install OS as enterprise for better regitry access\\
 Disable indexing windows 10\\
 disable windows defender\\
 disable cortana\\
@@ -1553,7 +1585,10 @@ source in bash need to be locally done, so if we need inside a function we put i
 vmstat -s\\
 man vmstat for statistics\\
 
-long-command & sleep 300; do-this-after-five-minutes\\
+long-command \& sleep 300; do-this-after-five-minutes\\
+
+grep -r hello /sys/ 2> /dev/null\\ 
+to send output to null\\
 
 %================================================================================================================================
 \end{document}

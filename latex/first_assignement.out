@@ -1,31 +1,35 @@
 \BOOKMARK [2][-]{subsection.0.1}{Field notes:}{}% 1
 \BOOKMARK [1][-]{section.1}{Investigar estes topicos}{}% 2
-\BOOKMARK [2][-]{subsection.1.1}{KVM}{section.1}% 3
-\BOOKMARK [1][-]{section.2}{Qemu}{}% 4
-\BOOKMARK [2][-]{subsection.2.1}{Arguments}{section.2}% 5
-\BOOKMARK [1][-]{section.3}{Fine tunning}{}% 6
-\BOOKMARK [2][-]{subsection.3.1}{BEST SO FAR}{section.3}% 7
-\BOOKMARK [2][-]{subsection.3.2}{BASH SCRIPS}{section.3}% 8
-\BOOKMARK [2][-]{subsection.3.3}{BCCBPF Tools}{section.3}% 9
-\BOOKMARK [2][-]{subsection.3.4}{Tracing}{section.3}% 10
-\BOOKMARK [3][-]{subsubsection.3.4.1}{Tracing QEMU:}{subsection.3.4}% 11
-\BOOKMARK [2][-]{subsection.3.5}{No HZ}{section.3}% 12
-\BOOKMARK [2][-]{subsection.3.6}{mmiotrace}{section.3}% 13
-\BOOKMARK [1][-]{section.4}{HOST preparation}{}% 14
-\BOOKMARK [2][-]{subsection.4.1}{Multi Threading}{section.4}% 15
-\BOOKMARK [2][-]{subsection.4.2}{CPU PINNING\205Affinity}{section.4}% 16
-\BOOKMARK [3][-]{subsubsection.4.2.1}{NUMA}{subsection.4.2}% 17
-\BOOKMARK [3][-]{subsubsection.4.2.2}{Hyper threading enabled}{subsection.4.2}% 18
-\BOOKMARK [3][-]{subsubsection.4.2.3}{IRQ AFFINITY}{subsection.4.2}% 19
-\BOOKMARK [2][-]{subsection.4.3}{GPU ISOLATION}{section.4}% 20
-\BOOKMARK [2][-]{subsection.4.4}{Memory tunning and Latency}{section.4}% 21
-\BOOKMARK [2][-]{subsection.4.5}{HugePages}{section.4}% 22
-\BOOKMARK [2][-]{subsection.4.6}{CPU governor}{section.4}% 23
-\BOOKMARK [1][-]{section.5}{KernelShark Before and After CPU pinning}{}% 24
-\BOOKMARK [1][-]{section.6}{Questions that need a response?}{}% 25
-\BOOKMARK [1][-]{section.7}{Benchmark tools}{}% 26
-\BOOKMARK [1][-]{section.8}{Create snapshot}{}% 27
-\BOOKMARK [1][-]{section.9}{Kernel}{}% 28
-\BOOKMARK [1][-]{section.10}{Cross compiling}{}% 29
-\BOOKMARK [1][-]{section.11}{FLUTTER APP}{}% 30
-\BOOKMARK [1][-]{section.12}{Uteis}{}% 31
+\BOOKMARK [1][-]{section.2}{KVM}{}% 3
+\BOOKMARK [2][-]{subsection.2.1}{kvm tunning}{section.2}% 4
+\BOOKMARK [1][-]{section.3}{Qemu}{}% 5
+\BOOKMARK [2][-]{subsection.3.1}{Arguments}{section.3}% 6
+\BOOKMARK [1][-]{section.4}{Virtualization VS Emulation}{}% 7
+\BOOKMARK [1][-]{section.5}{Fine tunning}{}% 8
+\BOOKMARK [2][-]{subsection.5.1}{BEST SO FAR}{section.5}% 9
+\BOOKMARK [2][-]{subsection.5.2}{BASH SCRIPS}{section.5}% 10
+\BOOKMARK [2][-]{subsection.5.3}{BCCBPF Tools}{section.5}% 11
+\BOOKMARK [2][-]{subsection.5.4}{Tracing}{section.5}% 12
+\BOOKMARK [3][-]{subsubsection.5.4.1}{Tracing QEMU:}{subsection.5.4}% 13
+\BOOKMARK [2][-]{subsection.5.5}{No HZ}{section.5}% 14
+\BOOKMARK [2][-]{subsection.5.6}{mmiotrace}{section.5}% 15
+\BOOKMARK [1][-]{section.6}{HOST preparation}{}% 16
+\BOOKMARK [2][-]{subsection.6.1}{Multi Threading}{section.6}% 17
+\BOOKMARK [2][-]{subsection.6.2}{CPU PINNING\205Affinity}{section.6}% 18
+\BOOKMARK [3][-]{subsubsection.6.2.1}{NUMA}{subsection.6.2}% 19
+\BOOKMARK [3][-]{subsubsection.6.2.2}{Hyper threading enabled}{subsection.6.2}% 20
+\BOOKMARK [3][-]{subsubsection.6.2.3}{IRQ AFFINITY}{subsection.6.2}% 21
+\BOOKMARK [2][-]{subsection.6.3}{GPU ISOLATION}{section.6}% 22
+\BOOKMARK [2][-]{subsection.6.4}{Memory tunning and Latency}{section.6}% 23
+\BOOKMARK [2][-]{subsection.6.5}{HugePages}{section.6}% 24
+\BOOKMARK [2][-]{subsection.6.6}{Linux Process Scheduler Tuning}{section.6}% 25
+\BOOKMARK [2][-]{subsection.6.7}{CPU governor}{section.6}% 26
+\BOOKMARK [1][-]{section.7}{Guest tune}{}% 27
+\BOOKMARK [1][-]{section.8}{KernelShark Before and After CPU pinning}{}% 28
+\BOOKMARK [1][-]{section.9}{Questions that need a response?}{}% 29
+\BOOKMARK [1][-]{section.10}{Benchmark tools}{}% 30
+\BOOKMARK [1][-]{section.11}{Create snapshot}{}% 31
+\BOOKMARK [1][-]{section.12}{Kernel}{}% 32
+\BOOKMARK [1][-]{section.13}{Cross compiling}{}% 33
+\BOOKMARK [1][-]{section.14}{FLUTTER APP}{}% 34
+\BOOKMARK [1][-]{section.15}{Uteis}{}% 35
