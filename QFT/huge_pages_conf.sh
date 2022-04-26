@@ -23,7 +23,7 @@ big_pages="1048576"
 small_pages="2048"
 
 #verificar este numero afeta os valores listados
-num_pages="16"
+num_pages="8"
 
 #------------------------------------------------------------------
 # FUNCTIONS

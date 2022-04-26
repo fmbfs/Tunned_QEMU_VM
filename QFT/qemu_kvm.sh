@@ -30,15 +30,18 @@ red=$( tput setaf 1 );
 yellow=$( tput setaf 3 );
 green=$( tput setaf 2 );
 normal=$( tput sgr 0 );
+
 #check for sudo su
-if [[ ${UID} != 0 ]]; then
-    echo "${red}
-    This script must be run as sudo permissions.
-	    Please run it as: 
-	         ${normal}sudo su ${0}
-	"
-    exit 1
-fi
+check_su(){
+	if [[ ${UID} != 0 ]]; then
+		echo "${red}
+		This script must be run as sudo permissions.
+			Please run it as: 
+				${normal}sudo su ${0}
+		"
+		exit 1
+	fi
+}
 
 #look at this for just enable sudo when needed
 #read -s -p "Enter Sudo Password: " PASSWORD
@@ -53,8 +56,9 @@ ARG1="${1:--lt}"
 ARG2="${2:-disk}"
 
 #Args for CPU isolation and pinning
-ARG3=($( ./host_check_group.sh | awk '{print $2}'))
-ARG4=($( ./host_check_group.sh | awk '{print $3}'))
+source host_check_group.sh
+ARG3="${3:-${group[0]}}"
+ARG4="${4:-${group[1]}}"
 
 #--------------------------------------------------------------------
 # FUNCTIONS
@@ -77,6 +81,9 @@ set_variables(){
 	L2_Cache_Size="5M"
     # 1Mb for 8Gb using 64Kb
 
+	# Cores and Threads
+	CORES="2"
+	THREADS="4"
     # CACHE CLEAN IN SECONDS
 	Cache_Clean_Interval="60"
 
@@ -90,13 +97,14 @@ set_variables(){
 	# QEMU ARGUMENTS
 	QEMU_ARGS=(
 				"-name" "${ARG2}" \
-				"-cpu" "max,kvm=off,hv_relaxed,hv_spinlocks=0x1fff,hv_vapic,hv_time" \
+				"-cpu" "host,kvm=off,hv_relaxed,hv_spinlocks=0x1fff,hv_vapic,hv_time" \
 				"-enable-kvm" \
 				"-mem-prealloc" \
 				"-machine" "accel=kvm" \
 				"-m" "${VD_RAM}" \
 				"-rtc" "base=localtime,clock=host" \
 				"-drive" "file=${OS_IMG},l2-cache-size=${L2_Cache_Size},cache=writethrough,cache-clean-interval=${Cache_Clean_Interval}" \
+				#"-smp" "cores=${CORES},threads=${THREADS}" \
 				#"-vga"  "virtio" \
 				#"-display" "gtk,gl=on" 
 			)
@@ -138,6 +146,7 @@ process_args(){
 		shift
 		;;
 	"-lt")
+		check_su
 		os_launch_tuned
 		shift
 		;;
@@ -188,8 +197,13 @@ create_image_os(){
 os_launch(){
 	cd ${ISO_DIR}
 	echo "Launching untuned VM..."
-    qemu-system-x86_64 ${QEMU_ARGS[@]}
-	exit 1;
+
+	qemu-system-x86_64 \
+	-cpu max \
+	-enable-kvm \
+	-smp cores=${CORES},threads=${THREADS} \
+	-drive file=${OS_IMG} \
+	-m ${VD_RAM}			
 }
 
 # RUN QEMU ARGS AND THEN FREE RESOURCES
