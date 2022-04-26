@@ -12,7 +12,6 @@ trap(){
 	echo "trap trap trap!!!!!!"
 }
 
-
 #print_error -- Error handler function
 print_error(){
     echo "Error: $1"; exit 1
