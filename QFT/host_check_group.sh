@@ -16,10 +16,10 @@ print_error(){
 iommu_on()
 {
     if [[  "$(2> /dev/null dmesg)" =~ "DMAR: IOMMU enabled" ]]; then
-        echo "iommu_on"
-        #:
+        #echo "iommu_on"
+        :
     else 
-        print_error "HC_1 Not OK"
+        print_error "HC_1 Not OK --> reboot host to fix."
     fi
 }
 
@@ -27,8 +27,8 @@ iommu_on()
 iommu_vdt_check()
 {
     if compgen -G "/sys/kernel/iommu_groups/*/devices/*" > /dev/null; then
-        echo "iommu_vdt"
-        #:
+        #echo "iommu_vdt"
+        :
     else
         print_error "HC_2 Not OK"
     fi
@@ -81,15 +81,14 @@ grouping()
             group[${j}]=${cpu_arr[-1]}
         done
     else
-        echo "L3 cache not equal..."
-        print_error "HC_3 Not OK"
+        print_error "HC_3 Not OK --> L3 cache not the same. Check with lscpu -e"
     fi
-    echo "group: ${group[@]}"
+    #echo "group: ${group[@]}"
 }
 
 #------------------------------------------------------------------
 # MAIN
 
-iommu_on
-iommu_vdt_check
+#iommu_on
+#iommu_vdt_check
 grouping
