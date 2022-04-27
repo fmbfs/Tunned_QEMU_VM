@@ -314,6 +314,11 @@ qemu command accepts a simple -D switch which can create a log file. So for exam
 
 You can access more logging/debugging options via QEMU Monitor (e.g. qemu -monitor stdio).\\
 
+see cpu flags:\\
+qemu-system-x86_64 -cpu help | grep pdpe\\
+in this case was the one for huge pages\\
+
+
 %----------------------------------------------------------------
 \subsection{Arguments}
 https://www.qemu.org/docs/master/system/invocation.html?highlight=smp
@@ -1034,6 +1039,10 @@ But for this we just use taskset directly\\
 check interrupts command:\\
 cat /proc/interrupts \\
 Without an IO-APIC, interrupts from hardware will be delivered only to the CPU which boots the operating system (usually CPU$\#$0).\\
+
+CPU pinning will not magically increase performance, but it will increase responsiveness. By pinning a CPU and moving existing tasks to other CPUs that do not handle VM cores you ensure that execution of your VM will not be preempted by a task running on host system. This is a very important factor for keeping DPC latency down, and that saves you from audio crackling. VMs essentially are realtime applications and you want VM to be scheduled right here and right now. Gaming VMs even more so. One more thing - it is critical to pin VM CPUs to right host logical CPUs on hyperthreaded hosts. For example on my system same physical core runs hyperthreaded cores 0 and 6, therefore i pin VM cores 0 and 1 to host cores 0 and 6 (qemu hyperthreaded cores go in pairs 0-1, 2-3 and so on). This ensures better utilization of cache as well.
+\\
+
 %----------------------------------------------------
 \subsubsection{NUMA}
 it is tied together to cpu pinning\\
@@ -1233,6 +1242,17 @@ HugePages Surp  is short for "surplus," and is the number of huge pages in
                 /proc/sys/vm/nr$\_$overcommit$\_$hugepages.\\
 Hugepagesize    is the default hugepage size (in Kb).\\
 
+Note: if hugepages in grub are not set to 1gb at the moment i dont have a solution to change them from the default 2MB\\
+add to grub: transparent$\_$hugepage=never hugepagesz=1G hugepages=100 default$\_$hugepagesz=1G\\
+The hugepages=100 is the number of hugepages we want. It is the better way.\\
+AnonHugePages is reference to THP.\\
+
+or never wich is best?\\
+CPU flag of 1gb hugepage support and guest OS support/enabling are not enough to get 1 gb hugepages working in virtualized environment. \\
+How bad can 1GB pages be\\
+
+we cannot have both 2Mb and 1Gb enable at the same time. We will have one or the other. We can only do that during boot time unfurtunatly.\\
+
 
 
 %...........................................
@@ -1251,8 +1271,6 @@ Sort of like how a warehouse only handles cases of product, not individually wra
 
 https://www.educba.com/linux-hugepages/\\
 
-
-
 The <hugepages/> element will cause guest RAM to be allocated from the default huge pages size pool, and will cause immediate allocation of those huge pages at QEMU startup. Huge pages are always locked into host RAM.\\
 
 The <locked/> element is used to control other QEMU memory allocations that are separate from guest RAM. It ensures all non-guest RAM pages are also locked into host RAM.\\
@@ -1264,6 +1282,19 @@ The KSM feature for when you are trying to overcommit host RAM (ie run many gues
 Note that -mem-path /dev/hugepages will fall back to allocating normal RAM if it doesn’t have enough hugepages, triggering (b) to fail. Using -mem-prealloc enforces the allocation using hugepages\\
 
 Care should be taken with the size of hugepage used; postcopy with 2MB hugepages works well, however 1GB hugepages are likely to be problematic since it takes ~1 second to transfer a 1GB hugepage across a 10Gbps link, and until the full page is transferred the destination thread is blocked.\\
+
+unable to map backing store for guest RAM: Cannot allocate memory --> guest is requesting more memory than available. \\
+
+https://www.youtube.com/watch?v=jTJ$\_$X3fJ1Ik\\
+Huge pages need continuous memory space to work.\\
+The number og HP tells us the number of pages that we need to map between virtual memory and physical memory.\\
+It is completly dependent on the processors version and architecture.\\
+Why do we use it? Less page table lookups in theory imply more "performance". So the number of Translation Lookaside Buffer (TLB) will be smaller, because we can fit more of this pages in the TLB cache. \\
+TLB is like a cache in the core of the cpu that stores some addresses in a table. This table is searched first, and when it has what we need it is a \textit{hit} and only spends 1 memory access. But when what we need is not there, it is a \textit{miss} and we spend 2 memory access to achieve the result. \\
+TLB has a limit of a few hundred pages, so how can we improve on it (how can we decrease the number of misses)?\\
+Increasing TLB size by itself is to expensive in terms of resources, so the best slution is to increase the page size, so we will have less pages to map. A regular page sin linux has 4Kb, a HugePage (HP) starts from 2Mb, 1Gb, and more in some special cases.\\
+
+What is transparent huge pages? Is the case where the application doesn't have knowledge of what a HP is, but the OS does, so it wull transparently allocate HP to where it seems fit. Min that it need to be a continuos block of memory.\\
 
 
 

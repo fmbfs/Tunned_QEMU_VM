@@ -1,19 +1,6 @@
 
 #!/bin/bash
 
-#
-#
-##################################################
-#		Improvments to be done:
-#		- Make a formula to automaticly calculate
-#		the best cluster and l2_cache
-##################################################
-#
-#
-#
-
-#RUN it as sudo su!
-
 #------------------------------------------------------------------
 #DEFAULTS
 #x will print all
@@ -47,6 +34,14 @@ check_su(){
 #read -s -p "Enter Sudo Password: " PASSWORD
 #echo $PASSWORD | sudo -S
 
+#------------------------------------------------------------------
+#SOURCES
+source huge_pages_conf.sh
+source host_check_group.sh
+source cset_conf.sh
+source sched_fifo.sh
+
+#------------------------------------------------------------------
 # BASE_DIR is the path
 BASE_DIR=$(dirname "${BASH_SOURCE[0]}")
 [[ "${BASE_DIR}" == "." ]] && BASE_DIR=$(pwd)
@@ -56,7 +51,6 @@ ARG1="${1:--lt}"
 ARG2="${2:-disk}"
 
 #Args for CPU isolation and pinning
-source host_check_group.sh
 ARG3="${3:-${group[0]}}"
 ARG4="${4:-${group[1]}}"
 
@@ -79,29 +73,27 @@ set_variables(){
 	Disk_Size="40G"
 	Cluster_Size="64K"
 	L2_Cache_Size="5M"
-    # 1Mb for 8Gb using 64Kb
+    # 1Mb for 8Gb using 64Kb. Make it cluster size fit no decimals.
 
 	# Cores and Threads
 	CORES="2"
 	THREADS="4"
+	
     # CACHE CLEAN IN SECONDS
 	Cache_Clean_Interval="60"
-
-	# RAM
-    VD_RAM="8G"  
 
 	# Pinned vCPU
 	vCPU_PINNED="${ARG3},${ARG4}"
 
-	
 	# QEMU ARGUMENTS
 	QEMU_ARGS=(
 				"-name" "${ARG2}" \
-				"-cpu" "host,kvm=off,hv_relaxed,hv_spinlocks=0x1fff,hv_vapic,hv_time" \
+				"-cpu" "host,pdpe1gb,kvm=off,hv_relaxed,hv_spinlocks=0x1fff,hv_vapic,hv_time" \
 				"-enable-kvm" \
+				"-m" "${VD_RAM}""G" \
+				"-mem-path" "/dev/hugepages" \
 				"-mem-prealloc" \
-				"-machine" "accel=kvm" \
-				"-m" "${VD_RAM}" \
+				"-machine" "accel=kvm,kernel_irqchip=on" \
 				"-rtc" "base=localtime,clock=host" \
 				"-drive" "file=${OS_IMG},l2-cache-size=${L2_Cache_Size},cache=writethrough,cache-clean-interval=${Cache_Clean_Interval}" \
 				#"-smp" "cores=${CORES},threads=${THREADS}" \
@@ -221,9 +213,6 @@ run_qemu(){
 
 # LAUNCH QEMU-KVM ISOLATED AND PINNED
 os_launch_tuned(){
-	source huge_pages_conf.sh
-	source cset_conf.sh
-	
 	cd ${ISO_DIR}
 	echo "Launching tunned VM..."
 	#allocate resources
@@ -237,7 +226,6 @@ os_launch_tuned(){
 	sleep 20 #criar um serviço para ser automatico apos a 1a vez
 
 	cd ${BASE_DIR}
-	source sched_fifo.sh
 	sched
 }
 
