@@ -105,7 +105,7 @@ set_variables(){
 # HELP MENU
 show_help(){
 	echo ""
-    echo "${0} [options]"
+    echo "${0} [options] [hard drive name] [RAM number]"
     echo "Options:"
     echo "  -i -----> Install the OS via CDROM"
     echo "  -c -----> Creates a qcow2 image for OS"

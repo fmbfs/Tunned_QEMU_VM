@@ -315,7 +315,7 @@ qemu command accepts a simple -D switch which can create a log file. So for exam
 You can access more logging/debugging options via QEMU Monitor (e.g. qemu -monitor stdio).\\
 
 see cpu flags:\\
-qemu-system-x86_64 -cpu help | grep pdpe\\
+qemu-system-x86$\_$64 -cpu help | grep pdpe\\
 in this case was the one for huge pages\\
 
 
@@ -858,6 +858,16 @@ Good for power managment. but worst for performance\\
 \vfill
 \pagebreak
 %------------------------------------------------------------------
+\subsection{TuneD from redhat? see this}
+
+man tuned or man tuned-profiles
+
+https://access.redhat.com/documentation/en-us/red$\_$hat$\_$enterprise$\_$linux/8/html/monitoring$\_$and$\_$managing$\_$system$\_$status$\_$and$\_$performance/getting-started-with-tuned$\_$monitoring-and-managing-system-status-and-performance\\
+
+
+\vfill
+\pagebreak
+%------------------------------------------------------------------
 \subsection{mmiotrace}
 
 Trace interactions between drivers and hardware\\
@@ -1084,22 +1094,31 @@ NUMA node(s): we only have 1 available\\
 lscpu\\
 20minutos do video https://www.youtube.com/watch?v=pDWCgmvcGPY
 
-
-
 A single thread can not be split between multiple cores:
 \\
 A program needs to be written to have more than one thread (one per core), or there needs to be more than one program. If not then you won't use the cores.\\
-
+\\
 Writing programs to use more cores is not trivial, and not all problems can be parallelised (written to run on more than one core). If a problem contains 20$\%$ essentially sequential code, then with an infinite number of processors, it will be no faster than 20$\%$ of original execution time (500$\%$ speed increase). Then there are the overheads (communication between threads).
-
+\\
 If you don't have any application for the cores, then you are better off selling it, and getting a cheaper machine.
-
-Each core will have a ton of parallelism, to deal with a single thread, but this is not visible. Now we are struggling to make a single core any faster, as we add cores. This works well at first.
+\\
+Each core will have a ton of parallelism, to deal with a single thread, but this is not visible. Now we are struggling to make a single core any faster, as we add cores. This works well at first.\\
 
 Unix systems (such as Gnu/Linux e.g. Ubuntu), do a good job of using extra cores, up to around 2→4. Microsoft's Windows, gets improvements when you have a core for the virus scanner, and one for the defragmenter, and one for everything else.
+\\
+After that it will only make a difference if you have applications designed for multi-core.\\
 
-After that it will only make a difference if you have applications designed for multi-core.
+The numactl command can launch commands with static NUMA memory and execution thread alignment: numactl --hardware for example.\\
 
+With qemu running you can check numastat -c qemu\\
+we can see the alignement, the 5 pages that are there are from shared libraries of the system.\\
+
+without numa scheduler (when there is more than 1 numa node) the processes will not be local to one node, they will be all over. It is not the best in perfomance.\\
+
+Numa and shared memory don't work very well together.\\
+
+Numa affinity can output from 15 to 20$\%$ https://www.youtube.com/watch?v=RLNMlsa173o 40:35
+´ 
 
 %----------------------------------------------------
 \subsubsection{Hyper threading enabled}
@@ -1224,37 +1243,6 @@ This is all done via running one script. Since it is changing kernel stuff it ne
 
 I feel that my qemu is more responsive and fast. but you have to try in your side.\\
 
-
-grep -i huge /proc/meminfo\\
-
-HugePages Total is the size of the pool of huge pages and is configured 
-				using /proc/sys/vm/nr$\_$hugepages\\
-HugePages Free  is the number of huge pages in the pool that are not yet
-                allocated.\\
-HugePages Rsvd  is short for "reserved," and is the number of huge pages for
-                which a commitment to allocate from the pool has been made,
-                but no allocation has yet been made.  Reserved huge pages
-                guarantee that an application will be able to allocate a
-                huge page from the pool of huge pages at fault time.\\
-HugePages Surp  is short for "surplus," and is the number of huge pages in
-                the pool above the value in /proc/sys/vm/nr$\_$hugepages. The
-                maximum number of surplus huge pages is controlled by
-                /proc/sys/vm/nr$\_$overcommit$\_$hugepages.\\
-Hugepagesize    is the default hugepage size (in Kb).\\
-
-Note: if hugepages in grub are not set to 1gb at the moment i dont have a solution to change them from the default 2MB\\
-add to grub: transparent$\_$hugepage=never hugepagesz=1G hugepages=100 default$\_$hugepagesz=1G\\
-The hugepages=100 is the number of hugepages we want. It is the better way.\\
-AnonHugePages is reference to THP.\\
-
-or never wich is best?\\
-CPU flag of 1gb hugepage support and guest OS support/enabling are not enough to get 1 gb hugepages working in virtualized environment. \\
-How bad can 1GB pages be\\
-
-we cannot have both 2Mb and 1Gb enable at the same time. We will have one or the other. We can only do that during boot time unfurtunatly.\\
-
-
-
 %...........................................
 \subsection{HugePages}
 
@@ -1295,6 +1283,97 @@ TLB has a limit of a few hundred pages, so how can we improve on it (how can we 
 Increasing TLB size by itself is to expensive in terms of resources, so the best slution is to increase the page size, so we will have less pages to map. A regular page sin linux has 4Kb, a HugePage (HP) starts from 2Mb, 1Gb, and more in some special cases.\\
 
 What is transparent huge pages? Is the case where the application doesn't have knowledge of what a HP is, but the OS does, so it wull transparently allocate HP to where it seems fit. Min that it need to be a continuos block of memory.\\
+https://www.youtube.com/watch?v=RLNMlsa173o 41:35 --> excellent explanation.\\
+
+%i should add a subsection for transparent huge pages
+
+%comentario nice
+%https://stackoverflow.com/questions/44379170/hugepagesize-is-not-increasing-to-1g-in-vm
+CPU flag of 1gb hugepage support and guest OS support/enabling are not enough to get 1 gb hugepages working in virtualized environment.\\
+The idea of huge pages both on PMD (2MB or 4 MB before PAE and x86$\_$64) and on PUD level (1 GB) is to create mapping from aligned virtual region of huge size into some huge region of physical memory (As I understand, it should be aligned too). With additional virtualization level of hypervisor there are now three (or four) memory levels: virtual memory of app in guest OS, some memory which is considered as physical by guest OS (it is the memory managed by virtualization solution: ESXi, Xen, KVM, ....), and the real physical memory. It's reasonable to assume that hugepage idea should have the same size of huge region in all three levels to be useful (generate less TLB miss, use less Page Table structures to describe a lot of memory - grep "Need bigger than 4KB pages" in the DickSites's "Datacenter Computers: modern challenges in CPU design", Google, Feb2015) -- pdf DataCenter.pdf.\\
+So, to use huge page of some level inside Guest OS, you should already have same sized huge pages in physical memory (in your Host OS) and in your virtualization solution. You can't effectively use huge page inside Guest when they are not available for you host OS and Virtualization software. (Some like qemu or bochs may emulate them but this will be from slow to very slow.) And when you want both 2 MB and 1 GB huge pages: Your CPU, Host OS, Virtual System and Guest OS all should support them (and host system should have enough aligned continuous physical memory to allocate 1 GB page, you probably can't split this page over several Sockets in NUMA).\\
+Don't know about ESXi, but there as some links for RedHat and some(?) linux virtualization solutions (with libvirtd). In "Virtualization Tuning and Optimization Guide" manual hugepages are listed for Host OS: 8.3.3.3 Enabling 1 GB huge pages for guests at boot or runtime :\\
+
+https://access.redhat.com/documentation/en-us/red$\_$hat$\_$enterprise$\_$linux/6/html/virtualization$\_$tuning$\_$and$\_$optimization$\_$guide/sect-virtualization$\_$tuning$\_$optimization$\_$guide-memory-huge$\_$pages-1gb-runtime\\
+\\
+    Procedure 8.2. Allocating 1 GB huge pages at boot time\\
+
+        To allocate different sizes of huge pages at boot, use the following command, specifying the number of huge pages. This example allocates 4 1 GB huge pages and 1024 2 MB huge pages:\\ 'default$\_$hugepagesz=1G hugepagesz=1G hugepages=4 hugepagesz=2M hugepages=1024' Change this command line to specify a different number of huge pages to be allocated at boot.\\
+
+    Note The next two steps must also be completed the first time you allocate 1 GB huge pages at boot time.\\
+
+        Mount the 2 MB and 1 GB huge pages on the host:\\
+
+        mkdir /dev/hugepages1G \\
+        mount -t hugetlbfs -o pagesize=1G none /dev/hugepages1G\\
+         mkdir /dev/hugepages2M \\
+         mount -t hugetlbfs -o pagesize=2M none /dev/hugepages2M\\
+
+        Restart libvirtd to enable the use of 1 GB huge pages on guests:\\
+
+        service restart libvirtd\\
+
+    1 GB huge pages are now available for guests.\\
+
+    For Ubuntu and KVM: "KVM - Using Hugepages"\\
+
+    By increasing the page size, you reduce the page table and reduce the pressure on the TLB cache. ... vm.nr$\_$hugepages = 256 ... Reboot the system (note: this is about physical reboot of host machine and host OS) ... Set up Libvirt to use Huge Pages KVM$\_$HUGEPAGES=1 ... Setting up a guest to use Huge Pages\\
+
+    For Fedora and KVM (old manual about 2MB pages): https://fedoraproject.org/wiki/Features/KVM$\_$Huge$\_$Page$\_$Backed$\_$Memory\\
+
+    ESXi 5 had support of 2MB pages, which should be manually enabled: How to Modify Large Memory Page Settings on ESXi\\
+
+    For "VMware’s ESX server" of unknown version, from March 2015 paper: BQ Pham, "Using TLB Speculation to Overcome Page Splintering in Virtual Machines", Rutgers University Technical Report DCS-TR-713, March 2015:\\
+
+    Lack of hypervisor support for large pages: Finally, hypervisor vendors can take a few production cycles before fully adopting large pages. For example, VMware’s ESX server currently has no support for 1GB large pages in the hypervisor, even though guests on x86-64 systems can use them.\\
+
+    Newer paper, no direct conclusion about 1GB pages: https://rucore.libraries.rutgers.edu/rutgers-lib/49279/PDF/1/\\
+
+    We find that large pages are conflicted with lightweight memory management across a range of hypervisors (e.g., ESX, KVM) across architectures (e.g., ARM, x86-64) and container-based technologies.\\
+
+    Old pdf from VMWare: "Large Page Performance. ESX Server 3.5 and ESX Server 3i v3.5". https://www.vmware.com/content/dam/digitalmarketing/vmware/en/pdf/techpaper/large$\_$pg$\_$performance.pdf --- only 2MB huge pages are listed as supported\\
+
+    VMware ESX Server 3.5 and VMware ESX Server 3i v3.5 introduce 2MB large page support to the virtualized environment. In earlier versions of ESX Server, guest operating system large pages were emulated using small pages. This meant that, even if the guest operating system was using large pages, it did not get the performance benefit of reducing TLB misses. The enhanced large page support in ESX Server 3.5 and ESX Server 3i v3.5 enables 32‐bit virtual machines in PAE mode and 64‐bit virtual machines to make use of large pages.\\
+
+grep -i huge /proc/meminfo\\
+
+HugePages Total is the size of the pool of huge pages and is configured 
+				using /proc/sys/vm/nr$\_$hugepages\\
+HugePages Free  is the number of huge pages in the pool that are not yet
+                allocated.\\
+HugePages Rsvd  is short for "reserved," and is the number of huge pages for
+                which a commitment to allocate from the pool has been made,
+                but no allocation has yet been made.  Reserved huge pages
+                guarantee that an application will be able to allocate a
+                huge page from the pool of huge pages at fault time.\\
+HugePages Surp  is short for "surplus," and is the number of huge pages in
+                the pool above the value in /proc/sys/vm/nr$\_$hugepages. The
+                maximum number of surplus huge pages is controlled by
+                /proc/sys/vm/nr$\_$overcommit$\_$hugepages.\\
+Hugepagesize    is the default hugepage size (in Kb).\\
+
+Note: if hugepages in grub are not set to 1gb at the moment i dont have a solution to change them from the default 2MB\\
+add to grub: transparent$\_$hugepage=never hugepagesz=1G hugepages=100 default$\_$hugepagesz=1G\\
+The hugepages=100 is the number of hugepages we want. It is the better way.\\
+AnonHugePages is reference to THP.\\
+
+or never wich is best?\\
+CPU flag of 1gb hugepage support and guest OS support/enabling are not enough to get 1 gb hugepages working in virtualized environment. \\
+How bad can 1GB pages be\\
+
+we cannot have both 2Mb and 1Gb enable at the same time. We will have one or the other. We can only do that during boot time unfurtunatly.\\
+
+Tests:\\
+\begin{enumerate}
+	\item 2MB vs 1GB with number of pages set--> 32seconds vs 27seconds (vLab time)
+	\item Default Vs -mem-prealloc just --> 35s vs 1'09''
+	\item THP ON or OFF --> ON (30) is better than off, but in a case where we have an huge amount of sapce it may be the opossite.\\
+	\item +20 (dar folga) or not --> not yet tested
+\end{enumerate}
+Conclusions:\\
+
+One of the benefits of using hugepages is that it pins the memory so the swapping doesnt touches it.In databases it is a must\\  
+
 
 
 
@@ -1307,6 +1386,16 @@ Aqui!
 %...........................................
 \subsection{CPU governor}
 watch lscpu\\
+
+\vfill
+\pagebreak
+%----------------------------------------------------
+\subsection{Cgroups}
+cgroups is the foundation for containers. They are the buildingblocks from the kernel where containers are build with.\\
+They allow us to subset a system.\\
+https://www.youtube.com/watch?v=RLNMlsa173o 49'\\
+Container_group\\
+here we have a complete control of numa. 
 
 \vfill
 \pagebreak
