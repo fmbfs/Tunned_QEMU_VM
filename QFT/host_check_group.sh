@@ -89,6 +89,6 @@ grouping()
 #------------------------------------------------------------------
 # MAIN
 
-iommu_on
-iommu_vdt_check
+#iommu_on
+#iommu_vdt_check
 grouping

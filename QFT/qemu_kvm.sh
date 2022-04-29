@@ -187,15 +187,16 @@ create_image_os(){
 
 # LAUNCH QEMU-KVM
 os_launch(){
+	
 	cd ${ISO_DIR}
 	echo "Launching untuned VM..."
-
+	
 	qemu-system-x86_64 \
 	-cpu max \
 	-enable-kvm \
 	-smp cores=${CORES},threads=${THREADS} \
 	-drive file=${OS_IMG} \
-	-m ${VD_RAM}			
+	-m ${VD_RAM}G			
 }
 
 # RUN QEMU ARGS AND THEN FREE RESOURCES
