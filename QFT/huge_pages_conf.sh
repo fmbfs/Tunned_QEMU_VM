@@ -31,8 +31,8 @@ VD_RAM="${3:-8}"
 
 #the correct calculation is RAM_GB/pageSize_MB to get the number of pages.
 #20 is to get a little bit more see if makes any difference
-#total_pages=$((( ${VD_RAM} * ${big_pages} / ${small_pages}) + 20 ))
-total_pages=$(( ${VD_RAM} * ${big_pages} / ${small_pages} ))
+total_pages=$((( ${VD_RAM} * ${big_pages} / ${small_pages}) + 20 ))
+#total_pages=$(( ${VD_RAM} * ${big_pages} / ${small_pages} ))
 #echo "${total_pages}"
 
 #------------------------------------------------------------------
@@ -62,8 +62,8 @@ hugepages(){
     sysctl -w vm.nr_hugepages="${2}"
 
     #disable THP 
-    echo "always" > "/sys/kernel/mm/transparent_hugepage/enabled"
-    echo "always" > "/sys/kernel/mm/transparent_hugepage/defrag"
+    echo "never" > "/sys/kernel/mm/transparent_hugepage/enabled"
+    echo "never" > "/sys/kernel/mm/transparent_hugepage/defrag"
     
     for i in $(find /sys/devices/system/node/node* -maxdepth 0 -type d);
     do
@@ -82,9 +82,9 @@ list(){
 free_hugepages(){
     sysctl -w vm.nr_hugepages="0"
 
-    #enable THP
-    echo "never" > "/sys/kernel/mm/transparent_hugepage/enabled"
-    echo "never" > "/sys/kernel/mm/transparent_hugepage/defrag"
+    #disable THP
+    echo "always" > "/sys/kernel/mm/transparent_hugepage/enabled"
+    echo "always" > "/sys/kernel/mm/transparent_hugepage/defrag"
 
     for i in $(find /sys/devices/system/node/node* -maxdepth 0 -type d);
     do

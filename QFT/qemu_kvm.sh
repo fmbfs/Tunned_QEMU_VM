@@ -99,6 +99,7 @@ set_variables(){
 				"-drive" "file=${OS_IMG},l2-cache-size=${L2_Cache_Size},cache=writethrough,cache-clean-interval=${Cache_Clean_Interval}" \
 				#"-smp" "cores=${CORES},threads=${THREADS}" \
 				#"-vga"  "virtio" \
+				#"-vga"  "none" \ if we do GPU passthrough this disables the emulated graphics
 				#"-display" "gtk,gl=on" 
 			)
 }
