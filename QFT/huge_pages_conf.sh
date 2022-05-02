@@ -82,7 +82,7 @@ list(){
 free_hugepages(){
     sysctl -w vm.nr_hugepages="0"
 
-    #disable THP
+    #enable THP
     echo "always" > "/sys/kernel/mm/transparent_hugepage/enabled"
     echo "always" > "/sys/kernel/mm/transparent_hugepage/defrag"
 

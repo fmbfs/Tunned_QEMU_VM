@@ -1293,7 +1293,7 @@ TLB is like a cache in the core of the cpu that stores some addresses in a table
 TLB has a limit of a few hundred pages, so how can we improve on it (how can we decrease the number of misses)?\\
 Increasing TLB size by itself is to expensive in terms of resources, so the best slution is to increase the page size, so we will have less pages to map. A regular page sin linux has 4Kb, a HugePage (HP) starts from 2Mb, 1Gb, and more in some special cases.\\
 
-What is transparent huge pages? Is the case where the application doesn't have knowledge of what a HP is, but the OS does, so it wull transparently allocate HP to where it seems fit. Min that it need to be a continuos block of memory.\\
+What is transparent huge pages? Is the case where the application doesn't have knowledge of what a HP is, but the OS does, so it will transparently allocate HP to where it seems fit. Mind that it needs to be a continuos block of memory.\\
 https://www.youtube.com/watch?v=RLNMlsa173o 41:35 --> excellent explanation.\\
 
 %i should add a subsection for transparent huge pages
@@ -1385,11 +1385,14 @@ Conclusions:\\
 
 One of the benefits of using hugepages is that it pins the memory so the swapping doesnt touches it.In databases it is a must\\  
 
+See hugepages.txt that i have done\\
 
 %...........................................
 \subsection{Linux Process Scheduler Tuning}
 
-Aqui!
+Sched fifo .sh e está.
+
+Meter palha.\\
 
 
 %...........................................
@@ -1410,7 +1413,7 @@ here we have a complete control of numa.
 \pagebreak
 %----------------------------------------------------
 \subsection{GPU PASSTHROUGH}
-Conclude that at this moment in time we dont need to dig deep into this?\\
+Conclude that at this moment in time we dont need to dig deep into this. Yup thats it\\
 we need to test it\\
 
 Placa gráfica\\
@@ -1767,6 +1770,9 @@ long-command \& sleep 300; do-this-after-five-minutes\\
 
 grep -r hello /sys/ 2> /dev/null\\ 
 to send output to null\\
+
+Jsut shows the current path on terminal\\
+export PS1='\w:'
 
 %================================================================================================================================
 \end{document}
