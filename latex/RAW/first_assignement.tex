@@ -116,8 +116,8 @@
 %---------------------------------------------------------------------------------------------------------------------------------
 \section*{1st task}
 
-On the cover use a dive image. You go from Application level tweaks to kernel level tweaks
-
+On the cover use a dive image. You go from Application level tweaks to kernel level tweaks\\
+\textcolor{red}{Check the initial email, and see if everything os beeing done or not}\\
 
 \begin{enumerate}
 	\item Install QEMU -- \textcolor{green}{DONE!}
@@ -770,6 +770,15 @@ The CPU plots change colors as different tasks run on the CPU, and the task plot
         In IRQ - 'h' if in a hard IRQ (hardware triggered), 's' if in a soft IRQ (context where the kernel initiated a the IRQ handler) or if soft IRQs are disabled, 'H' if in a hard IRQ and soft IRQs are disabled or the hard IRQ triggered while processing a soft IRQ, otherwise '.'\\
         Preemption counter - The index of the preemption counter. If it is other than zero, then the kernel will not preempt the running tasks, even if a schedule has been requested by some event. If the counter is zero, then '.' is shown. \\
 
+
+
+Preemptive multitasking - Running several processes/threads on a single processor, creating the illusion that they run concurrently when actually each is allocated small multiplexed time slices to run in. A process is "preempted" when it is scheduled out of execution and waits for the next time slice to run in.\\
+
+A preemptive kernel is one that can be interrupted in the middle of executing code - for instance in response for a system call - to do other things and run other threads, possibly those that are not in the kernel.\\
+
+The main advantage of a preemptive kernel is that sys-calls do not block the entire system. If a sys-call takes a long time to finish then it doesn't mean the kernel can't do anything else in this time. The main disadvantage is that this introduces more complexity to the kernel code, having to handle more end-cases, perform more fine grained locking or use lock-less structures and algorithms.
+\\
+
     Note: These may be different depending on the kernel the trace.dat file came from.\\
     Event - The name of the event.\\
     Info - The data output of a particular event. \\
@@ -906,7 +915,6 @@ Real world examples of parallelism:\\
 	\item CI scripts working on large code bases (e.g. doing clang-format) can be speed up on multiple core CPU's easily.
 \end{itemize}
 
-
 https://www.javatpoint.com/multithreading-models-in-operating-system\\
 Multi-threading predates multi.core CPU's, the 'classical' approach multithread teaching is starting with a single-core and showing all possible execution orders for N processes competing for compute time.\\
 Multiple threads (and processes) exist in single-core computers, anything before 2004 was single-core, and they ran a lot of programs with a lot of threads. You need to picture a thread (or process) as a unit requesting compute time to the operating system, it does not matter the amount of threads/processes and cores, the logic is the same: the operative system distributes the available computer power to the demanding threads and processes.\\
@@ -914,6 +922,9 @@ Multiple threads (and processes) exist in single-core computers, anything before
 So what are some real world examples where we can use parallelism in projects ?\\
 almost any computer hungry program where time is a constraint has moved to parallelism. Video games is the easiest example for any person, you have tons of individual small entities computing a lot of things (sound, light, bounces, interactions, logic).\\
 Simulations have been using parallelism since inception.\\
+
+what is hyper threads. answer this\\
+When should we use Hyper thread? When we can share the cpu cahce, other than that it is not worth it. So basically we need to take advantege of NUMA. In our host by default we have this because it is only one NUMA node.\\
 
 %...........................................
 \subsection{CPU PINNING--Affinity}
@@ -1245,7 +1256,7 @@ I feel that my qemu is more responsive and fast. but you have to try in your sid
 
 %...........................................
 \subsection{HugePages}
-
+Hugepages for better RAM performance\\
 https://linuxconfig.org/how-to-enable-hugepages-on-linux
 
 QEMU will use 2MiB sized transparent huge pages automatically without any explicit configuration in QEMU or Libvirt, subject to some important caveats.\\
@@ -1368,13 +1379,11 @@ Tests:\\
 	\item 2MB vs 1GB with number of pages set--> 32seconds vs 27seconds (vLab time)
 	\item Default Vs -mem-prealloc just --> 35s vs 1'09''
 	\item THP ON or OFF --> ON (30) is better than off, but in a case where we have an huge amount of sapce it may be the opossite.\\
-	\item +20 (dar folga) or not --> not yet tested
+	\item server --> 25s with huge pages 27 without
 \end{enumerate}
 Conclusions:\\
 
 One of the benefits of using hugepages is that it pins the memory so the swapping doesnt touches it.In databases it is a must\\  
-
-
 
 
 %...........................................
@@ -1394,8 +1403,40 @@ watch lscpu\\
 cgroups is the foundation for containers. They are the buildingblocks from the kernel where containers are build with.\\
 They allow us to subset a system.\\
 https://www.youtube.com/watch?v=RLNMlsa173o 49'\\
-Container_group\\
+Container$\_$group\\
 here we have a complete control of numa. 
+
+\vfill
+\pagebreak
+%----------------------------------------------------
+\subsection{GPU PASSTHROUGH}
+Conclude that at this moment in time we dont need to dig deep into this?\\
+we need to test it\\
+
+Placa gráfica\\
+    • Intel Ultra HD \\
+    • Opcional: NVIDIA® GeForce® Mx330 com 2 GB GDDR5 \\
+
+sudo lshw -C vídeo\\
+
+output:\\
+00:02.0 VGA compatible controller [0300]: Intel Corporation UHD Graphics [8086:9b41] (rev 02)\\
+
+2d:00.0 3D controller [0302]: NVIDIA Corporation GP108M [GeForce MX330] [10de:1d16] (rev a1)\\
+
+
+To get device detailed info:\\
+sudo lspci -v -s 2d:00.0\\
+
+to see hardware info:\\
+sudo apt install hardinfo\\
+
+for what i am reading about GPU pass-through we must have at least 2 GPU's (one internal and one external, or both external) for this to work. Because, and i am now quoting "Attention! After the upcoming steps, the guest GPU will be ignored by the host OS. You have to have a second GPU for the host OS now!".\\
+this has been mentioned in multiple sources. and it requires reboot to be enabled at least once
+we are reaching a point of 2 possible scenarios:  \\
+1.all set up with the settings we can do without reboot;\\
+2.Set up a machine with reboot and "better" options, so the kernel knows by default what it has to do\\
+Both have pros and cons\\
 
 \vfill
 \pagebreak
@@ -1650,15 +1691,30 @@ the guy Rob Landley made mkroot.\\
 
 see muscl-cross-make\\
 
-the difference between normal compiling and cross compiling is 
+the difference between normal compiling and cross compiling is....
 
+\subsubsection{Canadian Cross Compiling}
 
 \vfill
 \pagebreak
 %----------------------------------------------------
 \section{FLUTTER APP}
 
-End goal\\
+do it with the team\\
+
+\vfill
+\pagebreak
+%----------------------------------------------------
+\section{Conclusion}
+But i think, regarding the time that i have left to present this (+/-2months), that for the report itseflt i will conclude with the HugePages subjects (since it was the one that impaacted) and introduce the Real Time Kernel Patches as the road to continue exploring (and i will do that after the report is done). I will mention as well that one of th goals is to have a user interface, and some other scripts beyond bash to auto figure this out\\
+yes i agree with you... we covered some major points here (atleast ones which I was more curious of)... this is enough for us to conclude that in our case the limitation is the CPU frequency because of the performance of the Vlab tool.\\
+and one final outcome can be a small tool to help the developers to configure a system for optimal perfromance of any VM they are trying to run in it.. it can even be a small script .. some simple UI will make more of an impact visually... but if you can contribute any simple tool to CTW through this internship effort then it would be an awesome way to launch your career here \\
+
+Notably the use of hugepages has helped many users, but its usefulness
+in the context of GPU pass-through is questionable and the use of core
+isolation which prevents the hosts from running tasks on core passed to
+your VM.\\
+
 
 \vfill
 \pagebreak

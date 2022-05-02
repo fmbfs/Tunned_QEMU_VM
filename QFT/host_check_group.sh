@@ -23,6 +23,17 @@ iommu_on()
     fi
 }
 
+iommu_group(){
+    shopt -s nullglob
+    for g in /sys/kernel/iommu_groups/*; do
+        echo "IOMMU Group ${g##*/}:"
+        for d in $g/devices/*; do
+            echo -e "\t$(lspci -nns ${d##*/})"
+        done;
+    done;
+}
+
+
 # iommu_vdt_check -- Check if IOMMU and VT-D are enabled or not
 iommu_vdt_check()
 {
@@ -86,9 +97,14 @@ grouping()
     #echo "group: ${group[@]}"
 }
 
+#check siblings test if it group by l3 cache
+#cat /sys/devices/system/cpu/cpu*/topology/thread_siblings_list | sort | uniq
+
 #------------------------------------------------------------------
 # MAIN
 
-iommu_on
-iommu_vdt_check
+#iommu_on
+#echo " ajjsajas"
+#iommu_vdt_check
+iommu_group | grep -i --color '2D\|3D\|VGA'
 grouping
