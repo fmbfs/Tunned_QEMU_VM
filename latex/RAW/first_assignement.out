@@ -33,5 +33,8 @@
 \BOOKMARK [1][-]{section.11}{Create snapshot}{}% 33
 \BOOKMARK [1][-]{section.12}{Kernel}{}% 34
 \BOOKMARK [1][-]{section.13}{Cross compiling}{}% 35
-\BOOKMARK [1][-]{section.14}{FLUTTER APP}{}% 36
-\BOOKMARK [1][-]{section.15}{Uteis}{}% 37
+\BOOKMARK [2][-]{subsubsection.13.0.1}{Canadian Cross Compiling}{section.13}% 36
+\BOOKMARK [1][-]{section.14}{GPU PASSTHROUGH}{}% 37
+\BOOKMARK [1][-]{section.15}{FLUTTER APP}{}% 38
+\BOOKMARK [1][-]{section.16}{Conclusion}{}% 39
+\BOOKMARK [1][-]{section.17}{Uteis}{}% 40

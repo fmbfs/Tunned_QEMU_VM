@@ -1,0 +1,9 @@
+
+IOMMU Group 1:
+	00:02.0 VGA compatible controller [0300]: Intel Corporation UHD Graphics [8086:9b41] (rev 02)
+
+IOMMU Group 12:
+	00:1f.3 Audio device [0403]: Intel Corporation Device [8086:02c8]
+
+IOMMU Group 18:
+	2d:00.0 3D controller [0302]: NVIDIA Corporation GP108M [GeForce MX330] [10de:1d16] (rev a1)

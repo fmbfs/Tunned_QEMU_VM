@@ -40,6 +40,7 @@ source huge_pages_conf.sh
 source host_check_group.sh
 source cset_conf.sh
 source sched_fifo.sh
+source cpu_freq.sh
 
 #------------------------------------------------------------------
 # BASE_DIR is the path
@@ -210,12 +211,18 @@ run_qemu(){
 	sysctl kernel.sched_rt_runtime_us=950000 >/dev/null
 	delete_cset >/dev/null
 	free_hugepages "${big_pages}" "${small_pages}" >/dev/null
+
+	#set cpu to ondemand
+	set_powersave
 }
 
 # LAUNCH QEMU-KVM ISOLATED AND PINNED
 os_launch_tuned(){
 	cd ${ISO_DIR}
 	echo "Launching tunned VM..."
+	#set cpu as performance
+	set_performance
+
 	#allocate resources
 	page_size >/dev/null
 	create_cset >/dev/null
