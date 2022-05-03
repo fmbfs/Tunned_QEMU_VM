@@ -1,7 +1,6 @@
-
 #!/bin/bash
 
-#------------------------------------------------------------------
+###########################################################################
 #DEFAULTS
 #x will print all
 #set -euox pipefail
@@ -34,35 +33,36 @@ check_su(){
 #read -s -p "Enter Sudo Password: " PASSWORD
 #echo $PASSWORD | sudo -S
 
-#------------------------------------------------------------------
+###########################################################################
 #SOURCES
 source huge_pages_conf.sh
 source host_check_group.sh
 source cset_conf.sh
 source sched_fifo.sh
 source cpu_freq.sh
+source structure_check.sh
 
-#------------------------------------------------------------------
-# BASE_DIR is the path
 BASE_DIR=$(dirname "${BASH_SOURCE[0]}")
 [[ "${BASE_DIR}" == "." ]] && BASE_DIR=$(pwd)
 
-#If no argument is passed we assume it to be launched pinned
+# If no argument is passed we assume it to be launched pinned
 ARG1="${1:--lt}"
 ARG2="${2:-disk}"
 
-#Args for CPU isolation and pinning
+# Args for CPU isolation and pinning
 ARG3="${3:-${group[0]}}"
 ARG4="${4:-${group[1]}}"
 
-#--------------------------------------------------------------------
+###########################################################################
 # FUNCTIONS
 
 set_variables(){
 	# OS .iso Paths
+	#ISO_DIR="${BASE_DIR}/Iso_Images/teste"
 	ISO_DIR="${BASE_DIR}/Iso_Images/Windows"
 
 	# Virtual disks (VD) path
+	#QEMU_VD="${BASE_DIR}/teste2"
 	QEMU_VD="${BASE_DIR}/Virtual_Disks"
 
 	# QEMU name and OS --> Windows 10
@@ -159,26 +159,6 @@ process_args(){
 	esac	
 }
 
-# CHECK IF FILE ALREADY EXISTS
-check_file(){
-	# Scenario - File exists and is not a directory
-	if test -f "${OS_IMG}";
-	then
-		echo "${OS_IMG} exists!"
-		while true; 
-		do
-    		read -p "Do you want to overwrite? [y/n] " yn
-    		case $yn in
-        		[Yy]* ) echo "${OS_IMG} Overwritten!"; break;;
-        		[Nn]* ) exit 0;;
-        		* ) echo "Please answer yes or no.";;
-    		esac
-		done
-	else
-		echo "${OS_IMG} created!"
-	fi
-}
-
 # CREATE VIRTUAL DISK IMAGE
 create_image_os(){
 	check_file
@@ -231,6 +211,7 @@ os_launch_tuned(){
 	#sched_rt_runtime_us to 98%
 	sysctl kernel.sched_rt_runtime_us=980000 >/dev/null
 
+	#runnig in parallel
 	run_qemu &
 	sleep 20 #criar um serviço para ser automatico apos a 1a vez
 
@@ -247,8 +228,14 @@ os_install(){
 	exit 1;
 }
 
-#--------------------------------------------------------------------
+###########################################################################
 # MAIN
 
 set_variables
+
+# CHECK STRUCTURE
+#check_dir ${ISO_DIR}
+#check_dir ${QEMU_VD}
+#check_file ${OS_IMG}
+
 process_args

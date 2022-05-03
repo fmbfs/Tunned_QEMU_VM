@@ -26,15 +26,15 @@
 \BOOKMARK [2][-]{subsection.6.6}{Linux Process Scheduler Tuning}{section.6}% 26
 \BOOKMARK [2][-]{subsection.6.7}{CPU governor}{section.6}% 27
 \BOOKMARK [2][-]{subsection.6.8}{Cgroups}{section.6}% 28
-\BOOKMARK [1][-]{section.7}{Guest tune}{}% 29
-\BOOKMARK [1][-]{section.8}{KernelShark Before and After CPU pinning}{}% 30
-\BOOKMARK [1][-]{section.9}{Questions that need a response?}{}% 31
-\BOOKMARK [1][-]{section.10}{Benchmark tools}{}% 32
-\BOOKMARK [1][-]{section.11}{Create snapshot}{}% 33
-\BOOKMARK [1][-]{section.12}{Kernel}{}% 34
-\BOOKMARK [1][-]{section.13}{Cross compiling}{}% 35
-\BOOKMARK [2][-]{subsubsection.13.0.1}{Canadian Cross Compiling}{section.13}% 36
-\BOOKMARK [1][-]{section.14}{GPU PASSTHROUGH}{}% 37
-\BOOKMARK [1][-]{section.15}{FLUTTER APP}{}% 38
-\BOOKMARK [1][-]{section.16}{Conclusion}{}% 39
-\BOOKMARK [1][-]{section.17}{Uteis}{}% 40
+\BOOKMARK [2][-]{subsection.6.9}{GPU PASSTHROUGH}{section.6}% 29
+\BOOKMARK [1][-]{section.7}{Guest tune}{}% 30
+\BOOKMARK [1][-]{section.8}{KernelShark Before and After CPU pinning}{}% 31
+\BOOKMARK [1][-]{section.9}{Questions that need a response?}{}% 32
+\BOOKMARK [1][-]{section.10}{Benchmark tools}{}% 33
+\BOOKMARK [1][-]{section.11}{Create snapshot}{}% 34
+\BOOKMARK [1][-]{section.12}{Kernel}{}% 35
+\BOOKMARK [1][-]{section.13}{Cross compiling}{}% 36
+\BOOKMARK [2][-]{subsubsection.13.0.1}{Canadian Cross Compiling}{section.13}% 37
+\BOOKMARK [1][-]{section.14}{FLUTTER APP}{}% 38
+\BOOKMARK [1][-]{section.15}{Conclusion}{}% 39
+\BOOKMARK [1][-]{section.16}{Uteis}{}% 40

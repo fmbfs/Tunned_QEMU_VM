@@ -1380,12 +1380,22 @@ Tests:\\
 	\item Default Vs -mem-prealloc just --> 35s vs 1'09''
 	\item THP ON or OFF --> ON (30) is better than off, but in a case where we have an huge amount of sapce it may be the opossite.\\
 	\item server --> 25s with huge pages 27 without
+	\item 18seconds with 1GB pages on nikihil laptop. IMPORTANT we need to close all the chrome tabs to have the best performance.
 \end{enumerate}
 Conclusions:\\
 
 One of the benefits of using hugepages is that it pins the memory so the swapping doesnt touches it.In databases it is a must\\  
 
 See hugepages.txt that i have done\\
+
+[10:29 AM] Nikhil Santhosh\\
+Francisco Manuel Santoswe just need to verify if it is worth rebooting or if it is similar to the othersafe to conclude it is worth rebooting
+ like 1\\
+
+[10:29 AM] Francisco Manuel Santos\\
+ok. if it is worth rebooting, it is worth isolate and pin in grub as well\\
+
+
 
 %...........................................
 \subsection{Linux Process Scheduler Tuning}
@@ -1718,6 +1728,13 @@ in the context of GPU pass-through is questionable and the use of core
 isolation which prevents the hosts from running tasks on core passed to
 your VM.\\
 
+but we can conclude that the performance is correlated to the memory managment of the virtual machine. \\
+
+
+Best results so far:\\
+GRUB CMDLINE LINUX DEFAULT="quiet splash intel iommu=on preempt=voluntary isolcpus=3,7 hugepagesz=1G hugepages=20 default$\_$hugepagesz=1G transparent$\_$hugepage=never"\\
+update grub\\
+launch qemu with taskset -c ...
 
 \vfill
 \pagebreak
@@ -1772,7 +1789,10 @@ grep -r hello /sys/ 2> /dev/null\\
 to send output to null\\
 
 Jsut shows the current path on terminal\\
-export PS1='\w:'
+export PS1='$\backslash$w:'
+
+So the best scenario is:
+Grub stuff, cpu to performance, sched 98, lauch with taskset -c 3,7, process 99 priority
 
 %================================================================================================================================
 \end{document}
