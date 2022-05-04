@@ -117,7 +117,7 @@
 \section*{1st task}
 
 On the cover use a dive image. You go from Application level tweaks to kernel level tweaks\\
-\textcolor{red}{Check the initial email, and see if everything os beeing done or not}\\
+\textcolor{red}{Check the initial email, and see if everything is beeing done or not}\\
 
 \begin{enumerate}
 	\item Install QEMU -- \textcolor{green}{DONE!}
@@ -1147,69 +1147,6 @@ https://cs.uwaterloo.ca/~brecht/servers/apic/SMP-affinity.txt
 The only reason to look at this value is that 
 SMP affinity will only work for IO-APIC enabled device drivers.
 
-
-\vfill
-\pagebreak
-%...........................................
-\subsection{GPU ISOLATION}
-Warning: Once you reboot after this procedure, whatever GPU you have configured will no longer be usable on the host until you reverse the manipulation. Make sure the GPU you intend to use on the host is properly configured before doing this - your motherboard should be set to display using the host GPU.\\
-
-Most use cases for PCI passthroughs relate to performance-intensive domains such as video games and GPU-accelerated tasks. While a PCI passthrough on its own is a step towards reaching native performance, there are still a few ajustments on the host and guest to get the most out of your virtual machine. \\
-
-\begin{enumerate}
-	\item all commands must be sudo;
-	\item go to /etc/default;
-	\item open grub (with nano or vim);
-	\item on the DEFAULT line add isocpus=cpu number or range. In a range you can use N to specify the last;
-	\item save the document;
-	\item update-grub;
-	\item reboot host;
-	\item stress test
-		\item isntall stress if you dont have it, then run;
-			\item stress -c 8 in one terminal and htop in the otehr and seee that all cpus except 7 are beeing stressed;
-			\item taskset -c "isolated cpu" stress -c 1 (1 is it is only 1) and check.
-\end{enumerate}
-
-grub line to edit like this. preempt voluntary helps with ram allocation and implies fast boot .\\
-GRUB CMDLINE LINUX DEFAULT="quiet splash intel iommu=on preempt=voluntary isolcpus=7"\\
-
-examples\\
-isolcpus=1,2,10-20,100-2000:2/25\\
-
-https://www.kernel.org/doc/html/latest/admin-guide/kernel-parameters.html?highlight=isolcpus\\
-
-sudo apt-get install cpuset\\
-cset -- python app, see man page\\
-we can create a group of isolated cpus withour reboot\\
-sudo cset shield --cpu=\${vCPU$\_$PINNED} --kthread=on
-
-we can reset them via \\
-sudo cset shield -r\\
-
-with shield is simple, with proc is more complex\\
-https://manpages.debian.org/unstable/cpuset/cset-shield.1.en.html\\
-
-we can check the list: \\
-cset set -l\\
-
-You can exec new processes in specific cpusets and move tasks around existing cpusets. See the cset-proc(1).\\
-We can create persistent cpusets.\\
-
-nohz$\_$full= cpu number to completly isolate the cpu from the kernel\\
-
-To run process in isolated cpus we do \\
-sudo chrt -r 1 taskset.., we set the priority to 1. See chrt man for more info\\
-
-Melhor para o cenario servdor.\\
-
-Linux control groups. I think it is the solution\\
-
-To check the affinity:\\
-ps -a | grep qemu\\
- 	169570 pts/1    00:00:08 qemu-system-x86\\
-taskset -c -p 169570\\
-	pid 169570's current affinity list: 3,7\\
-
 %------------------------------------------------------------------
 \subsection{Memory tunning and Latency}
 What is it? https://www.youtube.com/watch?v=Tkra8g0gXAU\\
@@ -1412,7 +1349,7 @@ watch lscpu\\
 \vfill
 \pagebreak
 %----------------------------------------------------
-\subsection{Cgroups}
+\subsection{Cgroups ISOLATION}
 cgroups is the foundation for containers. They are the buildingblocks from the kernel where containers are build with.\\
 They allow us to subset a system.\\
 https://www.youtube.com/watch?v=RLNMlsa173o 49'\\
@@ -1423,6 +1360,66 @@ here we have a complete control of numa.
 \pagebreak
 %----------------------------------------------------
 \subsection{GPU PASSTHROUGH}
+
+Warning: Once you reboot after this procedure, whatever GPU you have configured will no longer be usable on the host until you reverse the manipulation. Make sure the GPU you intend to use on the host is properly configured before doing this - your motherboard should be set to display using the host GPU.\\
+
+Most use cases for PCI passthroughs relate to performance-intensive domains such as video games and GPU-accelerated tasks. While a PCI passthrough on its own is a step towards reaching native performance, there are still a few ajustments on the host and guest to get the most out of your virtual machine. \\
+
+\begin{enumerate}
+	\item all commands must be sudo;
+	\item go to /etc/default;
+	\item open grub (with nano or vim);
+	\item on the DEFAULT line add isocpus=cpu number or range. In a range you can use N to specify the last;
+	\item save the document;
+	\item update-grub;
+	\item reboot host;
+	\item stress test
+		\item isntall stress if you dont have it, then run;
+			\item stress -c 8 in one terminal and htop in the otehr and seee that all cpus except 7 are beeing stressed;
+			\item taskset -c "isolated cpu" stress -c 1 (1 is it is only 1) and check.
+\end{enumerate}
+
+grub line to edit like this. preempt voluntary helps with ram allocation and implies fast boot .\\
+GRUB CMDLINE LINUX DEFAULT="quiet splash intel iommu=on preempt=voluntary isolcpus=7"\\
+
+examples\\
+isolcpus=1,2,10-20,100-2000:2/25\\
+
+https://www.kernel.org/doc/html/latest/admin-guide/kernel-parameters.html?highlight=isolcpus\\
+
+sudo apt-get install cpuset\\
+cset -- python app, see man page\\
+we can create a group of isolated cpus withour reboot\\
+sudo cset shield --cpu=\${vCPU$\_$PINNED} --kthread=on
+
+we can reset them via \\
+sudo cset shield -r\\
+
+with shield is simple, with proc is more complex\\
+https://manpages.debian.org/unstable/cpuset/cset-shield.1.en.html\\
+
+we can check the list: \\
+cset set -l\\
+
+You can exec new processes in specific cpusets and move tasks around existing cpusets. See the cset-proc(1).\\
+We can create persistent cpusets.\\
+
+nohz$\_$full= cpu number to completly isolate the cpu from the kernel\\
+
+To run process in isolated cpus we do \\
+sudo chrt -r 1 taskset.., we set the priority to 1. See chrt man for more info\\
+
+Melhor para o cenario servdor.\\
+
+Linux control groups. I think it is the solution\\
+
+To check the affinity:\\
+ps -a | grep qemu\\
+ 	169570 pts/1    00:00:08 qemu-system-x86\\
+taskset -c -p 169570\\
+	pid 169570's current affinity list: 3,7\\
+
+
 Conclude that at this moment in time we dont need to dig deep into this. Yup thats it\\
 we need to test it\\
 
@@ -1736,6 +1733,8 @@ GRUB CMDLINE LINUX DEFAULT="quiet splash intel iommu=on preempt=voluntary isolcp
 update grub\\
 launch qemu with taskset -c ...
 
+CPU isolation is not helping us, since it is not a single process but an actual VM wich may need more cores. 
+
 \vfill
 \pagebreak
 %----------------------------------------------------
@@ -1792,7 +1791,8 @@ Jsut shows the current path on terminal\\
 export PS1='$\backslash$w:'
 
 So the best scenario is:
-Grub stuff, cpu to performance, sched 98, lauch with taskset -c 3,7, process 99 priority
+Grub stuff, cpu to performance, sched 98, lauch with taskset -c 3,7, process 99 priority.
+Don't forget to set the qemu arguments to use preallocation and the ram size.\\
 
 %================================================================================================================================
 \end{document}
