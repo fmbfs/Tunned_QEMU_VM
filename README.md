@@ -4,6 +4,9 @@ HTF -- Host Fine Tune
 QFT -- Qemu Fine Tune
 
 
+This is a scrip to launch QEMU........
+
+
 ~/Desktop/git/ctw$ git add .
 
 ~/Desktop/git/ctw$ git commit -m "qemu_script"
