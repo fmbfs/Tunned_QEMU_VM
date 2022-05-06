@@ -1,4 +1,5 @@
-![Logo of the project](https://user-images.githubusercontent.com/91340451/167093630-6bec8327-9736-4e87-a301-59d7576e20d8.svg)
+![Logo of the project](https://user-images.githubusercontent.com/91340451/167094022-ef4cf8fc-a67c-4b1f-b8e0-5034d4a531ce.svg)
+
 # Improving the performance of VDT (Virtual Development Targets)
 > By fine tuning the Host and Guest.
 
