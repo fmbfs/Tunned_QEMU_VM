@@ -1,4 +1,4 @@
-![Logo of the project](https://github.com/fmbfs/ctw/logo/sample-logo.png)
+![Logo of the project](https://user-images.githubusercontent.com/91340451/167089265-d5c5be2b-f408-48de-9172-a572b02b9166.svg)
 
 # Improving the performance of VDT (Virtual Development Targets)
 > By fine tuning the Host and Guest.
