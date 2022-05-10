@@ -203,9 +203,9 @@ os_launch(){
 
 # RUN QEMU ARGS AND THEN FREE RESOURCES
 run_qemu(){
-	#run VM
+	#run VM the -d is to detect when windows boots
 	sudo cset shield -e \
-	qemu-system-x86_64 -- -d trace:qcow2_writev_done_part 2> ${boot_logs_path} ${QEMU_ARGS[@]} >/dev/null
+	qemu-system-x86_64 -- ${QEMU_ARGS[@]} -d trace:qcow2_writev_done_part 2> ${boot_logs_path} >/dev/null
 	
 	#free resources
 	#back to 95% 
