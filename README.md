@@ -8,21 +8,36 @@ It is a setup to allow the user to launch a tuned virtual machine based on the H
 
 ## Installing / Getting started
 
-A quick introduction of the minimal setup you need to get a hello world up &
-running.
+This solution is built for Linux OS.
+If any package is missing, during execute it will prompt you to install it.
+This script has the purpose of beeing used to dynamically allocate resources,
+so you must run it as 'sudo su' because it is modifying some Kernel options.
 
+You have to create two directories in the first run.
+Just uncomment # CHECK STRUCTURE in the main part of the script.
+#check_dir ${ISO_DIR}
+#check_dir ${QEMU_VD}
+#check_file ${OS_IMG} 
+
+
+A quick introduction of the minimal setup:
 ```shell
 packagemanager install awesome-project
 awesome-project start
 awesome-project "Do something!"  # prints "Nah."
 ```
 
-Here you should say what actually happens when you execute the code above.
+What actually happens when you execute the code above?
 
 ### Initial Configuration
 
-Some projects require initial configuration (e.g. access tokens or keys, `npm i`).
-This is the section where you would document those requirements.
+By default the ```./qemu_kvm.sh``` launches tuned. 
+Type ```./qemu_kvm.sh -h``` to see the options.
+
+An personalized example:
+```./qemu_kvm.sh -l disk ```
+It will launch an untuned qemu script using the virtual hard drive named "disk"
+
 
 ## Developing
 
