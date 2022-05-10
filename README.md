@@ -20,14 +20,6 @@ Just uncomment:
 #check_dir ${QEMU_VD}
 #check_file ${OS_IMG} ```
 
-
-A quick introduction of the minimal setup:
-```shell
-packagemanager install awesome-project
-awesome-project start
-awesome-project "Do something!"  # prints "Nah."
-```
-
 What actually happens when you execute the code above?
 
 ### Initial Configuration
