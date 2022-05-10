@@ -15,7 +15,7 @@ so you must run it as 'sudo su' because it is modifying some Kernel options.
 
 You have to create two directories in the first run.
 Just uncomment:
-```# CHECK STRUCTURE in the main part of the script.
+``` # CHECK STRUCTURE in the main part of the script.
 #check_dir ${ISO_DIR}
 #check_dir ${QEMU_VD}
 #check_file ${OS_IMG} ```
