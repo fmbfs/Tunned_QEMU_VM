@@ -1,5 +1,7 @@
 #!/bin/bash
 
+#------------------------------------------------------------------
+#FUNCTIONS
 #yes no confirmation
 yay_nay(){
 	while true; 

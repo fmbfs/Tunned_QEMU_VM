@@ -1,6 +1,6 @@
 #!/bin/bash
 
-###########################################################################
+#------------------------------------------------------------------
 #DEFAULTS
 #x will print all
 #set -euox pipefail
@@ -33,7 +33,7 @@ check_su(){
 #read -s -p "Enter Sudo Password: " PASSWORD
 #echo $PASSWORD | sudo -S
 
-###########################################################################
+#------------------------------------------------------------------
 #SOURCES
 source huge_pages_conf.sh
 source host_check_group.sh
@@ -57,7 +57,7 @@ ARG4="${4:-${group[1]}}"
 boot_logs_path="${BASE_DIR}/boot_logs.txt"
 
 
-###########################################################################
+#------------------------------------------------------------------
 # FUNCTIONS
 
 set_variables(){
@@ -249,11 +249,10 @@ os_install(){
 	exit 1;
 }
 
-###########################################################################
+#------------------------------------------------------------------
 # MAIN
 
 set_variables
-<<<<<<< .merge_file_qIq7Ir
 
 # CHECK STRUCTURE
 #check_dir ${ISO_DIR}
@@ -261,6 +260,3 @@ set_variables
 #check_file ${OS_IMG}
 
 process_args
-=======
-process_args
->>>>>>> .merge_file_HSvJsy
