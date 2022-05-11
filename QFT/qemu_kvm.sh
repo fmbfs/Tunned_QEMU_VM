@@ -232,6 +232,7 @@ os_install(){
 # MAIN
 
 set_variables
+<<<<<<< .merge_file_qIq7Ir
 
 # CHECK STRUCTURE
 #check_dir ${ISO_DIR}
@@ -239,3 +240,6 @@ set_variables
 #check_file ${OS_IMG}
 
 process_args
+=======
+process_args
+>>>>>>> .merge_file_HSvJsy
