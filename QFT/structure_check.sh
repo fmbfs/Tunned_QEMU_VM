@@ -2,7 +2,7 @@
 
 #------------------------------------------------------------------
 #FUNCTIONS
-#yes no confirmation
+# Yes no confirmation
 yay_nay(){
 	while true; 
 		do
@@ -15,7 +15,7 @@ yay_nay(){
 		done	
 }
 
-#check if the directory structure is as required
+# Check if the directory structure is as required
 check_dir(){
 	if [ -d "${1}" ];
 	then
@@ -27,7 +27,7 @@ check_dir(){
 	fi
 }
 
-# CHECK HARDISK IMAGE
+# Check hard disk image
 check_file(){
 	# Scenario - File exists and is not a directory
 	if test -f "${1}";

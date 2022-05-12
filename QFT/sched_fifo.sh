@@ -5,7 +5,6 @@
 
 # NOTE:
 # "$NAME" is a variable we set to differentiate VMs from each other on the host system. It should be identical to the "-name" qemu argument
-# it is necessary to wait until QEMU has finished booting an OS before changing to a real-time process priority or it will halt virtual disk access
 
 sched(){
     while :; do

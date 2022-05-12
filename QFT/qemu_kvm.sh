@@ -29,10 +29,6 @@ check_su(){
 	fi
 }
 
-#look at this for just enable sudo when needed
-#read -s -p "Enter Sudo Password: " PASSWORD
-#echo $PASSWORD | sudo -S
-
 #------------------------------------------------------------------
 #SOURCES
 source huge_pages_conf.sh
@@ -189,14 +185,6 @@ create_image_os(){
 os_launch(){
 	cd ${ISO_DIR}
 	echo "Launching untuned VM..."
-
-	#QEMU_ARGS+=( "trace:qcow2_writev_done_part 2> ${boot_logs_path}" )
-	#se lp usar outros argumentos aqui
-
-	#for n in ${QEMU_ARGS[@]}; 
-	#	do
-	#		echo $n
-	#	done
 
 	qemu-system-x86_64 ${QEMU_ARGS[@]}	
 }
