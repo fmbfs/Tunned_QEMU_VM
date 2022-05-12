@@ -57,7 +57,6 @@ page_size(){
 }
 
 # Allocate huge pages size
-# see if there is a better way to define the max number of huge pages
 hugepages(){
     sysctl -w vm.nr_hugepages="${2}"
 
