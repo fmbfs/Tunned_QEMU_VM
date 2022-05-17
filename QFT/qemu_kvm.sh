@@ -70,7 +70,7 @@ set_variables(){
 	QEMU_VD="${BASE_DIR}/Virtual_Disks"
 
 	# QEMU name and OS --> Windows 10
-	OS_ISO="${ISO_DIR}/Win10_21H2_English_x64.iso"
+	OS_ISO="${ISO_DIR}/Win10_*.iso"
 	VD_NAME="${ARG2}.qcow2"
 	OS_IMG="${QEMU_VD}/${VD_NAME}"
 
@@ -179,7 +179,7 @@ process_args(){
 
 # CREATE VIRTUAL DISK IMAGE
 create_image_os(){
-	check_file
+	check_file ${ARG2}
 	echo "Creating Virtual Hard Drive...";
 	qemu-img create -f qcow2 -o cluster_size=${Cluster_Size},lazy_refcounts=on ${OS_IMG} ${Disk_Size}
 	exit 1;
