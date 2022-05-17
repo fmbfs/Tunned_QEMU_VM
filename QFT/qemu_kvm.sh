@@ -102,7 +102,6 @@ set_variables(){
 
 	# Specific Args
 	if [ ${ARG1} == "-lt" ]; then
-		# QEMU ARGUMENTS
 		QEMU_ARGS+=(
 			"-cpu" "host,pdpe1gb,kvm=off,hv_relaxed,hv_spinlocks=0x1fff,hv_vapic,hv_time" \
 			"-m" "${VD_RAM}G" \
@@ -119,6 +118,14 @@ set_variables(){
 			"-smp" "cores=${CORES},threads=${THREADS}" \
 			"-drive" "file=${OS_IMG}"
 		)
+
+	elif [ ${ARG1} == "-i" ]; then
+		QEMU_ARGS+=(
+			"-cpu" "max" \
+			"-smp" "cores=${CORES},threads=${THREADS}" \
+			"-drive" "file=${OS_IMG}" \
+    		"-cdrom" "${OS_ISO}"
+		)
 	fi
 }
 
@@ -131,7 +138,6 @@ show_help(){
     echo "  -c -----> Creates a qcow2 image for OS"
     echo "  -l -----> Launch qemu OS machine."
 	echo "  -lt ----> Launch qemu OS machine with Pinned CPU."
-	echo "  -a -----> Show QEMU args that are currently beeing deployed."
     echo "  -h -----> Show this help."
     echo ""
     exit 0
@@ -162,10 +168,6 @@ process_args(){
 		os_launch_tuned
 		shift
 		;;
-	"-a")
-		echo "qemu-system-x86_64 ${QEMU_ARGS[@]}"
-		shift
-		;;
 	"-h")
 		show_help
 		shift
@@ -179,7 +181,11 @@ process_args(){
 
 # CREATE VIRTUAL DISK IMAGE
 create_image_os(){
-	check_file ${ARG2}
+	# CHECK STRUCTURE
+	check_dir ${ISO_DIR}
+	check_dir ${QEMU_VD}
+	check_file ${OS_IMG}
+	
 	echo "Creating Virtual Hard Drive...";
 	qemu-img create -f qcow2 -o cluster_size=${Cluster_Size},lazy_refcounts=on ${OS_IMG} ${Disk_Size}
 	exit 0;
@@ -232,19 +238,13 @@ os_launch_tuned(){
 # INSTALL THE OPERATING SYSTEM N THE VIRTUAL MACHINE
 os_install(){
 	echo "Installing OS on ${ARG2}...";
-	qemu-system-x86_64 ${QEMU_ARGS[@]} \
-    -cdrom ${OS_ISO}
-	exit 1;
+	qemu-system-x86_64 ${QEMU_ARGS[@]}
+	exit 0;
 }
 
 ###########################################################################
 # MAIN
 
 set_variables
-
-# CHECK STRUCTURE
-#check_dir ${ISO_DIR}
-#check_dir ${QEMU_VD}
-#check_file ${OS_IMG}
 
 process_args

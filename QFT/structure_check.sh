@@ -6,8 +6,8 @@ yay_nay(){
 		do
 			read -p "Do you want to create/overwrite it? [y/n] " yn
 			case $yn in
-				[Yy]* ) mkdir "${1}"; echo "${1} created!"; break;;
-				[Nn]* ) break;;
+				[Yy]* ) mkdir "${1}"; echo "${1} created!"; exit 0;;
+				[Nn]* ) exit 0;;
 				* ) echo "Please answer yes or no.";;
 			esac
 		done	
@@ -30,9 +30,12 @@ check_file(){
 	# Scenario - File exists and is not a directory
 	if test -f "${1}";
 	then
-		echo "${1} hardisk image exists!"
+		echo "${1} virtual hardisk image exists!"
 		yay_nay ${1}
+
 	else
-		echo "${1} hardisk image created!"
+		echo "${1} virtual hardisk image created!"
 	fi
 }
+
+
