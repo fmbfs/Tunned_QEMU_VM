@@ -106,5 +106,5 @@ grouping()
 #iommu_on
 #echo " ajjsajas"
 #iommu_vdt_check
-iommu_group | grep -i --color '2D\|3D\|VGA'
+#iommu_group | grep -i --color '2D\|3D\|VGA'
 grouping

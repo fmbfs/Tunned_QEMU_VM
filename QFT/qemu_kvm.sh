@@ -1,7 +1,6 @@
-
 #!/bin/bash
 
-#------------------------------------------------------------------
+###########################################################################
 #DEFAULTS
 #x will print all
 #set -euox pipefail
@@ -34,35 +33,40 @@ check_su(){
 #read -s -p "Enter Sudo Password: " PASSWORD
 #echo $PASSWORD | sudo -S
 
-#------------------------------------------------------------------
+###########################################################################
 #SOURCES
 source huge_pages_conf.sh
 source host_check_group.sh
 source cset_conf.sh
 source sched_fifo.sh
 source cpu_freq.sh
+source structure_check.sh
 
-#------------------------------------------------------------------
-# BASE_DIR is the path
 BASE_DIR=$(dirname "${BASH_SOURCE[0]}")
 [[ "${BASE_DIR}" == "." ]] && BASE_DIR=$(pwd)
 
-#If no argument is passed we assume it to be launched pinned
+# If no argument is passed we assume it to be launched pinned
 ARG1="${1:--lt}"
 ARG2="${2:-disk}"
 
-#Args for CPU isolation and pinning
+# Args for CPU isolation and pinning
 ARG3="${3:-${group[0]}}"
 ARG4="${4:-${group[1]}}"
 
-#--------------------------------------------------------------------
+# Boot Logs file
+boot_logs_path="${BASE_DIR}/boot_logs.txt"
+
+
+###########################################################################
 # FUNCTIONS
 
 set_variables(){
 	# OS .iso Paths
+	#ISO_DIR="${BASE_DIR}/Iso_Images/teste"
 	ISO_DIR="${BASE_DIR}/Iso_Images/Windows"
 
 	# Virtual disks (VD) path
+	#QEMU_VD="${BASE_DIR}/teste2"
 	QEMU_VD="${BASE_DIR}/Virtual_Disks"
 
 	# QEMU name and OS --> Windows 10
@@ -86,21 +90,36 @@ set_variables(){
 	# Pinned vCPU
 	vCPU_PINNED="${ARG3},${ARG4}"
 
-	# QEMU ARGUMENTS
+	# Common Args
 	QEMU_ARGS=(
 				"-name" "${ARG2}" \
-				"-cpu" "host,pdpe1gb,kvm=off,hv_relaxed,hv_spinlocks=0x1fff,hv_vapic,hv_time" \
 				"-enable-kvm" \
-				"-m" "${VD_RAM}""G" \
-				"-mem-path" "/dev/hugepages" \
-				"-mem-prealloc" \
-				"-machine" "accel=kvm,kernel_irqchip=on" \
-				"-rtc" "base=localtime,clock=host" \
-				"-drive" "file=${OS_IMG},l2-cache-size=${L2_Cache_Size},cache=writethrough,cache-clean-interval=${Cache_Clean_Interval}" \
-				#"-smp" "cores=${CORES},threads=${THREADS}" \
+				"-m" "${VD_RAM}G"
 				#"-vga"  "virtio" \
+				#"-vga"  "none" \ if we do GPU passthrough this disables the emulated graphics
 				#"-display" "gtk,gl=on" 
-			)
+	)
+
+	# Specific Args
+	if [ ${ARG1} == "-lt" ]; then
+		# QEMU ARGUMENTS
+		QEMU_ARGS+=(
+			"-cpu" "host,pdpe1gb,kvm=off,hv_relaxed,hv_spinlocks=0x1fff,hv_vapic,hv_time" \
+			"-m" "${VD_RAM}G" \
+			"-mem-path" "/dev/hugepages" \
+			"-mem-prealloc" \
+			"-machine" "accel=kvm,kernel_irqchip=on" \
+			"-rtc" "base=localtime,clock=host" \
+			"-drive" "file=${OS_IMG},l2-cache-size=${L2_Cache_Size},cache=writethrough,cache-clean-interval=${Cache_Clean_Interval}" \
+		)
+
+	elif [ ${ARG1} == "-l" ]; then
+		QEMU_ARGS+=(
+			"-cpu" "max" \
+			"-smp" "cores=${CORES},threads=${THREADS}" \
+			"-drive" "file=${OS_IMG}"
+		)
+	fi
 }
 
 # HELP MENU
@@ -158,26 +177,6 @@ process_args(){
 	esac	
 }
 
-# CHECK IF FILE ALREADY EXISTS
-check_file(){
-	# Scenario - File exists and is not a directory
-	if test -f "${OS_IMG}";
-	then
-		echo "${OS_IMG} exists!"
-		while true; 
-		do
-    		read -p "Do you want to overwrite? [y/n] " yn
-    		case $yn in
-        		[Yy]* ) echo "${OS_IMG} Overwritten!"; break;;
-        		[Nn]* ) exit 0;;
-        		* ) echo "Please answer yes or no.";;
-    		esac
-		done
-	else
-		echo "${OS_IMG} created!"
-	fi
-}
-
 # CREATE VIRTUAL DISK IMAGE
 create_image_os(){
 	check_file
@@ -188,23 +187,25 @@ create_image_os(){
 
 # LAUNCH QEMU-KVM
 os_launch(){
-	
 	cd ${ISO_DIR}
 	echo "Launching untuned VM..."
-	
-	qemu-system-x86_64 \
-	-cpu max \
-	-enable-kvm \
-	-smp cores=${CORES},threads=${THREADS} \
-	-drive file=${OS_IMG} \
-	-m ${VD_RAM}G			
+
+	#QEMU_ARGS+=( "trace:qcow2_writev_done_part 2> ${boot_logs_path}" )
+	#se lp usar outros argumentos aqui
+
+	#for n in ${QEMU_ARGS[@]}; 
+	#	do
+	#		echo $n
+	#	done
+
+	qemu-system-x86_64 ${QEMU_ARGS[@]}	
 }
 
 # RUN QEMU ARGS AND THEN FREE RESOURCES
 run_qemu(){
-	#run VM
+	#run VM the -d is to detect when windows boots
 	sudo cset shield -e \
-	qemu-system-x86_64 -- ${QEMU_ARGS[@]} >/dev/null
+	qemu-system-x86_64 -- ${QEMU_ARGS[@]} -d trace:qcow2_writev_done_part 2> ${boot_logs_path} >/dev/null
 	
 	#free resources
 	#back to 95% 
@@ -214,6 +215,9 @@ run_qemu(){
 
 	#set cpu to ondemand
 	set_powersave
+
+	#remove boot file
+	sudo rm -f ${boot_logs_path}
 }
 
 # LAUNCH QEMU-KVM ISOLATED AND PINNED
@@ -230,11 +234,10 @@ os_launch_tuned(){
 	#sched_rt_runtime_us to 98%
 	sysctl kernel.sched_rt_runtime_us=980000 >/dev/null
 
-	run_qemu &
-	sleep 20 #criar um serviço para ser automatico apos a 1a vez
+	#runnig in parallel
+	sched &
 
-	cd ${BASE_DIR}
-	sched
+	run_qemu
 }
 
 # INSTALL THE OPERATING SYSTEM N THE VIRTUAL MACHINE
@@ -246,8 +249,18 @@ os_install(){
 	exit 1;
 }
 
-#--------------------------------------------------------------------
+###########################################################################
 # MAIN
 
 set_variables
+<<<<<<< HEAD
 process_args
+=======
+
+# CHECK STRUCTURE
+#check_dir ${ISO_DIR}
+#check_dir ${QEMU_VD}
+#check_file ${OS_IMG}
+
+process_args
+>>>>>>> testes

@@ -16,7 +16,6 @@ set_performance(){
     done
 }
 
-
 #set the cpu to performances
 set_powersave(){
     for file in /sys/devices/system/cpu/cpu*/cpufreq/scaling_governor
