@@ -182,22 +182,12 @@ create_image_os(){
 	check_file ${ARG2}
 	echo "Creating Virtual Hard Drive...";
 	qemu-img create -f qcow2 -o cluster_size=${Cluster_Size},lazy_refcounts=on ${OS_IMG} ${Disk_Size}
-	exit 1;
+	exit 0;
 }
 
 # LAUNCH QEMU-KVM
 os_launch(){
-	cd ${ISO_DIR}
 	echo "Launching untuned VM..."
-
-	#QEMU_ARGS+=( "trace:qcow2_writev_done_part 2> ${boot_logs_path}" )
-	#se lp usar outros argumentos aqui
-
-	#for n in ${QEMU_ARGS[@]}; 
-	#	do
-	#		echo $n
-	#	done
-
 	qemu-system-x86_64 ${QEMU_ARGS[@]}	
 }
 
@@ -222,7 +212,6 @@ run_qemu(){
 
 # LAUNCH QEMU-KVM ISOLATED AND PINNED
 os_launch_tuned(){
-	cd ${ISO_DIR}
 	echo "Launching tunned VM..."
 	#set cpu as performance
 	set_performance
@@ -242,7 +231,6 @@ os_launch_tuned(){
 
 # INSTALL THE OPERATING SYSTEM N THE VIRTUAL MACHINE
 os_install(){
-	cd ${IMAGES_DIR}
 	echo "Installing OS on ${ARG2}...";
 	qemu-system-x86_64 ${QEMU_ARGS[@]} \
     -cdrom ${OS_ISO}
