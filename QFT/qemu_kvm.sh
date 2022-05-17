@@ -252,10 +252,7 @@ os_install(){
 ###########################################################################
 # MAIN
 
-set_variables
-<<<<<<< HEAD
-process_args
-=======
+set_variablesgit
 
 # CHECK STRUCTURE
 #check_dir ${ISO_DIR}
@@ -263,4 +260,3 @@ process_args
 #check_file ${OS_IMG}
 
 process_args
->>>>>>> testes
