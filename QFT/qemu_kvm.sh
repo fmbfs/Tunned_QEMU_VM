@@ -246,5 +246,4 @@ os_install(){
 # MAIN
 
 set_variables
-
 process_args
