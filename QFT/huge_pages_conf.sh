@@ -94,6 +94,8 @@ free_hugepages(){
     echo "HugePages successfully disabled."
 }
 
+#------------------------------------------------------------------
+#MAIN
 
 #unmount directory if needed
 #sudo umount /dev/hugepages

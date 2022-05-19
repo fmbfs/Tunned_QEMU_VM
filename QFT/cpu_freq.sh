@@ -24,5 +24,8 @@ set_powersave(){
     done
 }
 
+#------------------------------------------------------------------
+#MAIN
+
 #set_performance
 #set_powersave

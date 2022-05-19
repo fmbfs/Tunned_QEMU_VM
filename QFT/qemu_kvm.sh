@@ -56,17 +56,14 @@ ARG4="${4:-${group[1]}}"
 # Boot Logs file
 boot_logs_path="${BASE_DIR}/boot_logs.txt"
 
-
 ###########################################################################
 # FUNCTIONS
 
 set_variables(){
 	# OS .iso Paths
-	#ISO_DIR="${BASE_DIR}/Iso_Images/teste"
 	ISO_DIR="${BASE_DIR}/Iso_Images/Windows"
 
 	# Virtual disks (VD) path
-	#QEMU_VD="${BASE_DIR}/teste2"
 	QEMU_VD="${BASE_DIR}/Virtual_Disks"
 
 	# QEMU name and OS --> Windows 10
@@ -197,24 +194,8 @@ os_launch(){
 	qemu-system-x86_64 ${QEMU_ARGS[@]}	
 }
 
-# RUN QEMU ARGS AND THEN FREE RESOURCES
-run_qemu(){
-	#run VM the -d is to detect when windows boots
-	sudo cset shield -e \
-	qemu-system-x86_64 -- ${QEMU_ARGS[@]} -d trace:qcow2_writev_done_part 2> ${boot_logs_path} >/dev/null
-	
-	#free resources
-	#back to 95% 
-	sysctl kernel.sched_rt_runtime_us=950000 >/dev/null
-	delete_cset >/dev/null
-	free_hugepages "${big_pages}" "${small_pages}" >/dev/null
 
-	#set cpu to ondemand
-	set_powersave
 
-	#remove boot file
-	sudo rm -f ${boot_logs_path}
-}
 
 # LAUNCH QEMU-KVM ISOLATED AND PINNED
 os_launch_tuned(){
@@ -231,8 +212,23 @@ os_launch_tuned(){
 
 	#runnig in parallel
 	sched &
+	
+	# RUN QEMU ARGS AND THEN FREE RESOURCES
+	#run VM the -d is to detect when windows boots
+	sudo cset shield -e \
+	qemu-system-x86_64 -- ${QEMU_ARGS[@]} -d trace:qcow2_writev_done_part 2> ${boot_logs_path} >/dev/null
+	
+	#free resources
+	#back to 95% 
+	sysctl kernel.sched_rt_runtime_us=950000 >/dev/null
+	delete_cset >/dev/null
+	free_hugepages "${big_pages}" "${small_pages}" >/dev/null
 
-	run_qemu
+	#set cpu to ondemand
+	set_powersave
+
+	#remove boot file
+	sudo rm -f ${boot_logs_path}
 }
 
 # INSTALL THE OPERATING SYSTEM N THE VIRTUAL MACHINE
