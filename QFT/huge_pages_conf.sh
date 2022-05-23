@@ -94,6 +94,8 @@ free_hugepages(){
     echo "HugePages successfully disabled."
 }
 
+#hugeadm --explain
+
 #------------------------------------------------------------------
 #MAIN
 

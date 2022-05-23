@@ -194,9 +194,6 @@ os_launch(){
 	qemu-system-x86_64 ${QEMU_ARGS[@]}	
 }
 
-
-
-
 # LAUNCH QEMU-KVM ISOLATED AND PINNED
 os_launch_tuned(){
 	echo "Launching tunned VM..."
