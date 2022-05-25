@@ -31,8 +31,8 @@ VD_RAM="${3:-8}"
 
 #the correct calculation is RAM_GB/pageSize_MB to get the number of pages.
 #20 is to get a little bit more see if makes any difference
-total_pages=$((( ${VD_RAM} * ${big_pages} / ${small_pages}) + 20 ))
-#total_pages=$(( ${VD_RAM} * ${big_pages} / ${small_pages} ))
+#total_pages=$((( ${VD_RAM} * ${big_pages} / ${small_pages}) + 20 ))
+total_pages=$(( ${VD_RAM} * ${big_pages} / ${small_pages} ))
 #echo "${total_pages}"
 
 #------------------------------------------------------------------

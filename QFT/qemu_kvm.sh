@@ -93,7 +93,7 @@ set_variables(){
 				"-enable-kvm" \
 				"-m" "${VD_RAM}G"
 				#"-vga"  "virtio" \
-				#"-vga"  "none" \ if we do GPU passthrough this disables the emulated graphics
+				#"-vga"  "none" \
 				#"-display" "gtk,gl=on" 
 	)
 
@@ -108,14 +108,12 @@ set_variables(){
 			"-rtc" "base=localtime,clock=host" \
 			"-drive" "file=${OS_IMG},l2-cache-size=${L2_Cache_Size},cache=writethrough,cache-clean-interval=${Cache_Clean_Interval}" \
 		)
-
 	elif [ ${ARG1} == "-l" ]; then
 		QEMU_ARGS+=(
 			"-cpu" "max" \
 			"-smp" "cores=${CORES},threads=${THREADS}" \
 			"-drive" "file=${OS_IMG}"
 		)
-
 	elif [ ${ARG1} == "-i" ]; then
 		QEMU_ARGS+=(
 			"-cpu" "max" \
@@ -226,7 +224,6 @@ create_image_os(){
 	
 	echo "Creating Virtual Hard Drive...";
 	qemu-img create -f qcow2 -o cluster_size=${Cluster_Size},lazy_refcounts=on ${OS_IMG} ${Disk_Size}G
-	exit 0;
 }
 
 # LAUNCH QEMU-KVM
@@ -274,7 +271,6 @@ os_launch_tuned(){
 os_install(){
 	echo "Installing OS on ${ARG2}...";
 	qemu-system-x86_64 ${QEMU_ARGS[@]}
-	exit 0;
 }
 
 ###########################################################################
