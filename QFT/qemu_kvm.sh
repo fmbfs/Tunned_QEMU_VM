@@ -126,7 +126,7 @@ set_variables(){
 	fi
 }
 
-# Process Cluste Sizes
+# Process Cluster Sizes
 process_cluster(){
 	# IMAGE
 	Disk_Size="${5:-40}"
