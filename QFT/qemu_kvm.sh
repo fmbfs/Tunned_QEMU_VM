@@ -53,6 +53,9 @@ ARG2="${2:-disk}"
 ARG3="${3:-${group[0]}}"
 ARG4="${4:-${group[1]}}"
 
+# Defining Global Variable
+L2_Cache_Size=""
+
 # Boot Logs file
 boot_logs_path="${BASE_DIR}/boot_logs.txt"
 
@@ -70,17 +73,14 @@ set_variables(){
 	OS_ISO="${ISO_DIR}/Win10_*.iso"
 	VD_NAME="${ARG2}.qcow2"
 	OS_IMG="${QEMU_VD}/${VD_NAME}"
-
-	# IMAGE
-	Disk_Size="40G"
-	Cluster_Size="64K"
-	L2_Cache_Size="5M"
-    # 1Mb for 8Gb using 64Kb. Make it cluster size fit no decimals.
-
+	
+	# Calls function to process clusters
+	process_cluster
+	
 	# Cores and Threads
 	CORES="2"
 	THREADS="4"
-	
+
     # CACHE CLEAN IN SECONDS
 	Cache_Clean_Interval="60"
 
@@ -126,10 +126,51 @@ set_variables(){
 	fi
 }
 
+# Process Cluste Sizes
+process_cluster(){
+	# IMAGE
+	Disk_Size="${5:-40}"
+	Cluster_Size="${6:-64}K"
+	L2_calculated=0
+	# 1Mb for 8Gb using 64Kb. Make it cluster size fit no decimals.
+	# The value that is beeing divided by is the range that 1Mb of that 
+	# cluster size can reach
+	case "${Cluster_Size}" in
+	"")
+		echo "No arguments provided,check below. "
+		shift
+		;;
+	"64K")
+		L2_calculated=$(( ${Disk_Size}/8 + 1 ))
+		;;
+	"128K")
+		L2_calculated=$(( ${Disk_Size}/16 + 1 ))
+		;;
+	"256K")
+		L2_calculated=$(( ${Disk_Size}/32 + 1 ))
+		;;
+	"512K")
+		L2_calculated=$(( ${Disk_Size}/64 + 1 ))
+		;;
+	"1024K")
+		L2_calculated=$(( ${Disk_Size}/128 + 1 ))
+		;;
+	"2048K")
+		L2_calculated=$(( ${Disk_Size}/256 + 1 ))
+		;;
+	*)
+		echo "Unrecognised option. -h for help."
+		shift
+		;;
+	esac
+
+	L2_Cache_Size="${L2_calculated}M"
+}
+
 # HELP MENU
 show_help(){
 	echo ""
-    echo "${0} [options] [hard drive name] [RAM number]"
+    echo "${0} [OPTION] [VSD NAME] [RAM GiB] [CPU ISOL A] [CPU ISOL B] [VSD GiB] [CLUSTER SIZE KiB]"
     echo "Options:"
     echo "  -i -----> Install the OS via CDROM"
     echo "  -c -----> Creates a qcow2 image for OS"
@@ -184,7 +225,7 @@ create_image_os(){
 	check_file ${OS_IMG}
 	
 	echo "Creating Virtual Hard Drive...";
-	qemu-img create -f qcow2 -o cluster_size=${Cluster_Size},lazy_refcounts=on ${OS_IMG} ${Disk_Size}
+	qemu-img create -f qcow2 -o cluster_size=${Cluster_Size},lazy_refcounts=on ${OS_IMG} ${Disk_Size}G
 	exit 0;
 }
 
@@ -205,6 +246,7 @@ os_launch_tuned(){
 	create_cset >/dev/null
 
 	#sched_rt_runtime_us to 98%
+	#https://www.kernel.org/doc/html/latest/scheduler/sched-rt-group.html ver isto
 	sysctl kernel.sched_rt_runtime_us=980000 >/dev/null
 
 	#runnig in parallel
