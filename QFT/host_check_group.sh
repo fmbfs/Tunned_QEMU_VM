@@ -15,7 +15,7 @@ print_error(){
 # iommu_on -- Confirm that IOMMU is on and able
 iommu_on()
 {
-    if [[  "$(2> /dev/null dmesg)" =~ "DMAR: IOMMU enabled" ]]; then
+    if [[  "$(2> /dev/null dmesg)" =~ "Virtualization Technology for Directed" ]]; then
         #echo "iommu_on"
         :
     else 
@@ -103,8 +103,8 @@ grouping()
 #------------------------------------------------------------------
 # MAIN
 
-#iommu_on
-#echo " ajjsajas"
-#iommu_vdt_check
-#iommu_group | grep -i --color '2D\|3D\|VGA'
+iommu_on
+iommu_vdt_check
+iommu_group | grep -i --color '2D\|3D\|VGA'
+#iommu_group
 grouping

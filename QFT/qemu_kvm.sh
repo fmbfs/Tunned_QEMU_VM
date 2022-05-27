@@ -91,10 +91,10 @@ set_variables(){
 	QEMU_ARGS=(
 				"-name" "${ARG2}" \
 				"-enable-kvm" \
-				"-m" "${VD_RAM}G"
+				"-m" "${VD_RAM}G" \
 				#"-vga"  "virtio" \
 				#"-vga"  "none" \
-				#"-display" "gtk,gl=on" 
+				#"-display" "gtk,gl=on" \		 
 	)
 
 	# Specific Args
