@@ -74,8 +74,6 @@ using the project.
 #### Argument 4
 `-lt ----> Launch qemu OS machine with Pinned CPU.`
 #### Argument 5
-`-a -----> Show QEMU args that are currently beeing deployed.`
-#### Argument 6
 `-h -----> Show this help.`
 
 ## Contributing

@@ -17,11 +17,6 @@ create_cset(){
 # Delete_cset
 #while not cset: done keep trying...needs to be done
 delete_cset(){
-#    if [[  ]]; then
-#        echo "cset deleted."
-#        exit 1
-#    fi
-
     sudo cset set -d system
     while [[ $(sudo cset set -d system) =~ "done" ]] 
     do 
@@ -30,6 +25,9 @@ delete_cset(){
 
     sudo cset set -d user
 }
+
+#------------------------------------------------------------------
+#MAIN
 
 #create_cset
 #cset set -l
