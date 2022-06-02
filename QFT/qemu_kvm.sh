@@ -100,7 +100,7 @@ set_variables(){
 	# Specific Args
 	if [ ${ARG1} == "-lt" ]; then
 		QEMU_ARGS+=(
-			"-cpu" "host,pdpe1gb,kvm=off,hv_relaxed,hv_spinlocks=0x1fff,hv_vapic,hv_time" \
+			"-cpu" "max,pdpe1gb,kvm=off,hv_relaxed,hv_spinlocks=0x1fff,hv_vapic,hv_time" \
 			"-m" "${VD_RAM}G" \
 			"-mem-path" "/dev/hugepages" \
 			"-mem-prealloc" \
@@ -110,13 +110,13 @@ set_variables(){
 		)
 	elif [ ${ARG1} == "-l" ]; then
 		QEMU_ARGS+=(
-			"-cpu" "max" \
+			"-cpu" "host" \
 			"-smp" "cores=${CORES},threads=${THREADS}" \
 			"-drive" "file=${OS_IMG}"
 		)
 	elif [ ${ARG1} == "-i" ]; then
 		QEMU_ARGS+=(
-			"-cpu" "max" \
+			"-cpu" "host" \
 			"-smp" "cores=${CORES},threads=${THREADS}" \
 			"-drive" "file=${OS_IMG}" \
     		"-cdrom" "${OS_ISO}"
@@ -128,39 +128,23 @@ set_variables(){
 process_cluster(){
 	# IMAGE
 	Disk_Size="${5:-40}"
-	Cluster_Size="${6:-64}K"
+	cluster_size_value="${6:-64}"
+	Cluster_Size="${cluster_size_value}K"
 	L2_calculated=0
 	# 1Mb for 8Gb using 64Kb. Make it cluster size fit no decimals.
 	# The value that is beeing divided by is the range that 1Mb of that 
 	# cluster size can reach
-	case "${Cluster_Size}" in
-	"")
-		echo "No arguments provided,check below. "
-		shift
-		;;
-	"64K")
-		L2_calculated=$(( ${Disk_Size}/8 + 1 ))
-		;;
-	"128K")
-		L2_calculated=$(( ${Disk_Size}/16 + 1 ))
-		;;
-	"256K")
-		L2_calculated=$(( ${Disk_Size}/32 + 1 ))
-		;;
-	"512K")
-		L2_calculated=$(( ${Disk_Size}/64 + 1 ))
-		;;
-	"1024K")
-		L2_calculated=$(( ${Disk_Size}/128 + 1 ))
-		;;
-	"2048K")
-		L2_calculated=$(( ${Disk_Size}/256 + 1 ))
-		;;
-	*)
-		echo "Unrecognised option. -h for help."
-		shift
-		;;
-	esac
+	arr_cs_valid=("64","128","256","512","1024","2048")
+	if [[ "${arr_cs_valid[@]}" =~ "${cluster_size_value}" ]]; then
+		auxiliar_calc=$(( ${cluster_size_value}/8 ))
+		L2_calculated=$(( ${Disk_Size}/${auxiliar_calc} + 1 ))
+		#echo "${auxiliar_calc}"
+		#echo "${L2_calculated}"
+		#exit 0
+	else
+		echo "Invalid Cluster Size."
+		exit 1
+	fi
 
 	L2_Cache_Size="${L2_calculated}M"
 }
@@ -276,15 +260,11 @@ os_install(){
 ###########################################################################
 # MAIN
 
-<<<<<<< HEAD
-set_variablesgit
+set_variables
 
 # CHECK STRUCTURE
 #check_dir ${ISO_DIR}
 #check_dir ${QEMU_VD}
 #check_file ${OS_IMG}
 
-=======
-set_variables
->>>>>>> testes
 process_args
