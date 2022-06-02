@@ -1,40 +1,51 @@
 #!/bin/bash
 
 #------------------------------------------------------------------
-#DEFAULTS
-#x will print all
-#set -euox pipefail
-set -euo pipefail
+# FUNTIONS
+#trap for debug
+trap(){
+	echo "trap trap trap!!!!!!"
+}
 
-#------------------------------------------------------------------
-#FUNCTIONS
 #print_error -- Error handler function
-print_error()
-{
+print_error(){
     echo "Error: $1"; exit 1
-} #print_error  end
+}
 
-#iommu_on -- Confirm that IOMMU is on and able
+# iommu_on -- Confirm that IOMMU is on and able
 iommu_on()
 {
-    if [[  "$(2> /dev/null dmesg)" =~ "DMAR: IOMMU enabled" ]]; then
+    if [[  "$(2> /dev/null dmesg)" =~ "Virtualization Technology for Directed" ]]; then
+        #echo "iommu_on"
         :
     else 
-        print_error "Not OK"
+        print_error "HC_1 Not OK --> reboot host to fix."
     fi
-} #iommu_on end
+}
 
-#iommu_vdt_check -- Check if IOMMU and VT-D are enabled or not
+iommu_group(){
+    shopt -s nullglob
+    for g in /sys/kernel/iommu_groups/*; do
+        echo "IOMMU Group ${g##*/}:"
+        for d in $g/devices/*; do
+            echo -e "\t$(lspci -nns ${d##*/})"
+        done;
+    done;
+}
+
+
+# iommu_vdt_check -- Check if IOMMU and VT-D are enabled or not
 iommu_vdt_check()
 {
     if compgen -G "/sys/kernel/iommu_groups/*/devices/*" > /dev/null; then
+        #echo "iommu_vdt"
         :
     else
-        print_error "Not OK"
+        print_error "HC_2 Not OK"
     fi
-} #iommu_vdt_check end
+}
 
-#Check vCPU L3 cache number and groups the last threads
+# Check vCPU L3 cache number and groups the last threads
 grouping()
 {
     i=-4
@@ -81,15 +92,19 @@ grouping()
             group[${j}]=${cpu_arr[-1]}
         done
     else
-        echo "L3 cache not equal..."
-        print_error
+        print_error "HC_3 Not OK --> L3 cache not the same. Check with lscpu -e"
     fi
-    echo "group: ${group[@]}"
+    #echo "group: ${group[@]}"
 }
 
+#check siblings test if it group by l3 cache
+#cat /sys/devices/system/cpu/cpu*/topology/thread_siblings_list | sort | uniq
+
 #------------------------------------------------------------------
-#MAIN
+# MAIN
 
 iommu_on
 iommu_vdt_check
+#iommu_group | grep -i --color '2D\|3D\|VGA'
+iommu_group
 grouping

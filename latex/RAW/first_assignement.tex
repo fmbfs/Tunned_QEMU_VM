@@ -1,4 +1,4 @@
-\documentclass[11pt, a4paper, oneside]{article}
+%\documentclass[11pt, a4paper, oneside]{article}
 \usepackage[english]{babel}	% Para caracteres em tuga
 \usepackage[utf8]{inputenc} %para aceitar cedilhas
 \usepackage{ulem}
@@ -116,8 +116,8 @@
 %---------------------------------------------------------------------------------------------------------------------------------
 \section*{1st task}
 
-On the cover use a dive image. You go from Application level tweaks to kernel level tweaks
-
+On the cover use a dive image. You go from Application level tweaks to kernel level tweaks\\
+\textcolor{red}{Check the initial email, and see if everything is beeing done or not}\\
 
 \begin{enumerate}
 	\item Install QEMU -- \textcolor{green}{DONE!}
@@ -179,7 +179,7 @@ Open source, é 5 estrelas, o problema é que está sempre a mudar!
 \vfill
 \pagebreak
 %----------------------------------------------------
-\subsection{KVM}
+\section{KVM}
 https://www.youtube.com/watch?v=G21c-sbggk4\\
 3:44 to install the program that checks if the machine can run KVM.\\
 Kernel based Machines, for hardware acceleration. It gives the opportunitie to run coomands that affect directly the hardware.\\
@@ -198,6 +198,9 @@ It is not supported by every processors linux-kvm.org/page/Processor$\_$support\
 
 What is an hypervisor? https://www.youtube.com/watch?v=6k6gtzseq2A$\&$list=PLLsor6GJ$\_$BEEucicHgBjtYurGv7judmrwI$\&$index=3
 
+\subsection{kvm tunning}
+
+look into it
 
 \vfill
 \pagebreak
@@ -311,6 +314,11 @@ qemu command accepts a simple -D switch which can create a log file. So for exam
 
 You can access more logging/debugging options via QEMU Monitor (e.g. qemu -monitor stdio).\\
 
+see cpu flags:\\
+qemu-system-x86$\_$64 -cpu help | grep pdpe\\
+in this case was the one for huge pages\\
+
+
 %----------------------------------------------------------------
 \subsection{Arguments}
 https://www.qemu.org/docs/master/system/invocation.html?highlight=smp
@@ -413,6 +421,12 @@ https://www.qemu.org/docs/master/system/invocation.html?highlight=smp
     -numa hmat-cache,node-id=0,size=10K,level=1,associativity=direct,policy=write-back,line=8 \\
     -numa hmat-cache,node-id=1,size=10K,level=1,associativity=direct,policy=write-back,line=8\\
 
+\vfill
+\pagebreak
+%----------------------------------------------------
+\section{Virtualization VS Emulation}
+
+Insert here stuff
 
 
 \vfill
@@ -756,6 +770,15 @@ The CPU plots change colors as different tasks run on the CPU, and the task plot
         In IRQ - 'h' if in a hard IRQ (hardware triggered), 's' if in a soft IRQ (context where the kernel initiated a the IRQ handler) or if soft IRQs are disabled, 'H' if in a hard IRQ and soft IRQs are disabled or the hard IRQ triggered while processing a soft IRQ, otherwise '.'\\
         Preemption counter - The index of the preemption counter. If it is other than zero, then the kernel will not preempt the running tasks, even if a schedule has been requested by some event. If the counter is zero, then '.' is shown. \\
 
+
+
+Preemptive multitasking - Running several processes/threads on a single processor, creating the illusion that they run concurrently when actually each is allocated small multiplexed time slices to run in. A process is "preempted" when it is scheduled out of execution and waits for the next time slice to run in.\\
+
+A preemptive kernel is one that can be interrupted in the middle of executing code - for instance in response for a system call - to do other things and run other threads, possibly those that are not in the kernel.\\
+
+The main advantage of a preemptive kernel is that sys-calls do not block the entire system. If a sys-call takes a long time to finish then it doesn't mean the kernel can't do anything else in this time. The main disadvantage is that this introduces more complexity to the kernel code, having to handle more end-cases, perform more fine grained locking or use lock-less structures and algorithms.
+\\
+
     Note: These may be different depending on the kernel the trace.dat file came from.\\
     Event - The name of the event.\\
     Info - The data output of a particular event. \\
@@ -844,6 +867,16 @@ Good for power managment. but worst for performance\\
 \vfill
 \pagebreak
 %------------------------------------------------------------------
+\subsection{TuneD from redhat? see this}
+
+man tuned or man tuned-profiles
+
+https://access.redhat.com/documentation/en-us/red$\_$hat$\_$enterprise$\_$linux/8/html/monitoring$\_$and$\_$managing$\_$system$\_$status$\_$and$\_$performance/getting-started-with-tuned$\_$monitoring-and-managing-system-status-and-performance\\
+
+
+\vfill
+\pagebreak
+%------------------------------------------------------------------
 \subsection{mmiotrace}
 
 Trace interactions between drivers and hardware\\
@@ -866,8 +899,10 @@ One thing to consider is that a core is inside a CPU, and depending on its archi
 
 \begin{enumerate}
 	\item run check.sh to see if IOMMU and VT-D is enabled and suported in your chip and Ensuring that the groups are valid, and confirm that iommu is on: dmesg | grep -i -e DMAR -e IOMMU;
-	\item 
 \end{enumerate}
+
+DMA direct memory access\\
+MMU memory managment unit\\
 %...........................................
 \subsection{Multi Threading}
 https://johnysswlab.com/crash-course-introduction-to-parallelism-multithreading/\\
@@ -882,7 +917,6 @@ Real world examples of parallelism:\\
 	\item CI scripts working on large code bases (e.g. doing clang-format) can be speed up on multiple core CPU's easily.
 \end{itemize}
 
-
 https://www.javatpoint.com/multithreading-models-in-operating-system\\
 Multi-threading predates multi.core CPU's, the 'classical' approach multithread teaching is starting with a single-core and showing all possible execution orders for N processes competing for compute time.\\
 Multiple threads (and processes) exist in single-core computers, anything before 2004 was single-core, and they ran a lot of programs with a lot of threads. You need to picture a thread (or process) as a unit requesting compute time to the operating system, it does not matter the amount of threads/processes and cores, the logic is the same: the operative system distributes the available computer power to the demanding threads and processes.\\
@@ -890,6 +924,9 @@ Multiple threads (and processes) exist in single-core computers, anything before
 So what are some real world examples where we can use parallelism in projects ?\\
 almost any computer hungry program where time is a constraint has moved to parallelism. Video games is the easiest example for any person, you have tons of individual small entities computing a lot of things (sound, light, bounces, interactions, logic).\\
 Simulations have been using parallelism since inception.\\
+
+what is hyper threads. answer this\\
+When should we use Hyper thread? When we can share the cpu cahce, other than that it is not worth it. So basically we need to take advantege of NUMA. In our host by default we have this because it is only one NUMA node.\\
 
 %...........................................
 \subsection{CPU PINNING--Affinity}
@@ -1025,6 +1062,10 @@ But for this we just use taskset directly\\
 check interrupts command:\\
 cat /proc/interrupts \\
 Without an IO-APIC, interrupts from hardware will be delivered only to the CPU which boots the operating system (usually CPU$\#$0).\\
+
+CPU pinning will not magically increase performance, but it will increase responsiveness. By pinning a CPU and moving existing tasks to other CPUs that do not handle VM cores you ensure that execution of your VM will not be preempted by a task running on host system. This is a very important factor for keeping DPC latency down, and that saves you from audio crackling. VMs essentially are realtime applications and you want VM to be scheduled right here and right now. Gaming VMs even more so. One more thing - it is critical to pin VM CPUs to right host logical CPUs on hyperthreaded hosts. For example on my system same physical core runs hyperthreaded cores 0 and 6, therefore i pin VM cores 0 and 1 to host cores 0 and 6 (qemu hyperthreaded cores go in pairs 0-1, 2-3 and so on). This ensures better utilization of cache as well.
+\\
+
 %----------------------------------------------------
 \subsubsection{NUMA}
 it is tied together to cpu pinning\\
@@ -1066,22 +1107,31 @@ NUMA node(s): we only have 1 available\\
 lscpu\\
 20minutos do video https://www.youtube.com/watch?v=pDWCgmvcGPY
 
-
-
 A single thread can not be split between multiple cores:
 \\
 A program needs to be written to have more than one thread (one per core), or there needs to be more than one program. If not then you won't use the cores.\\
-
+\\
 Writing programs to use more cores is not trivial, and not all problems can be parallelised (written to run on more than one core). If a problem contains 20$\%$ essentially sequential code, then with an infinite number of processors, it will be no faster than 20$\%$ of original execution time (500$\%$ speed increase). Then there are the overheads (communication between threads).
-
+\\
 If you don't have any application for the cores, then you are better off selling it, and getting a cheaper machine.
-
-Each core will have a ton of parallelism, to deal with a single thread, but this is not visible. Now we are struggling to make a single core any faster, as we add cores. This works well at first.
+\\
+Each core will have a ton of parallelism, to deal with a single thread, but this is not visible. Now we are struggling to make a single core any faster, as we add cores. This works well at first.\\
 
 Unix systems (such as Gnu/Linux e.g. Ubuntu), do a good job of using extra cores, up to around 2→4. Microsoft's Windows, gets improvements when you have a core for the virus scanner, and one for the defragmenter, and one for everything else.
+\\
+After that it will only make a difference if you have applications designed for multi-core.\\
 
-After that it will only make a difference if you have applications designed for multi-core.
+The numactl command can launch commands with static NUMA memory and execution thread alignment: numactl --hardware for example.\\
 
+With qemu running you can check numastat -c qemu\\
+we can see the alignement, the 5 pages that are there are from shared libraries of the system.\\
+
+without numa scheduler (when there is more than 1 numa node) the processes will not be local to one node, they will be all over. It is not the best in perfomance.\\
+
+Numa and shared memory don't work very well together.\\
+
+Numa affinity can output from 15 to 20$\%$ https://www.youtube.com/watch?v=RLNMlsa173o 40:35
+´ 
 
 %----------------------------------------------------
 \subsubsection{Hyper threading enabled}
@@ -1099,11 +1149,220 @@ https://cs.uwaterloo.ca/~brecht/servers/apic/SMP-affinity.txt
 The only reason to look at this value is that 
 SMP affinity will only work for IO-APIC enabled device drivers.
 
+%------------------------------------------------------------------
+\subsection{Memory tunning and Latency}
+What is it? https://www.youtube.com/watch?v=Tkra8g0gXAU\\
+The time from when an event is suppose to happen to the time it actually does happen.\\
+
+trace-cmd record says we want to record it to a file.\\ 
+19:39\\
+trace-cm list -e will list all available events.\\
+
+The reports we can let them run for a while or time it or just apend it to ls
+
+31' for hystogram latency.\\
+
+http://52.40.97.209/posts/qemu-optimization/post.php$\#$memory\\
+
+"
+
+Preallocated Memory
+Preallocating memory is one of the easiest ways to improve VM performance. This setting does exactly what it says, it dedicates and area of memory that is the entire size of the guest VM's memory so that new blocks of memory do not have to be allocated by the host as the guest requests them. This does however leave all memory preallocated to the VM unusable by the host until the guest is halted.\\
+
+Preallocated memory can be enabled with one QEMU argument. -mem-prealloc\\
+
+we just need to add this -mem-prealloc to qemu\\
+
+From nikhil test:
+[Yesterday 5:27 PM] Nikhil Santhosh\\
+so I tried it out.. there is no improvement in performance\\
+\\
+Nikhil Santhosh\\
+but.. I saw that it improved the performance of the VM in the CPU isolation method\\
+\\
+Nikhil Santhosh\\
+it bought the simulation to 22 secs\\
+ like 1\\
+
+Nikhil Santhosh\\
+from 30 secs\\
+
+together with all the other changes so far, I've configured HugePages (8 is our host max) dynamically with mem prealloc, then changing qemu processes priority after boot to be 99 (the highest in kernel).\\
+
+This is all done via running one script. Since it is changing kernel stuff it needs to be runned as sudo su.\\
+
+I feel that my qemu is more responsive and fast. but you have to try in your side.\\
+
+%...........................................
+\subsection{HugePages}
+Hugepages for better RAM performance\\
+https://linuxconfig.org/how-to-enable-hugepages-on-linux
+
+QEMU will use 2MiB sized transparent huge pages automatically without any explicit configuration in QEMU or Libvirt, subject to some important caveats.\\
+
+The described procedures have some drawbacks but will not necessarily net you a great performance advantage. According to Red Hat benchmarks, you should not expect more than a 2$\%$ performance gain from this over $\#$Transparent huge pages.\\
+
+Huge pages are a mechanism to manage memory in larger "chunks" than the usual 4KiB (in Linux, no idea what Windows does tbh). This is more efficient than managing many small chunks of memory, and it's easier for the operating system to keep track of said memory, which can improve performance.\\
+
+The performance improvement is less bookkeeping of memory.\\
+Sort of like how a warehouse only handles cases of product, not individually wrapped loose single products. Lots of overhead unless they are in hugeboxes..\\
+
+https://www.educba.com/linux-hugepages/\\
+
+The <hugepages/> element will cause guest RAM to be allocated from the default huge pages size pool, and will cause immediate allocation of those huge pages at QEMU startup. Huge pages are always locked into host RAM.\\
+
+The <locked/> element is used to control other QEMU memory allocations that are separate from guest RAM. It ensures all non-guest RAM pages are also locked into host RAM.\\
+
+If you are not trying to overcommit host RAM, then using huge pages on the host side is a very good idea for maximizing performance as it improves page table hit rates. This is true regardless of whether the guest OS in turn uses huge pages. This performance benefit will apply to all workloads and all guest OS.\\
+
+The KSM feature for when you are trying to overcommit host RAM (ie run many guests whose total RAM exceeds available host RAM). It tries to share RAM pages between guests to avoid risk of swapping during overcommit. KSM has a quite significant penalty in CPU consumption though, so its a tradeoff as to whether it is useful for a particular workload and/or guest OS.\\
+
+Note that -mem-path /dev/hugepages will fall back to allocating normal RAM if it doesn’t have enough hugepages, triggering (b) to fail. Using -mem-prealloc enforces the allocation using hugepages\\
+
+Care should be taken with the size of hugepage used; postcopy with 2MB hugepages works well, however 1GB hugepages are likely to be problematic since it takes ~1 second to transfer a 1GB hugepage across a 10Gbps link, and until the full page is transferred the destination thread is blocked.\\
+
+unable to map backing store for guest RAM: Cannot allocate memory --> guest is requesting more memory than available. \\
+
+https://www.youtube.com/watch?v=jTJ$\_$X3fJ1Ik\\
+Huge pages need continuous memory space to work.\\
+The number og HP tells us the number of pages that we need to map between virtual memory and physical memory.\\
+It is completly dependent on the processors version and architecture.\\
+Why do we use it? Less page table lookups in theory imply more "performance". So the number of Translation Lookaside Buffer (TLB) will be smaller, because we can fit more of this pages in the TLB cache. \\
+TLB is like a cache in the core of the cpu that stores some addresses in a table. This table is searched first, and when it has what we need it is a \textit{hit} and only spends 1 memory access. But when what we need is not there, it is a \textit{miss} and we spend 2 memory access to achieve the result. \\
+TLB has a limit of a few hundred pages, so how can we improve on it (how can we decrease the number of misses)?\\
+Increasing TLB size by itself is to expensive in terms of resources, so the best slution is to increase the page size, so we will have less pages to map. A regular page sin linux has 4Kb, a HugePage (HP) starts from 2Mb, 1Gb, and more in some special cases.\\
+
+What is transparent huge pages? Is the case where the application doesn't have knowledge of what a HP is, but the OS does, so it will transparently allocate HP to where it seems fit. Mind that it needs to be a continuos block of memory.\\
+https://www.youtube.com/watch?v=RLNMlsa173o 41:35 --> excellent explanation.\\
+
+%i should add a subsection for transparent huge pages
+
+%comentario nice
+%https://stackoverflow.com/questions/44379170/hugepagesize-is-not-increasing-to-1g-in-vm
+CPU flag of 1gb hugepage support and guest OS support/enabling are not enough to get 1 gb hugepages working in virtualized environment.\\
+The idea of huge pages both on PMD (2MB or 4 MB before PAE and x86$\_$64) and on PUD level (1 GB) is to create mapping from aligned virtual region of huge size into some huge region of physical memory (As I understand, it should be aligned too). With additional virtualization level of hypervisor there are now three (or four) memory levels: virtual memory of app in guest OS, some memory which is considered as physical by guest OS (it is the memory managed by virtualization solution: ESXi, Xen, KVM, ....), and the real physical memory. It's reasonable to assume that hugepage idea should have the same size of huge region in all three levels to be useful (generate less TLB miss, use less Page Table structures to describe a lot of memory - grep "Need bigger than 4KB pages" in the DickSites's "Datacenter Computers: modern challenges in CPU design", Google, Feb2015) -- pdf DataCenter.pdf.\\
+So, to use huge page of some level inside Guest OS, you should already have same sized huge pages in physical memory (in your Host OS) and in your virtualization solution. You can't effectively use huge page inside Guest when they are not available for you host OS and Virtualization software. (Some like qemu or bochs may emulate them but this will be from slow to very slow.) And when you want both 2 MB and 1 GB huge pages: Your CPU, Host OS, Virtual System and Guest OS all should support them (and host system should have enough aligned continuous physical memory to allocate 1 GB page, you probably can't split this page over several Sockets in NUMA).\\
+Don't know about ESXi, but there as some links for RedHat and some(?) linux virtualization solutions (with libvirtd). In "Virtualization Tuning and Optimization Guide" manual hugepages are listed for Host OS: 8.3.3.3 Enabling 1 GB huge pages for guests at boot or runtime :\\
+
+https://access.redhat.com/documentation/en-us/red$\_$hat$\_$enterprise$\_$linux/6/html/virtualization$\_$tuning$\_$and$\_$optimization$\_$guide/sect-virtualization$\_$tuning$\_$optimization$\_$guide-memory-huge$\_$pages-1gb-runtime\\
+\\
+    Procedure 8.2. Allocating 1 GB huge pages at boot time\\
+
+        To allocate different sizes of huge pages at boot, use the following command, specifying the number of huge pages. This example allocates 4 1 GB huge pages and 1024 2 MB huge pages:\\ 'default$\_$hugepagesz=1G hugepagesz=1G hugepages=4 hugepagesz=2M hugepages=1024' Change this command line to specify a different number of huge pages to be allocated at boot.\\
+
+    Note The next two steps must also be completed the first time you allocate 1 GB huge pages at boot time.\\
+
+        Mount the 2 MB and 1 GB huge pages on the host:\\
+
+        mkdir /dev/hugepages1G \\
+        mount -t hugetlbfs -o pagesize=1G none /dev/hugepages1G\\
+         mkdir /dev/hugepages2M \\
+         mount -t hugetlbfs -o pagesize=2M none /dev/hugepages2M\\
+
+        Restart libvirtd to enable the use of 1 GB huge pages on guests:\\
+
+        service restart libvirtd\\
+
+    1 GB huge pages are now available for guests.\\
+
+    For Ubuntu and KVM: "KVM - Using Hugepages"\\
+
+    By increasing the page size, you reduce the page table and reduce the pressure on the TLB cache. ... vm.nr$\_$hugepages = 256 ... Reboot the system (note: this is about physical reboot of host machine and host OS) ... Set up Libvirt to use Huge Pages KVM$\_$HUGEPAGES=1 ... Setting up a guest to use Huge Pages\\
+
+    For Fedora and KVM (old manual about 2MB pages): https://fedoraproject.org/wiki/Features/KVM$\_$Huge$\_$Page$\_$Backed$\_$Memory\\
+
+    ESXi 5 had support of 2MB pages, which should be manually enabled: How to Modify Large Memory Page Settings on ESXi\\
+
+    For "VMware’s ESX server" of unknown version, from March 2015 paper: BQ Pham, "Using TLB Speculation to Overcome Page Splintering in Virtual Machines", Rutgers University Technical Report DCS-TR-713, March 2015:\\
+
+    Lack of hypervisor support for large pages: Finally, hypervisor vendors can take a few production cycles before fully adopting large pages. For example, VMware’s ESX server currently has no support for 1GB large pages in the hypervisor, even though guests on x86-64 systems can use them.\\
+
+    Newer paper, no direct conclusion about 1GB pages: https://rucore.libraries.rutgers.edu/rutgers-lib/49279/PDF/1/\\
+
+    We find that large pages are conflicted with lightweight memory management across a range of hypervisors (e.g., ESX, KVM) across architectures (e.g., ARM, x86-64) and container-based technologies.\\
+
+    Old pdf from VMWare: "Large Page Performance. ESX Server 3.5 and ESX Server 3i v3.5". https://www.vmware.com/content/dam/digitalmarketing/vmware/en/pdf/techpaper/large$\_$pg$\_$performance.pdf --- only 2MB huge pages are listed as supported\\
+
+    VMware ESX Server 3.5 and VMware ESX Server 3i v3.5 introduce 2MB large page support to the virtualized environment. In earlier versions of ESX Server, guest operating system large pages were emulated using small pages. This meant that, even if the guest operating system was using large pages, it did not get the performance benefit of reducing TLB misses. The enhanced large page support in ESX Server 3.5 and ESX Server 3i v3.5 enables 32‐bit virtual machines in PAE mode and 64‐bit virtual machines to make use of large pages.\\
+
+grep -i huge /proc/meminfo\\
+
+HugePages Total is the size of the pool of huge pages and is configured 
+				using /proc/sys/vm/nr$\_$hugepages\\
+HugePages Free  is the number of huge pages in the pool that are not yet
+                allocated.\\
+HugePages Rsvd  is short for "reserved," and is the number of huge pages for
+                which a commitment to allocate from the pool has been made,
+                but no allocation has yet been made.  Reserved huge pages
+                guarantee that an application will be able to allocate a
+                huge page from the pool of huge pages at fault time.\\
+HugePages Surp  is short for "surplus," and is the number of huge pages in
+                the pool above the value in /proc/sys/vm/nr$\_$hugepages. The
+                maximum number of surplus huge pages is controlled by
+                /proc/sys/vm/nr$\_$overcommit$\_$hugepages.\\
+Hugepagesize    is the default hugepage size (in Kb).\\
+
+Note: if hugepages in grub are not set to 1gb at the moment i dont have a solution to change them from the default 2MB\\
+add to grub: transparent$\_$hugepage=never hugepagesz=1G hugepages=100 default$\_$hugepagesz=1G\\
+The hugepages=100 is the number of hugepages we want. It is the better way.\\
+AnonHugePages is reference to THP.\\
+
+or never wich is best?\\
+CPU flag of 1gb hugepage support and guest OS support/enabling are not enough to get 1 gb hugepages working in virtualized environment. \\
+How bad can 1GB pages be\\
+
+we cannot have both 2Mb and 1Gb enable at the same time. We will have one or the other. We can only do that during boot time unfurtunatly.\\
+
+Tests:\\
+\begin{enumerate}
+	\item 2MB vs 1GB with number of pages set--> 32seconds vs 27seconds (vLab time)
+	\item Default Vs -mem-prealloc just --> 35s vs 1'09''
+	\item THP ON or OFF --> ON (30) is better than off, but in a case where we have an huge amount of sapce it may be the opossite.\\
+	\item server --> 25s with huge pages 27 without
+	\item 18seconds with 1GB pages on nikihil laptop. IMPORTANT we need to close all the chrome tabs to have the best performance.
+\end{enumerate}
+Conclusions:\\
+
+One of the benefits of using hugepages is that it pins the memory so the swapping doesnt touches it.In databases it is a must\\  
+
+See hugepages.txt that i have done\\
+
+[10:29 AM] Nikhil Santhosh\\
+Francisco Manuel Santoswe just need to verify if it is worth rebooting or if it is similar to the othersafe to conclude it is worth rebooting
+ like 1\\
+
+[10:29 AM] Francisco Manuel Santos\\
+ok. if it is worth rebooting, it is worth isolate and pin in grub as well\\
+
+With 8GB of ram we got 30s very worst result
+
+%...........................................
+\subsection{Linux Process Scheduler Tuning}
+
+Sched fifo .sh e está.
+
+Meter palha.\\
+
+
+%...........................................
+\subsection{CPU governor}
+watch lscpu\\
 
 \vfill
 \pagebreak
-%...........................................
-\subsection{GPU ISOLATION}
+%----------------------------------------------------
+\subsection{Cgroups ISOLATION}
+cgroups is the foundation for containers. They are the buildingblocks from the kernel where containers are build with.\\
+They allow us to subset a system.\\
+https://www.youtube.com/watch?v=RLNMlsa173o 49'\\
+Container$\_$group\\
+here we have a complete control of numa. 
+
+\vfill
+\pagebreak
+%----------------------------------------------------
+\subsection{GPU PASSTHROUGH}
+
 Warning: Once you reboot after this procedure, whatever GPU you have configured will no longer be usable on the host until you reverse the manipulation. Make sure the GPU you intend to use on the host is properly configured before doing this - your motherboard should be set to display using the host GPU.\\
 
 Most use cases for PCI passthroughs relate to performance-intensive domains such as video games and GPU-accelerated tasks. While a PCI passthrough on its own is a step towards reaching native performance, there are still a few ajustments on the host and guest to get the most out of your virtual machine. \\
@@ -1162,88 +1421,68 @@ ps -a | grep qemu\\
 taskset -c -p 169570\\
 	pid 169570's current affinity list: 3,7\\
 
-%------------------------------------------------------------------
-\subsection{Memory tunning and Latency}
-What is it? https://www.youtube.com/watch?v=Tkra8g0gXAU\\
-The time from when an event is suppose to happen to the time it actually does happen.\\
 
-trace-cmd record says we want to record it to a file.\\ 
-19:39\\
-trace-cm list -e will list all available events.\\
+Conclude that at this moment in time we dont need to dig deep into this. Yup thats it\\
+we need to test it\\
 
-The reports we can let them run for a while or time it or just apend it to ls
+Placa gráfica\\
+    • Intel Ultra HD \\
+    • Opcional: NVIDIA® GeForce® Mx330 com 2 GB GDDR5 \\
 
-31' for hystogram latency.\\
+sudo lshw -C vídeo\\
 
-http://52.40.97.209/posts/qemu-optimization/post.php$\#$memory\\
+output:\\
+00:02.0 VGA compatible controller [0300]: Intel Corporation UHD Graphics [8086:9b41] (rev 02)\\
 
-"
-
-Preallocated Memory
-Preallocating memory is one of the easiest ways to improve VM performance. This setting does exactly what it says, it dedicates and area of memory that is the entire size of the guest VM's memory so that new blocks of memory do not have to be allocated by the host as the guest requests them. This does however leave all memory preallocated to the VM unusable by the host until the guest is halted.\\
-
-Preallocated memory can be enabled with one QEMU argument. -mem-prealloc\\
-
-we just need to add this -mem-prealloc to qemu\\
-
-From nikhil test:
-[Yesterday 5:27 PM] Nikhil Santhosh\\
-so I tried it out.. there is no improvement in performance\\
-\\
-Nikhil Santhosh\\
-but.. I saw that it improved the performance of the VM in the CPU isolation method\\
-\\
-Nikhil Santhosh\\
-it bought the simulation to 22 secs\\
- like 1\\
-
-Nikhil Santhosh\\
-from 30 secs\\
-
-together with all the other changes so far, I've configured HugePages (8 is our host max) dynamically with mem prealloc, then changing qemu processes priority after boot to be 99 (the highest in kernel).\\
-
-This is all done via running one script. Since it is changing kernel stuff it needs to be runned as sudo su.\\
-
-I feel that my qemu is more responsive and fast. but you have to try in your side.\\
-
-%...........................................
-\subsection{HugePages}
-
-https://linuxconfig.org/how-to-enable-hugepages-on-linux
-
-QEMU will use 2MiB sized transparent huge pages automatically without any explicit configuration in QEMU or Libvirt, subject to some important caveats.\\
-
-The described procedures have some drawbacks but will not necessarily net you a great performance advantage. According to Red Hat benchmarks, you should not expect more than a 2$\%$ performance gain from this over $\#$Transparent huge pages.\\
-
-Huge pages are a mechanism to manage memory in larger "chunks" than the usual 4KiB (in Linux, no idea what Windows does tbh). This is more efficient than managing many small chunks of memory, and it's easier for the operating system to keep track of said memory, which can improve performance.\\
-
-The performance improvement is less bookkeeping of memory.\\
-Sort of like how a warehouse only handles cases of product, not individually wrapped loose single products. Lots of overhead unless they are in hugeboxes..\\
-
-https://www.educba.com/linux-hugepages/\\
+2d:00.0 3D controller [0302]: NVIDIA Corporation GP108M [GeForce MX330] [10de:1d16] (rev a1)\\
 
 
+To get device detailed info:\\
+sudo lspci -v -s 2d:00.0\\
 
-The <hugepages/> element will cause guest RAM to be allocated from the default huge pages size pool, and will cause immediate allocation of those huge pages at QEMU startup. Huge pages are always locked into host RAM.\\
+to see hardware info:\\
+sudo apt install hardinfo\\
 
-The <locked/> element is used to control other QEMU memory allocations that are separate from guest RAM. It ensures all non-guest RAM pages are also locked into host RAM.\\
+for what i am reading about GPU pass-through we must have at least 2 GPU's (one internal and one external, or both external) for this to work. Because, and i am now quoting "Attention! After the upcoming steps, the guest GPU will be ignored by the host OS. You have to have a second GPU for the host OS now!".\\
+this has been mentioned in multiple sources. and it requires reboot to be enabled at least once
+we are reaching a point of 2 possible scenarios:  \\
+1.all set up with the settings we can do without reboot;\\
+2.Set up a machine with reboot and "better" options, so the kernel knows by default what it has to do\\
+Both have pros and cons\\
 
-If you are not trying to overcommit host RAM, then using huge pages on the host side is a very good idea for maximizing performance as it improves page table hit rates. This is true regardless of whether the guest OS in turn uses huge pages. This performance benefit will apply to all workloads and all guest OS.\\
+NEW!\\
+Managing the VGA routing is what we call VGA arbitration.\\
 
-The KSM feature for when you are trying to overcommit host RAM (ie run many guests whose total RAM exceeds available host RAM). It tries to share RAM pages between guests to avoid risk of swapping during overcommit. KSM has a quite significant penalty in CPU consumption though, so its a tradeoff as to whether it is useful for a particular workload and/or guest OS.\\
+I get the following error when attempting to start the guest:\\
 
-Note that -mem-path /dev/hugepages will fall back to allocating normal RAM if it doesn’t have enough hugepages, triggering (b) to fail. Using -mem-prealloc enforces the allocation using hugepages\\
+        vfio: error, group $\$$GROUP is not viable, please ensure all devices within the iommu_group are bound to their vfio bus driver.\\
 
-Care should be taken with the size of hugepage used; postcopy with 2MB hugepages works well, however 1GB hugepages are likely to be problematic since it takes ~1 second to transfer a 1GB hugepage across a 10Gbps link, and until the full page is transferred the destination thread is blocked.\\
-%...........................................
-\subsection{Linux Process Scheduler Tuning}
+Answer:\\
 
-Aqui!
+There are more devices in the IOMMU group than you're assigning, they all need to be bound to the vfio bus driver (vfio-pci) or pci-stub for the group to be viable.  See my previous post about IOMMU groups for more information.  To reduce the size of the IOMMU group, install the device into a different slot, try a platform that has better isolation support, or (at your own risk) bypass ACS using the ACS override patch.
 
+So for the record, the mouthful that you should be looking for is this line:\\
 
-%...........................................
-\subsection{CPU governor}
-watch lscpu\\
+DMAR: Intel(R) Virtualization Technology for Directed I/O\\
+
+or on older kernels the prefix is different:\\
+
+PCI-DMA: Intel(R) Virtualization Technology for Directed I/O\\
+
+When you see this, you're pretty much past all the failure points of initializing VT-d.  FWIW, the "DMAR" flavors of the above appeared in v4.2, so on a more recent kernel, that's your better option.\\
+
+VFIO provides access to a device within a secure and programmable IOMMU context\\
+
+"QEMU job is to create fake devices" by Alex Williamson
+
+\vfill
+\pagebreak
+%----------------------------------------------------
+\section{Guest tune}
+Install OS as enterprise for better regitry access\\
+Disable indexing windows 10\\
+disable windows defender\\
+disable cortana\\
 
 \vfill
 \pagebreak
@@ -1285,10 +1524,12 @@ Comando htop para visualizar alguns parametros
 \pagebreak
 %----------------------------------------------------
 \section{Benchmark tools}
-Cinebench -$>$ install it on the virtual machine to test effect of arguments.
+The best benchmark is against the most basic qemu run. laun vs launch tuned\\
+
+Cinebench -$>$ install it on the virtual machine to test effect of arguments.\\
 
 https://en.wikipedia.org/wiki/Benchmark$\_$(computing)
-
+\\
 \textbf{Who Should Use Cinebench? }
 ... hardware manufacturers can utilize the feedback in optimizing their latest products. Any computer owner can evaluate their individual system. Unlike abstract benchmarks, which only test specific functions of CPUs, Cinebench offers a real-world benchmark that incorporates a user's common tasks within Cinema 4D to measure a system's performance.\\
 
@@ -1467,6 +1708,8 @@ Erlang uses the term "process" because it does not expose a shared-memory multip
 In kernel we dont do recursive calls because it can blow up a stack with ease.\\
 
 
+Choose kernel image when boting qemu\\
+
 
 \vfill
 \pagebreak
@@ -1485,15 +1728,39 @@ the guy Rob Landley made mkroot.\\
 
 see muscl-cross-make\\
 
-the difference between normal compiling and cross compiling is 
+the difference between normal compiling and cross compiling is....
 
+\subsubsection{Canadian Cross Compiling}
 
 \vfill
 \pagebreak
 %----------------------------------------------------
 \section{FLUTTER APP}
 
-End goal\\
+do it with the team\\
+
+\vfill
+\pagebreak
+%----------------------------------------------------
+\section{Conclusion}
+But i think, regarding the time that i have left to present this (+/-2months), that for the report itseflt i will conclude with the HugePages subjects (since it was the one that impaacted) and introduce the Real Time Kernel Patches as the road to continue exploring (and i will do that after the report is done). I will mention as well that one of th goals is to have a user interface, and some other scripts beyond bash to auto figure this out\\
+yes i agree with you... we covered some major points here (atleast ones which I was more curious of)... this is enough for us to conclude that in our case the limitation is the CPU frequency because of the performance of the Vlab tool.\\
+and one final outcome can be a small tool to help the developers to configure a system for optimal perfromance of any VM they are trying to run in it.. it can even be a small script .. some simple UI will make more of an impact visually... but if you can contribute any simple tool to CTW through this internship effort then it would be an awesome way to launch your career here \\
+
+Notably the use of hugepages has helped many users, but its usefulness
+in the context of GPU pass-through is questionable and the use of core
+isolation which prevents the hosts from running tasks on core passed to
+your VM.\\
+
+but we can conclude that the performance is correlated to the memory managment of the virtual machine. \\
+
+
+Best results so far:\\
+GRUB CMDLINE LINUX DEFAULT="quiet splash intel iommu=on preempt=voluntary isolcpus=3,7 hugepagesz=1G hugepages=20 default$\_$hugepagesz=1G transparent$\_$hugepage=never"\\
+update grub\\
+launch qemu with taskset -c ...
+
+CPU isolation is not helping us, since it is not a single process but an actual VM wich may need more cores. 
 
 \vfill
 \pagebreak
@@ -1542,7 +1809,17 @@ source in bash need to be locally done, so if we need inside a function we put i
 vmstat -s\\
 man vmstat for statistics\\
 
-long-command & sleep 300; do-this-after-five-minutes\\
+long-command \& sleep 300; do-this-after-five-minutes\\
+
+grep -r hello /sys/ 2> /dev/null\\ 
+to send output to null\\
+
+Jsut shows the current path on terminal\\
+export PS1='$\backslash$w:'
+
+So the best scenario is:
+Grub stuff, cpu to performance, sched 98, lauch with taskset -c 3,7, process 99 priority.
+Don't forget to set the qemu arguments to use preallocation and the ram size.\\
 
 %================================================================================================================================
 \end{document}

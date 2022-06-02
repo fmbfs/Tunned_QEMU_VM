@@ -1,0 +1,44 @@
+%%%%%%%%%%%%%%% Enable %%%%%%%%%%%%%%%%%%%%%%%
+1- Check the current huge page size: 
+	grep -i huge /proc/meminfo
+	
+2- Add this arguments to QEMU launcher:
+	-mem-path /dev/hugepages
+	-mem-prealloc
+
+3- Set the number of huge pages. Note that ti depends on the RAM allocated
+and the huge page size itself: (10240 is for 2MB 20GB + 20 for small buffer)
+	sudo sysctl -w vm.nr_hugepages=10260
+
+4- Disable Transparent huge pages:
+	echo "never" > "/sys/kernel/mm/transparent_hugepage/enabled"
+	echo "never" > "/sys/kernel/mm/transparent_hugepage/defrag"
+
+note:
+What is transparent huge pages? 
+Is the case where the application doesn't have knowledge of what a HugePage is, but the OS does, so it will transparently allocate HP to where it seems fit. Mind that it needs to be a continuos block of memory.
+
+%%%%%%%%%%%%%%% Back to default %%%%%%%%%%%%%%%%%%%%%%%
+
+5- remove this arguments to QEMU launcher:
+	-mem-path /dev/hugepages
+	-mem-prealloc
+
+6- Set the number of huge pages to 0:
+	sysctl -w vm.nr_hugepages=0
+
+7- Enable Transparent huge pages:
+	echo always > /sys/kernel/mm/transparent_hugepage/enabled
+	echo always > /sys/kernel/mm/transparent_hugepage/defrag
+	
+%%%%%%%%%%%%%%% 1G HugePages %%%%%%%%%%%%%%%%%%%%%%%
+edit grub
+update grub
+GRUB_CMDLINE_LINUX_DEFAULT="quiet splash intel_iommu=on preempt=voluntary hugepagesz=1G hugepages=20 default_hugepagesz=1G transparent_hugepage=never"
+
+reboot
+launch qemu
+Note that hugepages=20 is the number of pages. Edit to your setup
+
+To set back to default, delete what you add to grub, then reboot.
+
