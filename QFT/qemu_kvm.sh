@@ -74,6 +74,7 @@ set_variables(){
 	VD_NAME="${ARG2}.qcow2"
 	OS_IMG="${QEMU_VD}/${VD_NAME}"
 <<<<<<< HEAD
+<<<<<<< HEAD
 
 <<<<<<< HEAD
     # Processor
@@ -92,6 +93,8 @@ set_variables(){
 	L2_Cache_Size="5M"
     # 1Mb for 8Gb using 64Kb
 =======
+=======
+>>>>>>> 97aada6024f660bf61a0b753c77897af7506945c
 	
 	# Calls function to process clusters
 	process_cluster
@@ -99,11 +102,15 @@ set_variables(){
 	# Cores and Threads
 	CORES="2"
 	THREADS="4"
+<<<<<<< HEAD
 >>>>>>> testes
+=======
+>>>>>>> 97aada6024f660bf61a0b753c77897af7506945c
 
     # CACHE CLEAN IN SECONDS
 	Cache_Clean_Interval="60"
 
+<<<<<<< HEAD
 <<<<<<< HEAD
 	# RAM
     VD_RAM="8G"  
@@ -118,25 +125,15 @@ set_variables(){
 =======
 =======
 >>>>>>> testes
-	# Pinned vCPU
-<<<<<<< HEAD
-	vCPU_PINNED="7"
->>>>>>> testes
 =======
+>>>>>>> 97aada6024f660bf61a0b753c77897af7506945c
+	# Pinned vCPU
 	vCPU_PINNED="${ARG3},${ARG4}"
->>>>>>> testes
 
 	# Common Args
 	QEMU_ARGS=(
-<<<<<<< HEAD
-				"-name" "${ARGUMENT2}" \
-				"-cpu" "max,hv_relaxed,hv_spinlocks=0x1fff,hv_vapic,hv_time" \
-<<<<<<< HEAD
-				"-smp" "cores=${CORES},threads=${THREADS}" \
-=======
->>>>>>> testes
-=======
 				"-name" "${ARG2}" \
+<<<<<<< HEAD
 <<<<<<< HEAD
 				"-cpu" "max,kvm=off,hv_relaxed,hv_spinlocks=0x1fff,hv_vapic,hv_time" \
 >>>>>>> testes
@@ -153,6 +150,8 @@ set_variables(){
 >>>>>>> testes
 			)
 =======
+=======
+>>>>>>> 97aada6024f660bf61a0b753c77897af7506945c
 				"-enable-kvm" \
 				"-m" "${VD_RAM}G" \
 				#"-vga"  "virtio" \
@@ -210,12 +209,16 @@ process_cluster(){
 	fi
 
 	L2_Cache_Size="${L2_calculated}M"
+<<<<<<< HEAD
 >>>>>>> testes
+=======
+>>>>>>> 97aada6024f660bf61a0b753c77897af7506945c
 }
 
 # HELP MENU
 show_help(){
 	echo ""
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -233,21 +236,15 @@ show_help(){
 =======
     echo "${0} [OPTION] [VSD NAME] [RAM GiB] [CPU ISOL A] [CPU ISOL B] [VSD GiB] [CLUSTER SIZE KiB]"
 >>>>>>> testes
-    echo "Options:"
-<<<<<<< HEAD
-    echo "  -i -> Install the OS via CDROM"
-    echo "  -c -> Creates a qcow2 image for OS"
-    echo "  -l -> Launch qemu OS machine."
-	echo "  -lp -> Launch qemu OS machine with Pinned CPU."
-    echo "  -h -> Show this help."
->>>>>>> testes
 =======
+    echo "${0} [OPTION] [VSD NAME] [RAM GiB] [CPU ISOL A] [CPU ISOL B] [VSD GiB] [CLUSTER SIZE KiB]"
+>>>>>>> 97aada6024f660bf61a0b753c77897af7506945c
+    echo "Options:"
     echo "  -i -----> Install the OS via CDROM"
     echo "  -c -----> Creates a qcow2 image for OS"
     echo "  -l -----> Launch qemu OS machine."
 	echo "  -lt ----> Launch qemu OS machine with Pinned CPU."
     echo "  -h -----> Show this help."
->>>>>>> testes
     echo ""
     exit 0
 }
@@ -260,21 +257,6 @@ process_args(){
 		show_help
 		shift
 		;;
-<<<<<<< HEAD
-	"-osi")
-		os_install
-		shift
-		;;
-	"-osc")
-		create_image_os
-		shift
-		;;
-	"-osl")
-		os_launch
-		shift
-		;;
-	"-help")
-=======
 	"-i")
 		os_install
 		shift
@@ -293,16 +275,11 @@ process_args(){
 		shift
 		;;
 	"-h")
->>>>>>> testes
 		show_help
 		shift
 		;;
 	*)
-<<<<<<< HEAD
-		echo "Unrecognised option"
-=======
 		echo "Unrecognised option. -h for help."
->>>>>>> testes
 		shift
 		;;
 	esac	
@@ -322,6 +299,7 @@ create_image_os(){
 # LAUNCH QEMU-KVM
 os_launch(){
 <<<<<<< HEAD
+<<<<<<< HEAD
 	cd ${ISO_DIR}
 	echo "Launching OS..."
 <<<<<<< HEAD
@@ -340,6 +318,10 @@ os_launch(){
 	echo "Launching untuned VM..."
 	qemu-system-x86_64 ${QEMU_ARGS[@]}	
 >>>>>>> testes
+=======
+	echo "Launching untuned VM..."
+	qemu-system-x86_64 ${QEMU_ARGS[@]}	
+>>>>>>> 97aada6024f660bf61a0b753c77897af7506945c
 }
 
 # LAUNCH QEMU-KVM ISOLATED AND PINNED
@@ -372,6 +354,7 @@ os_launch_tuned(){
 	free_hugepages
 }
 
+<<<<<<< HEAD
 # LAUNCH QEMU-KVM ISOLATED AND PINNED
 os_launch_pinned(){
 	source huge_pages_conf.sh
@@ -423,6 +406,13 @@ os_launch_pinned(){
 	#remove boot file
 	sudo rm -f ${boot_logs_path}
 >>>>>>> testes
+=======
+	#set cpu to ondemand
+	set_powersave
+
+	#remove boot file
+	sudo rm -f ${boot_logs_path}
+>>>>>>> 97aada6024f660bf61a0b753c77897af7506945c
 }
 
 # INSTALL THE OPERATING SYSTEM N THE VIRTUAL MACHINE
@@ -434,11 +424,24 @@ os_install(){
 ###########################################################################
 # MAIN
 
-set_variables
+<<<<<<< HEAD
+set_variablesgit
 
 # CHECK STRUCTURE
 #check_dir ${ISO_DIR}
 #check_dir ${QEMU_VD}
 #check_file ${OS_IMG}
 
+=======
+set_variables
+<<<<<<< HEAD
+
+# CHECK STRUCTURE
+#check_dir ${ISO_DIR}
+#check_dir ${QEMU_VD}
+#check_file ${OS_IMG}
+
+=======
+>>>>>>> testes
+>>>>>>> 97aada6024f660bf61a0b753c77897af7506945c
 process_args
