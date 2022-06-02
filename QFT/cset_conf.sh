@@ -26,6 +26,9 @@ delete_cset(){
     sudo cset set -d user
 }
 
+#------------------------------------------------------------------
+#MAIN
+
 #create_cset
 #cset set -l
 #sleep 2

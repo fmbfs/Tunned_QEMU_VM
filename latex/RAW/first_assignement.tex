@@ -1,4 +1,4 @@
-\documentclass[11pt, a4paper, oneside]{article}
+%\documentclass[11pt, a4paper, oneside]{article}
 \usepackage[english]{babel}	% Para caracteres em tuga
 \usepackage[utf8]{inputenc} %para aceitar cedilhas
 \usepackage{ulem}
@@ -899,8 +899,10 @@ One thing to consider is that a core is inside a CPU, and depending on its archi
 
 \begin{enumerate}
 	\item run check.sh to see if IOMMU and VT-D is enabled and suported in your chip and Ensuring that the groups are valid, and confirm that iommu is on: dmesg | grep -i -e DMAR -e IOMMU;
-	\item 
 \end{enumerate}
+
+DMA direct memory access\\
+MMU memory managment unit\\
 %...........................................
 \subsection{Multi Threading}
 https://johnysswlab.com/crash-course-introduction-to-parallelism-multithreading/\\
@@ -1447,6 +1449,31 @@ we are reaching a point of 2 possible scenarios:  \\
 1.all set up with the settings we can do without reboot;\\
 2.Set up a machine with reboot and "better" options, so the kernel knows by default what it has to do\\
 Both have pros and cons\\
+
+NEW!\\
+Managing the VGA routing is what we call VGA arbitration.\\
+
+I get the following error when attempting to start the guest:\\
+
+        vfio: error, group $\$$GROUP is not viable, please ensure all devices within the iommu_group are bound to their vfio bus driver.\\
+
+Answer:\\
+
+There are more devices in the IOMMU group than you're assigning, they all need to be bound to the vfio bus driver (vfio-pci) or pci-stub for the group to be viable.  See my previous post about IOMMU groups for more information.  To reduce the size of the IOMMU group, install the device into a different slot, try a platform that has better isolation support, or (at your own risk) bypass ACS using the ACS override patch.
+
+So for the record, the mouthful that you should be looking for is this line:\\
+
+DMAR: Intel(R) Virtualization Technology for Directed I/O\\
+
+or on older kernels the prefix is different:\\
+
+PCI-DMA: Intel(R) Virtualization Technology for Directed I/O\\
+
+When you see this, you're pretty much past all the failure points of initializing VT-d.  FWIW, the "DMAR" flavors of the above appeared in v4.2, so on a more recent kernel, that's your better option.\\
+
+VFIO provides access to a device within a secure and programmable IOMMU context\\
+
+"QEMU job is to create fake devices" by Alex Williamson
 
 \vfill
 \pagebreak
