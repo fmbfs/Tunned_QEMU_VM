@@ -147,7 +147,6 @@ process_cluster(){
 	fi
 
 	L2_Cache_Size="${L2_calculated}M"
-	echo "lalalalala"
 }
 
 # HELP MENU
