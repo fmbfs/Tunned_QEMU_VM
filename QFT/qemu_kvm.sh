@@ -119,7 +119,7 @@ set_variables(){
 			"-cpu" "host" \
 			"-smp" "cores=${CORES},threads=${THREADS}" \
 			"-drive" "file=${OS_IMG}" \
-    		"-cdrom" "${OS_ISO}"
+			"-cdrom" "${OS_ISO}"
 		)
 	fi
 }
@@ -259,11 +259,18 @@ os_install(){
 
 ###########################################################################
 # MAIN
-set_variables
+main(){
+	set_variables
 
-# CHECK STRUCTURE
-#check_dir ${ISO_DIR}
-#check_dir ${QEMU_VD}
-#check_file ${OS_IMG}
+	# CHECK STRUCTURE
+	#check_dir ${ISO_DIR}
+	#check_dir ${QEMU_VD}
+	#check_file ${OS_IMG}
 
-process_args
+	process_args
+}
+
+###########################################################################
+# RUN
+
+main
