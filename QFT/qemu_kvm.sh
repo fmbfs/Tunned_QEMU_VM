@@ -11,8 +11,6 @@ trap(){
 	echo "trap trap trap!!!!!!"
 }
 
-TESTESTESTESTES
-
 # Defining Colors for text output
 red=$( tput setaf 1 );
 yellow=$( tput setaf 3 );
