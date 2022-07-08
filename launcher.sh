@@ -145,9 +145,9 @@ page_size(){
         case $yn in 
             yes ) 
                 grubsm tuned isolcpus;
-                grub_flag=0;;
+                grub_flag="yes";;
             no ) 
-                grub_flag=1
+                grub_flag="no"
                 # Small pages
                 if [ "$(grep Hugepagesize /proc/meminfo | awk '{print $2}')" = "${small_pages}" ]; then 
                     hugepages "${small_pages}" "${total_pages}"
@@ -192,6 +192,7 @@ free_hugepages(){
 grubsm(){
     grub_path="/etc/default/grub"
     grub_default="GRUB_CMDLINE_LINUX_DEFAULT=\"quiet splash\""
+    
     if [[ ${1} == "tuned" ]]; then
         if [[ ${2} =~ "isolcpus" ]]; then
             grub_isol="isolcpus=${vCPU_PINNED}"
@@ -201,6 +202,7 @@ grubsm(){
         grub_tuned="GRUB_CMDLINE_LINUX_DEFAULT=\"quiet splash ${grub_isol} intel_iommu=on preempt=voluntary hugepagesz=1G hugepages=${VD_RAM} default_hugepagesz=1G transparent_hugepage=never\""
         sudo sed -i "s/${grub_default}/${grub_tuned}/" ${grub_path}
     else
+        grub_flag="no"
         grub_tuned=$(cat ${grub_path} | grep "GRUB_CMDLINE_LINUX_DEFAULT=")
         sudo sed -i "s/${grub_tuned}/${grub_default}/" ${grub_path}
     fi
@@ -250,17 +252,16 @@ os_launch_tuned(){
 	sudo rm -f ${boot_logs_path}
 
     # Check Grub default or not
-    if [[ ${grub_flag} == 0 ]]; then
-        read -p "Set default Grub (${red}reboot will be done automatically${yellow})? (yes/no) ${normal}" yn
+    if [[ ${grub_flag} == "yes" ]]; then
+        read -p "Set to default Grub (${red}reboot will be done automatically${yellow})? (yes/no) ${normal}" yn
         case $yn in 
             yes )
-                grubsm;
-                grub_flag=1;;
+                grubsm;;
             no )    
                 echo "${yellow}Exit success!";
                 exit 1;;
             * ) 
-                echo "invalid response. Type 'yes' or 'no'.";
+                echo "Invalid response. Type 'yes' or 'no'.";
                 exit 1;;
         esac
     else
