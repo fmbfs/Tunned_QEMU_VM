@@ -141,7 +141,7 @@ page_size(){
     if [ "$(grep Hugepagesize /proc/meminfo | awk '{print $2}')" = "${big_pages}" ]; then
         hugepages "${big_pages}" "${VD_RAM}"
     else
-        read -p "Update Grub (${red}reboot and rerun is needed${yellow})? (yes/no) ${normal}" yn
+        read -p "Update Grub (${red}reboot will be done automatically and rerun is needed after${yellow})? (yes/no) ${normal}" yn
         case $yn in 
             yes ) 
                 grubsm tuned isolcpus;;
@@ -248,7 +248,7 @@ os_launch_tuned(){
 	sudo rm -f ${boot_logs_path}
 
     # Check Grub default or not
-    read -p "Set default Grub (${red}reboot is needed${yellow})? (yes/no) ${normal}" yn
+    read -p "Set default Grub (${red}reboot will be done automatically${yellow})? (yes/no) ${normal}" yn
         case $yn in 
             yes )
                 grubsm;;
