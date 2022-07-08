@@ -144,8 +144,10 @@ page_size(){
         read -p "Update Grub (${red}reboot will be done automatically and rerun is needed after${yellow})? (yes/no) ${normal}" yn
         case $yn in 
             yes ) 
-                grubsm tuned isolcpus;;
+                grubsm tuned isolcpus;
+                grub_flag=0;;
             no ) 
+                grub_flag=1
                 # Small pages
                 if [ "$(grep Hugepagesize /proc/meminfo | awk '{print $2}')" = "${small_pages}" ]; then 
                     hugepages "${small_pages}" "${total_pages}"
@@ -248,10 +250,12 @@ os_launch_tuned(){
 	sudo rm -f ${boot_logs_path}
 
     # Check Grub default or not
-    read -p "Set default Grub (${red}reboot will be done automatically${yellow})? (yes/no) ${normal}" yn
+    if [[ ${grub_flag} == 0 ]]; then
+        read -p "Set default Grub (${red}reboot will be done automatically${yellow})? (yes/no) ${normal}" yn
         case $yn in 
             yes )
-                grubsm;;
+                grubsm;
+                grub_flag=1;;
             no )    
                 echo "${yellow}Exit success!";
                 exit 1;;
@@ -259,6 +263,10 @@ os_launch_tuned(){
                 echo "invalid response. Type 'yes' or 'no'.";
                 exit 1;;
         esac
+    else
+        echo "${yellow}Exit success!";
+        exit 1
+    fi
 }
 
 #####################################################################################################################################
