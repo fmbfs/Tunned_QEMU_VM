@@ -1,9 +1,15 @@
+#!/bin/bash
+
+#------------------------------------------------------------------
+#FUNCTIONS
+
 # Set Grub File to Static Method:
 grubsm(){
     grub_path="/etc/default/grub"
     grub_default="GRUB_CMDLINE_LINUX_DEFAULT=\"quiet splash\""
     if [[ ${1} == "tuned" ]]; then
         if [[ ${2} =~ "isolcpus" ]]; then
+            vCPU_PINNED=$(cat /sys/devices/system/cpu/cpu*/topology/thread_siblings_list | sort | uniq | tail -1)
             grub_isol="isolcpus=${vCPU_PINNED}"
         else
             grub_isol=""
@@ -17,6 +23,6 @@ grubsm(){
     sudo update-grub
 }
 
-
-#check siblings test if it group by l3 cache
-#cat /sys/devices/system/cpu/cpu*/topology/thread_siblings_list | sort | uniq
+#------------------------------------------------------------------
+# MAIN
+grubsm tuned isolcpus

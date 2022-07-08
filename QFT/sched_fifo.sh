@@ -9,7 +9,7 @@
 
 sched(){
     while :; do
-       if [ -f  ${boot_logs_path} ]; then
+        if [ -f  ${boot_logs_path} ]; then
             while IFS= read -r line; do
                 cur_bytes=$(echo ${line} | awk '{print $5}')
                 if [[ ${cur_bytes} != '512' ]]; then

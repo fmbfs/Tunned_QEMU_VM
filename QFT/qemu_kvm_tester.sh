@@ -36,11 +36,9 @@ check_su(){
 ###########################################################################
 #SOURCES
 source huge_pages_conf.sh
-source host_check_group.sh
 source cset_conf.sh
 source sched_fifo.sh
 source cpu_freq.sh
-source structure_check.sh
 
 BASE_DIR=$(dirname "${BASH_SOURCE[0]}")
 [[ "${BASE_DIR}" == "." ]] && BASE_DIR=$(pwd)
@@ -48,10 +46,6 @@ BASE_DIR=$(dirname "${BASH_SOURCE[0]}")
 # If no argument is passed we assume it to be launched pinned
 ARG1="${1:--lt}"
 ARG2="${2:-disk}"
-
-# Args for CPU isolation and pinning
-ARG3="${3:-${group[0]}}"
-ARG4="${4:-${group[1]}}"
 
 # Defining Global Variable
 L2_Cache_Size=""
@@ -85,7 +79,7 @@ set_variables(){
 	Cache_Clean_Interval="60"
 
 	# Pinned vCPU
-	vCPU_PINNED="${ARG3},${ARG4}"
+	vCPU_PINNED=$(cat /sys/devices/system/cpu/cpu*/topology/thread_siblings_list | sort | uniq | tail -1)
 
 	# Common Args
 	QEMU_ARGS=(
@@ -201,11 +195,6 @@ process_args(){
 
 # CREATE VIRTUAL DISK IMAGE
 create_image_os(){
-	# CHECK STRUCTURE
-	check_dir ${ISO_DIR}
-	check_dir ${QEMU_VD}
-	check_file ${OS_IMG}
-	
 	echo "Creating Virtual Hard Drive...";
 	qemu-img create -f qcow2 -o cluster_size=${Cluster_Size},lazy_refcounts=on ${OS_IMG} ${Disk_Size}G
 }
@@ -261,16 +250,9 @@ os_install(){
 # MAIN
 main(){
 	set_variables
-
-	# CHECK STRUCTURE
-	#check_dir ${ISO_DIR}
-	#check_dir ${QEMU_VD}
-	#check_file ${OS_IMG}
-
 	process_args
 }
 
 ###########################################################################
 # RUN
-
 main
