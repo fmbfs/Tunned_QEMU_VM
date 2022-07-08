@@ -14,11 +14,12 @@ BASE_DIR=$(dirname "${BASH_SOURCE[0]}")
 [[ "${BASE_DIR}" == "." ]] && BASE_DIR=$(pwd)
 
 # If no argument is passed we assume it to be launched pinned
-ARG1="${1:--lt}" #VARIVAVEL ESCOLHA
-ARG2="${2:-disk}" #VARIVAVEL ESCOLHA
+read -p "${red}Name your VSD ${yellow}[disk]${red}: ${normal}" ARG1
+ARG1="${ARG1:-disk}" #VARIVAVEL ESCOLHA
 
 # RAM for VM
-VD_RAM="${3:-10}" #VARIVAVEL ESCOLHA
+read -p "${red}Set your RAM in GiB ${yellow}[10]${red}: ${normal}" VD_RAM
+VD_RAM="${VD_RAM:-10}" #VARIVAVEL ESCOLHA
 
 # Defining Global Variable
 big_pages="1048576"
@@ -52,21 +53,22 @@ set_variables(){
 
 	# QEMU name and OS --> Windows 10
 	OS_ISO="${ISO_DIR}/Tunned_VM/QFT/Win10_*.iso"
-	VD_NAME="${ARG2}.qcow2"
+	VD_NAME="${ARG1}.qcow2"
 	OS_IMG="${QEMU_VD}/${VD_NAME}"
 
 	# Process clusters
 	process_cluster
 
     # CACHE CLEAN IN SECONDS
-	Cache_Clean_Interval="60" #VARIVAVEL ESCOLHA
+    read -p "${red}Set your Interval for cache clean in sec. ${yellow}[60]${red}: ${normal}" Cache_Clean_Interval
+	Cache_Clean_Interval="${Cache_Clean_Interval:-60}" #VARIVAVEL ESCOLHA
 
 	# Pinned vCPU
 	vCPU_PINNED=$(cat /sys/devices/system/cpu/cpu*/topology/thread_siblings_list | sort | uniq | tail -1)
 
 	# Common Args
 	QEMU_ARGS=(
-				"-name" "${ARG2}" \
+				"-name" "${ARG1}" \
 				"-enable-kvm" \
 				"-m" "${VD_RAM}G" \
 	)
@@ -100,7 +102,7 @@ sched(){
                 cur_bytes=$(echo ${line} | awk '{print $5}')
                 if [[ ${cur_bytes} != '512' ]]; then
                     # get parent PID of QEMU VM                                
-                    PARENT_PID=$(pstree -pa $(pidof qemu-system-x86_64) | grep ${ARG2} | cut -d','  -f2 | cut -d' ' -f1)
+                    PARENT_PID=$(pstree -pa $(pidof qemu-system-x86_64) | grep ${ARG1} | cut -d','  -f2 | cut -d' ' -f1)
                     # set all threads of parent PID to SCHED_FIFO 99 priority
                     pstree -pa $PARENT_PID | cut -d','  -f2 | cut -d' ' -f1 | xargs -L1 echo "chrt -f -p 99" | bash
                     #echo "Changing to highest priority (99) done!"
@@ -113,21 +115,21 @@ sched(){
 
 # Process Cluster Sizes
 process_cluster(){
+    arr_cs_valid=("64","128","256","512","1024","2048")
 	# Virtual Storage Device
-	Disk_Size="${5:-40}" #VARIVAVEL ESCOLHA
-	cluster_size_value="${6:-64}" #VARIVAVEL ESCOLHA
-	Cluster_Size="${cluster_size_value}K"
+    read -p "${red}Set your created VSD size in GiB ${yellow}[40]${red}: ${normal}" Disk_Size
+	Disk_Size="${Disk_Size:-40}"
+    read -p "${red}Set your VSD Cluster size in KiB ${yellow}[64]${red}. Possible values [${arr_cs_valid[@]}]: ${normal}" cluster_size_value
+	cluster_size_value="${cluster_size_value:-64}"
+	Cluster_Size="${cluster_size_valnue}K"
 	L2_calculated=0
-
-	arr_cs_valid=("64","128","256","512","1024","2048")
 	if [[ "${arr_cs_valid[@]}" =~ "${cluster_size_value}" ]]; then
 		auxiliar_calc=$(( ${cluster_size_value}/8 ))
 		L2_calculated=$(( ${Disk_Size}/${auxiliar_calc} + 1 ))
 	else
 		echo "Invalid Cluster Size."
-		exit 1
+        read -p "${red}Set your VSD Cluster Size in KiB ${yellow}[64]${red}. Possible values [${arr_cs_valid[@]}]: ${normal}" cluster_size_value
 	fi
-
 	L2_Cache_Size="${L2_calculated}M"
 }
 
@@ -138,10 +140,8 @@ page_size(){
     # Big pages
     if [ "$(grep Hugepagesize /proc/meminfo | awk '{print $2}')" = "${big_pages}" ]; then
         hugepages "${big_pages}" "${VD_RAM}"
-        echo "HP_1 - ${big_pages} OK"
     else
-        echo "HP_1 - ${big_pages} Not avalilable."
-        read -p "Update Grub (reboot and rerun is needed)? (yes/no) " yn
+        read -p "Update Grub (${red}reboot and rerun is needed${yellow})? (yes/no) ${normal}" yn
         case $yn in 
             yes ) 
                 grubsm tuned isolcpus;;
@@ -149,12 +149,11 @@ page_size(){
                 # Small pages
                 if [ "$(grep Hugepagesize /proc/meminfo | awk '{print $2}')" = "${small_pages}" ]; then 
                     hugepages "${small_pages}" "${total_pages}"
-                    echo "HP_2 - ${small_pages} OK"
                 else
                     print_error "HP_2 - ${small_pages} Not avalilable"
                 fi;;
             * ) 
-                echo "invalid response. Type 'yes' or 'no'.";
+                echo "Invalid response. Type 'yes' or 'no'.";
                 exit 1;;
         esac
     fi
@@ -163,7 +162,6 @@ page_size(){
 # Allocate huge pages size
 hugepages(){
     sysctl -w vm.nr_hugepages="${2}"
-
     # Disable THP 
     echo "never" > "/sys/kernel/mm/transparent_hugepage/enabled"
     echo "never" > "/sys/kernel/mm/transparent_hugepage/defrag"
@@ -172,13 +170,11 @@ hugepages(){
     do
         echo "${2}" > "$i/hugepages/hugepages-${1}kB/nr_hugepages"    
     done
-    echo "HugePages - ${1} - successfully enabled!"
 }
 
 # Free allocated huge pages size
 free_hugepages(){
     sysctl -w vm.nr_hugepages="0"
-
     # Enable THP
     echo "always" > "/sys/kernel/mm/transparent_hugepage/enabled"
     echo "always" > "/sys/kernel/mm/transparent_hugepage/defrag"
@@ -188,7 +184,6 @@ free_hugepages(){
         echo 0 > "$i/hugepages/hugepages-${1}kB/nr_hugepages"
         echo 0 > "$i/hugepages/hugepages-${2}kB/nr_hugepages" 
     done
-    echo "HugePages successfully disabled."
 }
 
 # Set Grub File to Static Method:
@@ -253,7 +248,7 @@ os_launch_tuned(){
 	sudo rm -f ${boot_logs_path}
 
     # Check Grub default or not
-    read -p "Set default Grub (reboot is needed)? (yes/no) " yn
+    read -p "Set default Grub (${red}reboot is needed${yellow})? (yes/no) ${normal}" yn
         case $yn in 
             yes )
                 grubsm;;
