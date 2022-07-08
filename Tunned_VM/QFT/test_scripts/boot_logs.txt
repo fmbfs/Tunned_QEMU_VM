@@ -1,0 +1,1 @@
+qemu-system-x86_64: -drive file=/home/franciscosantos/Desktop/git/Tunned_QEMU_VM/Tunned_VM/QFT/test_scripts/Virtual_Disks/disk.qcow2,l2-cache-size=6M,cache=writethrough,cache-clean-interval=60: Could not open '/home/franciscosantos/Desktop/git/Tunned_QEMU_VM/Tunned_VM/QFT/test_scripts/Virtual_Disks/disk.qcow2': No such file or directory

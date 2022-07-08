@@ -9,15 +9,16 @@ red=$( tput setaf 1 );
 yellow=$( tput setaf 3 );
 normal=$( tput sgr 0 );
 
+# Defining base PATH
 BASE_DIR=$(dirname "${BASH_SOURCE[0]}")
 [[ "${BASE_DIR}" == "." ]] && BASE_DIR=$(pwd)
 
 # If no argument is passed we assume it to be launched pinned
-ARG1="${1:--lt}"
-ARG2="${2:-disk}"
+ARG1="${1:--lt}" #VARIVAVEL ESCOLHA
+ARG2="${2:-disk}" #VARIVAVEL ESCOLHA
 
 # RAM for VM
-VD_RAM="${3:-10}"
+VD_RAM="${3:-10}" #VARIVAVEL ESCOLHA
 
 # Defining Global Variable
 big_pages="1048576"
@@ -44,13 +45,13 @@ check_su(){
 
 set_variables(){
 	# OS .iso Paths
-	ISO_DIR="${BASE_DIR}/Iso_Images/Windows"
+	ISO_DIR="${BASE_DIR}/Tunned_VM/QFT/Iso_Images/Windows"
 
 	# Virtual disks (VD) path
-	QEMU_VD="${BASE_DIR}/Virtual_Disks"
+	QEMU_VD="${BASE_DIR}/Tunned_VM/QFT/Virtual_Disks"
 
 	# QEMU name and OS --> Windows 10
-	OS_ISO="${ISO_DIR}/Win10_*.iso"
+	OS_ISO="${ISO_DIR}/Tunned_VM/QFT/Win10_*.iso"
 	VD_NAME="${ARG2}.qcow2"
 	OS_IMG="${QEMU_VD}/${VD_NAME}"
 
@@ -58,7 +59,7 @@ set_variables(){
 	process_cluster
 
     # CACHE CLEAN IN SECONDS
-	Cache_Clean_Interval="60"
+	Cache_Clean_Interval="60" #VARIVAVEL ESCOLHA
 
 	# Pinned vCPU
 	vCPU_PINNED=$(cat /sys/devices/system/cpu/cpu*/topology/thread_siblings_list | sort | uniq | tail -1)
@@ -67,74 +68,18 @@ set_variables(){
 	QEMU_ARGS=(
 				"-name" "${ARG2}" \
 				"-enable-kvm" \
-				"-m" "${VD_RAM}G" \	 
+				"-m" "${VD_RAM}G" \
 	)
 
 	# Specific Args
 	QEMU_ARGS+=(
 		"-cpu" "max,pdpe1gb,kvm=off,hv_relaxed,hv_spinlocks=0x1fff,hv_vapic,hv_time" \
-		"-m" "${VD_RAM}G" \
 		"-mem-path" "/dev/hugepages" \
 		"-mem-prealloc" \
 		"-machine" "accel=kvm,kernel_irqchip=on" \
 		"-rtc" "base=localtime,clock=host" \
 		"-drive" "file=${OS_IMG},l2-cache-size=${L2_Cache_Size},cache=writethrough,cache-clean-interval=${Cache_Clean_Interval}" \
 	)
-}
-
-# HELP MENU
-show_help(){
-	echo ""
-    echo "${0} [OPTION] [VSD NAME] [RAM GiB] [CPU ISOL A] [CPU ISOL B] [VSD GiB] [CLUSTER SIZE KiB]"
-    echo "Option:"
-	echo "  -lt ----> Launch qemu OS machine with Pinned CPU."
-    echo "  -h -----> Show this help."
-    echo ""
-    exit 0
-}
-
-# LAUNCH QEMU-KVM ISOLATED AND PINNED
-os_launch_tuned(){
-	echo "${yellow}Launching tunned VM..."
-	# Set cpu as performance
-	for file in /sys/devices/system/cpu/cpu*/cpufreq/scaling_governor
-    do 
-        echo "performance" > $file
-    done
-	
-	# Allocate resources
-	page_size >/dev/null
-	sudo cset shield --cpu=${vCPU_PINNED} --threads --kthread=on >/dev/null
-
-	# Sched_rt_runtime_us to 98%
-	sysctl kernel.sched_rt_runtime_us=980000 >/dev/null
-
-	# Runnig in parallel
-	sched &
-	
-	# RUN QEMU ARGS AND THEN FREE RESOURCES
-	# Run VM the -d is to detect when windows boots
-	sudo cset shield -e \
-	qemu-system-x86_64 -- ${QEMU_ARGS[@]} -d trace:qcow2_writev_done_part 2> ${boot_logs_path} >/dev/null
-	
-	
-	# Free resources
-	echo "${yellow}Freeing resources..."
-	# Back to 95% removing cset and freeing HP
-	sysctl kernel.sched_rt_runtime_us=950000 >/dev/null
-	delete_cset >/dev/null
-	free_hugepages "${big_pages}" "${small_pages}" >/dev/null
-
-	# Set cpu to powersave
-	set_powersave(){
-    for file in /sys/devices/system/cpu/cpu*/cpufreq/scaling_governor
-    do 
-        echo "powersave" > $file
-    done
-	}
-
-	# Remove boot file
-	sudo rm -f ${boot_logs_path}
 }
 
 # Delete_cset
@@ -154,11 +99,11 @@ sched(){
             while IFS= read -r line; do
                 cur_bytes=$(echo ${line} | awk '{print $5}')
                 if [[ ${cur_bytes} != '512' ]]; then
-                    # Get parent PID of QEMU VM                                
+                    # get parent PID of QEMU VM                                
                     PARENT_PID=$(pstree -pa $(pidof qemu-system-x86_64) | grep ${ARG2} | cut -d','  -f2 | cut -d' ' -f1)
-                    # Set all threads of parent PID to SCHED_FIFO 99 priority
+                    # set all threads of parent PID to SCHED_FIFO 99 priority
                     pstree -pa $PARENT_PID | cut -d','  -f2 | cut -d' ' -f1 | xargs -L1 echo "chrt -f -p 99" | bash
-                    # Echo "Changing to highest priority (99) done!"
+                    #echo "Changing to highest priority (99) done!"
                     exit 0
                 fi
             done < ${boot_logs_path}
@@ -169,8 +114,8 @@ sched(){
 # Process Cluster Sizes
 process_cluster(){
 	# Virtual Storage Device
-	Disk_Size="${5:-40}"
-	cluster_size_value="${6:-64}"
+	Disk_Size="${5:-40}" #VARIVAVEL ESCOLHA
+	cluster_size_value="${6:-64}" #VARIVAVEL ESCOLHA
 	Cluster_Size="${cluster_size_value}K"
 	L2_calculated=0
 
@@ -186,7 +131,7 @@ process_cluster(){
 	L2_Cache_Size="${L2_calculated}M"
 }
 
-# It is recommended to use the largest supported hugepage size for the best performance.
+# Huge Pages set-up.
 page_size(){
     # Total page calculation
     total_pages=$(( ${VD_RAM} * ${big_pages} / ${small_pages} ))
@@ -195,14 +140,23 @@ page_size(){
         hugepages "${big_pages}" "${VD_RAM}"
         echo "HP_1 - ${big_pages} OK"
     else
-        echo "HP_1 - ${big_pages} Not avalilable"
-        # Small pages
-        if [ "$(grep Hugepagesize /proc/meminfo | awk '{print $2}')" = "${small_pages}" ]; then 
-                hugepages "${small_pages}" "${total_pages}"
-                echo "HP_2 - ${small_pages} OK"
-        else
-            print_error "HP_2 - ${small_pages} Not avalilable"
-        fi      
+        echo "HP_1 - ${big_pages} Not avalilable."
+        read -p "Update Grub (reboot and rerun is needed)? (yes/no) " yn
+        case $yn in 
+            yes ) 
+                grubsm tuned isolcpus;;
+            no ) 
+                # Small pages
+                if [ "$(grep Hugepagesize /proc/meminfo | awk '{print $2}')" = "${small_pages}" ]; then 
+                    hugepages "${small_pages}" "${total_pages}"
+                    echo "HP_2 - ${small_pages} OK"
+                else
+                    print_error "HP_2 - ${small_pages} Not avalilable"
+                fi;;
+            * ) 
+                echo "invalid response. Type 'yes' or 'no'.";
+                exit 1;;
+        esac
     fi
 }
 
@@ -235,6 +189,81 @@ free_hugepages(){
         echo 0 > "$i/hugepages/hugepages-${2}kB/nr_hugepages" 
     done
     echo "HugePages successfully disabled."
+}
+
+# Set Grub File to Static Method:
+grubsm(){
+    grub_path="/etc/default/grub"
+    grub_default="GRUB_CMDLINE_LINUX_DEFAULT=\"quiet splash\""
+    if [[ ${1} == "tuned" ]]; then
+        if [[ ${2} =~ "isolcpus" ]]; then
+            grub_isol="isolcpus=${vCPU_PINNED}"
+        else
+            grub_isol=""
+        fi
+        grub_tuned="GRUB_CMDLINE_LINUX_DEFAULT=\"quiet splash ${grub_isol} intel_iommu=on preempt=voluntary hugepagesz=1G hugepages=${VD_RAM} default_hugepagesz=1G transparent_hugepage=never\""
+        sudo sed -i "s/${grub_default}/${grub_tuned}/" ${grub_path}
+    else
+        grub_tuned=$(cat ${grub_path} | grep "GRUB_CMDLINE_LINUX_DEFAULT=")
+        sudo sed -i "s/${grub_tuned}/${grub_default}/" ${grub_path}
+    fi
+    sudo update-grub && echo "${yellow}Rebooting..." && shutdown -r now
+}
+
+# LAUNCH QEMU-KVM ISOLATED AND PINNED
+os_launch_tuned(){
+	echo "${yellow}Launching tunned VM..."
+	# Set cpu as performance
+	for file in /sys/devices/system/cpu/cpu*/cpufreq/scaling_governor
+    do 
+        echo "performance" > $file
+    done
+
+	# Allocate resources
+	page_size >/dev/null
+	sudo cset shield --cpu=${vCPU_PINNED} --threads --kthread=on >/dev/null
+
+	# Sched_rt_runtime_us to 98%
+	sysctl kernel.sched_rt_runtime_us=980000 >/dev/null
+
+	# Runnig in parallel
+	sched &
+	
+	# RUN QEMU ARGS AND THEN FREE RESOURCES
+	# Run VM the -d is to detect when windows boots
+	sudo cset shield -e \
+	qemu-system-x86_64 -- ${QEMU_ARGS[@]} -d trace:qcow2_writev_done_part 2> ${boot_logs_path} >/dev/null
+	
+	# Free resources
+	echo "${yellow}Freeing resources..."
+	# Back to 95% removing cset and freeing HP
+	sysctl kernel.sched_rt_runtime_us=950000 >/dev/null
+	delete_cset >/dev/null
+	free_hugepages "${big_pages}" "${small_pages}" >/dev/null
+
+	# Set cpu to powersave
+	set_powersave(){
+    for file in /sys/devices/system/cpu/cpu*/cpufreq/scaling_governor
+    do 
+        echo "powersave" > $file
+    done
+	}
+
+	# Remove boot file
+	sudo rm -f ${boot_logs_path}
+
+    # Check Grub default or not
+    read -p "Set default Grub (reboot is needed)? (yes/no) " yn
+        case $yn in 
+            yes )
+                grubsm;;
+            no )    
+                echo "${yellow}Exit success!";
+                exit 1;;
+            * ) 
+                echo "invalid response. Type 'yes' or 'no'.";
+                exit 1;;
+        esac
 }
 
 #####################################################################################################################################
