@@ -14,11 +14,11 @@ BASE_DIR=$(dirname "${BASH_SOURCE[0]}")
 [[ "${BASE_DIR}" == "." ]] && BASE_DIR=$(pwd)
 
 # If no argument is passed we assume it to be launched pinned
-ARG1="${1:--lt}"
-ARG2="${2:-disk}"
+ARG1="${1:--lt}" #VARIVAVEL ESCOLHA
+ARG2="${2:-disk}" #VARIVAVEL ESCOLHA
 
 # RAM for VM
-VD_RAM="${3:-10}"
+VD_RAM="${3:-10}" #VARIVAVEL ESCOLHA
 
 # Defining Global Variable
 big_pages="1048576"
@@ -59,7 +59,7 @@ set_variables(){
 	process_cluster
 
     # CACHE CLEAN IN SECONDS
-	Cache_Clean_Interval="60"
+	Cache_Clean_Interval="60" #VARIVAVEL ESCOLHA
 
 	# Pinned vCPU
 	vCPU_PINNED=$(cat /sys/devices/system/cpu/cpu*/topology/thread_siblings_list | sort | uniq | tail -1)
@@ -80,62 +80,6 @@ set_variables(){
 		"-rtc" "base=localtime,clock=host" \
 		"-drive" "file=${OS_IMG},l2-cache-size=${L2_Cache_Size},cache=writethrough,cache-clean-interval=${Cache_Clean_Interval}" \
 	)
-}
-
-# LAUNCH QEMU-KVM ISOLATED AND PINNED
-os_launch_tuned(){
-	echo "${yellow}Launching tunned VM..."
-	# Set cpu as performance
-	for file in /sys/devices/system/cpu/cpu*/cpufreq/scaling_governor
-    do 
-        echo "performance" > $file
-    done
-
-	# Allocate resources
-	page_size >/dev/null
-	sudo cset shield --cpu=${vCPU_PINNED} --threads --kthread=on >/dev/null
-
-	# Sched_rt_runtime_us to 98%
-	sysctl kernel.sched_rt_runtime_us=980000 >/dev/null
-
-	# Runnig in parallel
-	sched &
-	
-	# RUN QEMU ARGS AND THEN FREE RESOURCES
-	# Run VM the -d is to detect when windows boots
-	sudo cset shield -e \
-	qemu-system-x86_64 -- ${QEMU_ARGS[@]} -d trace:qcow2_writev_done_part 2> ${boot_logs_path} >/dev/null
-	
-	# Free resources
-	echo "${yellow}Freeing resources..."
-	# Back to 95% removing cset and freeing HP
-	sysctl kernel.sched_rt_runtime_us=950000 >/dev/null
-	delete_cset >/dev/null
-	free_hugepages "${big_pages}" "${small_pages}" >/dev/null
-
-	# Set cpu to powersave
-	set_powersave(){
-    for file in /sys/devices/system/cpu/cpu*/cpufreq/scaling_governor
-    do 
-        echo "powersave" > $file
-    done
-	}
-
-	# Remove boot file
-	sudo rm -f ${boot_logs_path}
-
-    # Check Grub default or not
-    read -p "Set default Grub (reboot is needed)? (yes/no) " yn
-        case $yn in 
-            yes )
-                grubsm;;
-            no )    
-                echo "${yellow}Exit success!";
-                exit 1;;
-            * ) 
-                echo "invalid response. Type 'yes' or 'no'.";
-                exit 1;;
-        esac
 }
 
 # Delete_cset
@@ -170,8 +114,8 @@ sched(){
 # Process Cluster Sizes
 process_cluster(){
 	# Virtual Storage Device
-	Disk_Size="${5:-40}"
-	cluster_size_value="${6:-64}"
+	Disk_Size="${5:-40}" #VARIVAVEL ESCOLHA
+	cluster_size_value="${6:-64}" #VARIVAVEL ESCOLHA
 	Cluster_Size="${cluster_size_value}K"
 	L2_calculated=0
 
@@ -264,6 +208,62 @@ grubsm(){
         sudo sed -i "s/${grub_tuned}/${grub_default}/" ${grub_path}
     fi
     sudo update-grub && echo "${yellow}Rebooting..." && shutdown -r now
+}
+
+# LAUNCH QEMU-KVM ISOLATED AND PINNED
+os_launch_tuned(){
+	echo "${yellow}Launching tunned VM..."
+	# Set cpu as performance
+	for file in /sys/devices/system/cpu/cpu*/cpufreq/scaling_governor
+    do 
+        echo "performance" > $file
+    done
+
+	# Allocate resources
+	page_size >/dev/null
+	sudo cset shield --cpu=${vCPU_PINNED} --threads --kthread=on >/dev/null
+
+	# Sched_rt_runtime_us to 98%
+	sysctl kernel.sched_rt_runtime_us=980000 >/dev/null
+
+	# Runnig in parallel
+	sched &
+	
+	# RUN QEMU ARGS AND THEN FREE RESOURCES
+	# Run VM the -d is to detect when windows boots
+	sudo cset shield -e \
+	qemu-system-x86_64 -- ${QEMU_ARGS[@]} -d trace:qcow2_writev_done_part 2> ${boot_logs_path} >/dev/null
+	
+	# Free resources
+	echo "${yellow}Freeing resources..."
+	# Back to 95% removing cset and freeing HP
+	sysctl kernel.sched_rt_runtime_us=950000 >/dev/null
+	delete_cset >/dev/null
+	free_hugepages "${big_pages}" "${small_pages}" >/dev/null
+
+	# Set cpu to powersave
+	set_powersave(){
+    for file in /sys/devices/system/cpu/cpu*/cpufreq/scaling_governor
+    do 
+        echo "powersave" > $file
+    done
+	}
+
+	# Remove boot file
+	sudo rm -f ${boot_logs_path}
+
+    # Check Grub default or not
+    read -p "Set default Grub (reboot is needed)? (yes/no) " yn
+        case $yn in 
+            yes )
+                grubsm;;
+            no )    
+                echo "${yellow}Exit success!";
+                exit 1;;
+            * ) 
+                echo "invalid response. Type 'yes' or 'no'.";
+                exit 1;;
+        esac
 }
 
 #####################################################################################################################################
