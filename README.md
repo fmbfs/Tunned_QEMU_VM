@@ -30,7 +30,7 @@ git clone https://github.com/fmbfs/ctw.git
 ```
 ```shell
 cd your_project_folder/
-./qemu_kvm.sh
+./launcher.sh
 ```
 
 This will run a tuned qemu with isolated CPU's (the last group available in your host);
