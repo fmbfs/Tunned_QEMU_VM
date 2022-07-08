@@ -2,12 +2,6 @@
 
 #------------------------------------------------------------------
 #FUNCTIONS
-#trap for debug
-trap(){
-	echo "trap trap trap!!!!!!"
-}
-
-#vCPU_PINNED="3,7"
 
 # Create cpu set
 create_cset(){
@@ -25,12 +19,3 @@ delete_cset(){
 
     sudo cset set -d user
 }
-
-#------------------------------------------------------------------
-#MAIN
-
-#create_cset
-#cset set -l
-#sleep 2
-#delete_cset
-#cset set -l

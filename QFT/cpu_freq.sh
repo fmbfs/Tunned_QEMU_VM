@@ -2,10 +2,6 @@
 
 #------------------------------------------------------------------
 #FUNCTIONS
-#trap for debug
-trap(){
-	echo "trap trap trap!!!!!!"
-}
 
 #set the cpu to performances
 set_performance(){
@@ -15,16 +11,10 @@ set_performance(){
     done
 }
 
-#set the cpu to performances
+#set the cpu to powersave
 set_powersave(){
     for file in /sys/devices/system/cpu/cpu*/cpufreq/scaling_governor
     do 
         echo "powersave" > $file
     done
 }
-
-#------------------------------------------------------------------
-#MAIN
-
-#set_performance
-#set_powersave
