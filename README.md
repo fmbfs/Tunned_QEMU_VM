@@ -53,9 +53,7 @@ Here you should write what are all of the configurations a user can enter when
 using the project.
 
 #### Argument 1
-`-lt ----> Launch qemu OS machine with Pinned CPU.`
-#### Argument 2
-`-h -----> Show this help.`
+`No args, just launched tunned by default`
 
 ## Contributing
 
