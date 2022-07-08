@@ -13,25 +13,12 @@ If any package is missing, during execute it will prompt you to install it.
 This script has the purpose of beeing used to dynamically allocate resources,
 so you must run it as 'sudo su' because it is modifying some Kernel options.
 
-You have to create two directories in the first run.
-Just uncomment in the main part of the script the lines 236-239:
-```shell
-CHECK STRUCTURE
-check_dir ${ISO_DIR}
-check_dir ${QEMU_VD}
-check_file ${OS_IMG}
-```
-
 ## What actually happens when you execute the code above?
 
 ### Initial Configuration
 
-By default the ```./qemu_kvm.sh``` launches tuned. 
-Type ```./qemu_kvm.sh -h``` to see the options.
-
-An personalized example:
-```./qemu_kvm.sh -l disk ```
-It will launch an untuned qemu script using the virtual hard drive named "disk"
+By default the ```./launcher.sh``` launches tuned. 
+Type ```./launcher.sh -h``` to see the options.
 
 ## Developing
 
@@ -43,7 +30,7 @@ git clone https://github.com/fmbfs/ctw.git
 ```
 ```shell
 cd your_project_folder/
-./qemu_kvm.sh
+./launcher.sh
 ```
 
 This will run a tuned qemu with isolated CPU's (the last group available in your host);
@@ -66,15 +53,7 @@ Here you should write what are all of the configurations a user can enter when
 using the project.
 
 #### Argument 1
-`-i -----> Install the OS via CDROM`
-#### Argument 2
-`-c -----> Creates a qcow2 image for OS`
-#### Argument 3
-`-l -----> Launch qemu OS machine.`
-#### Argument 4
-`-lt ----> Launch qemu OS machine with Pinned CPU.`
-#### Argument 5
-`-h -----> Show this help.`
+`No args, just launched tunned by default`
 
 ## Contributing
 
