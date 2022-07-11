@@ -56,7 +56,7 @@ To launch with 1Gib Huge Pages or Default.
 
 #### Argument 3
 
-"VSD Cluster":"128",
+"VSD Cluster":"Set the value in KiB for the cluster size. ("64","128","256","512","1024","2048").",
 
 #### Argument 4
 
