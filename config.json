@@ -6,10 +6,10 @@
     "Arguments":
     {
         "Name":"disk",
-        "RAM":"15",
-        "VSD":"10",
+        "RAM":"10",
+        "VSD":"40",
         "VSD Cluster":"64",
         "Cache Clean":"30",
-        "Update Grub":"yes"
+        "Update Grub":"no"
     }
 }

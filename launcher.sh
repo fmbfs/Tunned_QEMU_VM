@@ -105,11 +105,10 @@ sched(){
             while IFS= read -r line; do
                 cur_bytes=$(echo ${line} | awk '{print $5}')
                 if [[ ${cur_bytes} != '512' ]]; then
-                    # get parent PID of QEMU VM                                
+                    # Get parent PID of QEMU VM                                
                     PARENT_PID=$(pstree -pa $(pidof qemu-system-x86_64) | grep ${ARG1} | cut -d','  -f2 | cut -d' ' -f1)
-                    # set all threads of parent PID to SCHED_FIFO 99 priority
+                    # Set all threads of parent PID to SCHED_FIFO 99 priority
                     pstree -pa $PARENT_PID | cut -d','  -f2 | cut -d' ' -f1 | xargs -L1 echo "chrt -f -p 99" | bash
-                    #echo "Changing to highest priority (99) done!"
                     exit 0
                 fi
             done < ${boot_logs_path}
@@ -124,7 +123,6 @@ process_cluster(){
     Disk_Size=$(config_fishing "VSD")
     # Cluster Size in KiB
 	cluster_size_value=$(config_fishing "VSD Cluster")
-    echo ${cluster_size_value}
 	Cluster_Size="${cluster_size_value}K"
 	L2_calculated=0
 	if [[ "${arr_cs_valid[@]}" =~ "${cluster_size_value}" ]]; then
@@ -143,26 +141,15 @@ page_size(){
     # Total page calculation
     total_pages=$(( ${VD_RAM} * ${big_pages} / ${small_pages} ))
     # Big pages
-    if [ "$(grep Hugepagesize /proc/meminfo | awk '{print $2}')" = "${big_pages}" ]; then
+    if [ "$(grep Hugepagesize /proc/meminfo | awk '{print $2}')" == "${big_pages}" ]; then
         hugepages "${big_pages}" "${VD_RAM}"
+        grubsm
+    # Small pages
+    elif [ "$(grep Hugepagesize /proc/meminfo | awk '{print $2}')" == "${small_pages}" ]; then 
+        hugepages "${small_pages}" "${total_pages}"
+        grubsm
     else
-        read -p "Update Grub (reboot will be done automatically and rerun is needed after)? (yes/no) " yn
-        case $yn in 
-            yes ) 
-                grub_flag="yes"
-                grubsm tuned isolcpus;;
-            no ) 
-                grub_flag="no"
-                # Small pages
-                if [ "$(grep Hugepagesize /proc/meminfo | awk '{print $2}')" = "${small_pages}" ]; then 
-                    hugepages "${small_pages}" "${total_pages}"
-                else
-                    print_error "HP_2 - ${small_pages} Not avalilable"
-                fi;;
-            * ) 
-                echo "Invalid response. Type 'yes' or 'no'.";
-                exit 1;;
-        esac
+        print_error "HP_2 - ${small_pages} Not avalilable"
     fi
 }
 
@@ -196,7 +183,7 @@ free_hugepages(){
 # Set Grub File to Static Method:
 grubsm(){
     update_grub=$(config_fishing "Update Grub")
-    echo "${update_grub}"
+
     grub_path="/etc/default/grub"
     grub_default="GRUB_CMDLINE_LINUX_DEFAULT=\"quiet splash\""
     
@@ -206,18 +193,18 @@ grubsm(){
     if [[ ${update_grub} == "yes" ]]; then
         grub_tuned="GRUB_CMDLINE_LINUX_DEFAULT=\"quiet splash isolcpus=${vCPU_PINNED} intel_iommu=on preempt=voluntary hugepagesz=1G hugepages=${VD_RAM} default_hugepagesz=1G transparent_hugepage=never\""
         if [[ ${default_arg} == ${grub_tuned} ]]; then #check if it is already in tunned mode
-            echo "already updated"
+            echo "Already updated."
         else
             sudo sed -i "s/${grub_default}/${grub_tuned}/" ${grub_path}
-            # sudo update-grub && shutdown -r now
+            sudo update-grub && shutdown -r now
         fi
     elif [[ ${update_grub} == "no" ]]; then
         grub_tuned=$(cat ${grub_path} | grep "GRUB_CMDLINE_LINUX_DEFAULT=")
         if [[ ${default_arg} == ${grub_default} ]]; then # Check if it is already in default mode
-            echo "already default"
+            echo "Already default."
         else
             sudo sed -i "s/${grub_tuned}/${grub_default}/" ${grub_path}
-            # sudo update-grub && shutdown -r now
+            sudo update-grub && shutdown -r now
         fi
     fi
 }
@@ -231,21 +218,22 @@ os_launch_tuned(){
         echo "performance" > $file
     done
 
-	# Allocate resources
-	page_size >/dev/null	
-    sudo cset shield --cpu=${vCPU_PINNED} --threads --kthread=on >/dev/null 
+    # Runnig in parallel process priority scheduler
+	sched &
 
 	# Sched_rt_runtime_us to 98%
 	sysctl kernel.sched_rt_runtime_us=980000 >/dev/null
 
-	# Runnig in parallel
-	sched &
-	
-	# RUN QEMU ARGS AND THEN FREE RESOURCES
-	# Run VM the -d is to detect when windows boots
-	sudo cset shield -e \
-	qemu-system-x86_64 -- ${QEMU_ARGS[@]} -d trace:qcow2_writev_done_part 2> ${boot_logs_path} >/dev/null
-	
+    # Call grub updater and run qemu with correct parameters
+    # Allocate resources
+	page_size >/dev/null
+
+    # Creating isolated set
+    sudo cset shield --cpu=${vCPU_PINNED} --threads --kthread=on >/dev/null 
+    # Run VM the -d is to detect when windows boots
+    sudo cset shield -e \
+    qemu-system-x86_64 -- ${QEMU_ARGS[@]} -d trace:qcow2_writev_done_part 2> ${boot_logs_path} >/dev/null
+
 	# Free resources
 	echo "Freeing resources..."
 	# Back to 95% removing cset and freeing HP
