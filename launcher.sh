@@ -39,10 +39,9 @@ set_variables(){
     # RAM for VM
     VD_RAM=$(config_fishing "RAM")
 
-    # Defining Global Variable
+    # Defining HugePage default sizes
     big_pages="1048576"
     small_pages="2048"
-    grub_flag=""
 
     # Boot Logs file
     boot_logs_path="${BASE_DIR}/boot_logs.txt"
@@ -209,7 +208,7 @@ grubsm(){
 
 # LAUNCHER for VM
 os_launch_tuned(){
-	echo "Launching tunned VM..."
+	echo "Launching VM..."
 	# Set cpu as performance
 	for file in /sys/devices/system/cpu/cpu*/cpufreq/scaling_governor; do 
         echo "performance" > $file
@@ -221,8 +220,7 @@ os_launch_tuned(){
 	# Sched_rt_runtime_us to 98%
 	sysctl kernel.sched_rt_runtime_us=980000 >/dev/null
 
-    # Call grub updater and run qemu with correct parameters
-    # Allocate resources
+    # Call grub updater set the HugePages and run qemu with correct parameters
 	page_size >/dev/null
 
     # Creating isolated set to launch qemu
@@ -240,8 +238,7 @@ os_launch_tuned(){
 
 	# Set cpu to powersave
 	set_powersave(){
-    for file in /sys/devices/system/cpu/cpu*/cpufreq/scaling_governor
-    do 
+    for file in /sys/devices/system/cpu/cpu*/cpufreq/scaling_governor; do 
         echo "powersave" > $file
     done
 	}
