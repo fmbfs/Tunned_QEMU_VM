@@ -7,9 +7,8 @@
     {
         "Name":"disk",
         "RAM":"10",
-        "VSD":"40",
-        "VSD Cluster":"64",
+        "VSD Cluster":"128",
         "Cache Clean":"30",
-        "Update Grub":"no"
+        "Update Grub":"yes"
     }
 }

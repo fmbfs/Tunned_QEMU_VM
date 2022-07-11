@@ -8,11 +8,11 @@
 BASE_DIR=$(dirname "${BASH_SOURCE[0]}")
 [[ "${BASE_DIR}" == "." ]] && BASE_DIR=$(pwd)
 
-# Config file
-file_config="./config.json"
-
 # Config function to parse arguments
 config_fishing(){
+    # Config file path
+    file_config="./config.json"
+
     argument_line_nr="$(awk "/${1}/"'{ print NR; exit }' ${file_config})" # Stores the Row Nº where the config argument is written
     default_arg="$(head -n ${argument_line_nr} ${file_config} | tail -1 | awk "/${1}/"'{print}')" # Stores the old setting of all config arguments
     trimmed=$(echo ${default_arg} | cut -d ':' -f2 | cut -d ',' -f1)
@@ -62,6 +62,12 @@ set_variables(){
 	VD_NAME="${ARG1}.qcow2"
 	OS_IMG="${QEMU_VD}/${VD_NAME}"
 
+    #Grab disk size 
+    VSD_path="${BASE_DIR}/Tunned_VM/QFT/Virtual_Disks"
+    cd ${VSD_path}
+    Disk_Size=$(du -h ${VD_NAME} | awk '{print $1}' | cut -d 'G' -f1)
+    cd ${BASE_DIR}
+    
 	# Process clusters
 	process_cluster
 
@@ -120,7 +126,7 @@ sched(){
 process_cluster(){
     arr_cs_valid=("64","128","256","512","1024","2048")
 	# Virtual Storage Device (VSD) -- virtual hard drive size in GiB
-    Disk_Size=$(config_fishing "VSD")
+    # is automatically grabbed from QCOW2 file
     # Cluster Size in KiB
 	cluster_size_value=$(config_fishing "VSD Cluster")
 	Cluster_Size="${cluster_size_value}K"
@@ -228,7 +234,7 @@ os_launch_tuned(){
     # Allocate resources
 	page_size >/dev/null
 
-    # Creating isolated set
+    # Creating isolated set to launch qemu
     sudo cset shield --cpu=${vCPU_PINNED} --threads --kthread=on >/dev/null 
     # Run VM the -d is to detect when windows boots
     sudo cset shield -e \
