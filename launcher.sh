@@ -44,7 +44,7 @@ check_su(){
 		echo "
 		This script must be run as sudo permissions.
 			Please run it as: 
-				sudo su ${0}
+				sudo ${0}
 		"
 		exit 1
 	fi
