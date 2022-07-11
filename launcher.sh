@@ -1,40 +1,6 @@
 #!/bin/bash
 
 #####################################################################################################################################
-##### DEFAULTS #####
-#####################################################################################################################################
-
-# Defining base PATH
-BASE_DIR=$(dirname "${BASH_SOURCE[0]}")
-[[ "${BASE_DIR}" == "." ]] && BASE_DIR=$(pwd)
-
-# Config function to parse arguments
-config_fishing(){
-    # Config file path
-    file_config="./config.json"
-
-    argument_line_nr="$(awk "/${1}/"'{ print NR; exit }' ${file_config})" # Stores the Row Nº where the config argument is written
-    default_arg="$(head -n ${argument_line_nr} ${file_config} | tail -1 | awk "/${1}/"'{print}')" # Stores the old setting of all config arguments
-    trimmed=$(echo ${default_arg} | cut -d ':' -f2 | cut -d ',' -f1)
-    echo ${trimmed} | cut -d '"' -f2 | cut -d '"' -f2
-}
-
-# Arguments fishing from config file:
-# Name of the Virtual machine (VM)
-ARG1=$(config_fishing "Name")
-
-# RAM for VM
-VD_RAM=$(config_fishing "RAM")
-
-# Defining Global Variable
-big_pages="1048576"
-small_pages="2048"
-grub_flag=""
-
-# Boot Logs file
-boot_logs_path="${BASE_DIR}/boot_logs.txt"
-
-#####################################################################################################################################
 ##### FUNCTIONS #####
 #####################################################################################################################################
 
@@ -50,19 +16,48 @@ check_su(){
 	fi
 }
 
+# Config function to parse arguments
+config_fishing(){
+    # Config file path
+    file_config="./config.json"
+
+    argument_line_nr="$(awk "/${1}/"'{ print NR; exit }' ${file_config})" # Stores the Row Nº where the config argument is written
+    default_arg="$(head -n ${argument_line_nr} ${file_config} | tail -1 | awk "/${1}/"'{print}')" # Stores the old setting of all config arguments
+    trimmed=$(echo ${default_arg} | cut -d ':' -f2 | cut -d ',' -f1)
+    echo ${trimmed} | cut -d '"' -f2 | cut -d '"' -f2
+}
+
 set_variables(){
+    # Defining base PATH
+    BASE_DIR=$(dirname "${BASH_SOURCE[0]}")
+    [[ "${BASE_DIR}" == "." ]] && BASE_DIR=$(pwd)
+
+    # Arguments fishing from config file:
+    # Name of the Virtual machine (VM)
+    ARG1=$(config_fishing "Name")
+
+    # RAM for VM
+    VD_RAM=$(config_fishing "RAM")
+
+    # Defining Global Variable
+    big_pages="1048576"
+    small_pages="2048"
+    grub_flag=""
+
+    # Boot Logs file
+    boot_logs_path="${BASE_DIR}/boot_logs.txt"
+
 	# OS .iso Paths
 	ISO_DIR="${BASE_DIR}/Tunned_VM/QFT/Iso_Images/Windows"
 
 	# Virtual disks (VD) path
 	QEMU_VD="${BASE_DIR}/Tunned_VM/QFT/Virtual_Disks"
 
-	# QEMU name and OS --> Windows 10
-	OS_ISO="${ISO_DIR}/Tunned_VM/QFT/Win10_*.iso"
+	# QEMU name
 	VD_NAME="${ARG1}.qcow2"
 	OS_IMG="${QEMU_VD}/${VD_NAME}"
 
-    #Grab disk size 
+    # Grab disk size 
     VSD_path="${BASE_DIR}/Tunned_VM/QFT/Virtual_Disks"
     cd ${VSD_path}
     Disk_Size=$(du -h ${VD_NAME} | awk '{print $1}' | cut -d 'G' -f1)
@@ -71,16 +66,16 @@ set_variables(){
 	# Process clusters
 	process_cluster
 
-    # CACHE CLEAN IN SECONDS
+    # Cache Clean interval in seconds
 	Cache_Clean_Interval=$(config_fishing "Cache Clean")
 	# Pinned vCPU
 	vCPU_PINNED=$(cat /sys/devices/system/cpu/cpu*/topology/thread_siblings_list | sort | uniq | tail -1)
 
 	# Common Args
 	QEMU_ARGS=(
-				"-name" "${ARG1}" \
-				"-enable-kvm" \
-				"-m" "${VD_RAM}G" \
+        "-name" "${ARG1}" \
+        "-enable-kvm" \
+        "-m" "${VD_RAM}G" \
 	)
 
 	# Specific Args
@@ -94,11 +89,10 @@ set_variables(){
 	)
 }
 
-# Delete_cset
+# Delete cset prevously created
 delete_cset(){
     sudo cset set -d system
-    while [[ $(sudo cset set -d system) =~ "done" ]] 
-    do 
+    while [[ $(sudo cset set -d system) =~ "done" ]]; do 
         sudo cset set -d system
     done
     sudo cset set -d user
@@ -166,8 +160,7 @@ hugepages(){
     echo "never" > "/sys/kernel/mm/transparent_hugepage/enabled"
     echo "never" > "/sys/kernel/mm/transparent_hugepage/defrag"
     
-    for i in $(find /sys/devices/system/node/node* -maxdepth 0 -type d);
-    do
+    for i in $(find /sys/devices/system/node/node* -maxdepth 0 -type d); do
         echo "${2}" > "$i/hugepages/hugepages-${1}kB/nr_hugepages"    
     done
 }
@@ -179,8 +172,7 @@ free_hugepages(){
     echo "always" > "/sys/kernel/mm/transparent_hugepage/enabled"
     echo "always" > "/sys/kernel/mm/transparent_hugepage/defrag"
 
-    for i in $(find /sys/devices/system/node/node* -maxdepth 0 -type d);
-    do
+    for i in $(find /sys/devices/system/node/node* -maxdepth 0 -type d); do
         echo 0 > "$i/hugepages/hugepages-${1}kB/nr_hugepages"
         echo 0 > "$i/hugepages/hugepages-${2}kB/nr_hugepages" 
     done
@@ -215,12 +207,11 @@ grubsm(){
     fi
 }
 
-# LAUNCH QEMU-KVM ISOLATED AND PINNED
+# LAUNCHER for VM
 os_launch_tuned(){
 	echo "Launching tunned VM..."
 	# Set cpu as performance
-	for file in /sys/devices/system/cpu/cpu*/cpufreq/scaling_governor
-    do 
+	for file in /sys/devices/system/cpu/cpu*/cpufreq/scaling_governor; do 
         echo "performance" > $file
     done
 

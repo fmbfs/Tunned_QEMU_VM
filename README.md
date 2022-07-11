@@ -48,15 +48,16 @@ To launch with 1Gib Huge Pages or Default.
 
 #### Argument 1
 
- "Name":"name of your VM.",
+"Name":"name of your VM. It must match the VSD that you want to run."
 
 #### Argument 2
 
-"RAM":"Total amount of RAM in GiB for your VM.",
+"RAM":"Total amount of RAM in GiB for your VM."
 
 #### Argument 3
 
-"VSD Cluster":"Set the value in KiB for the cluster size. ("64","128","256","512","1024","2048").",
+"VSD Cluster":"Set the value in KiB for the cluster size. ("64","128","256","512","1024","2048")."
+Note that VSD is for Virtual Storage Device (the hard drive associated for the VM to use.)
 
 #### Argument 4
 
