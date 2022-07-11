@@ -4,25 +4,32 @@
 ##### DEFAULTS #####
 #####################################################################################################################################
 
-# Defining Colors for text output
-red=$( tput setaf 1 );
-yellow=$( tput setaf 3 );
-normal=$( tput sgr 0 );
-
 # Defining base PATH
 BASE_DIR=$(dirname "${BASH_SOURCE[0]}")
 [[ "${BASE_DIR}" == "." ]] && BASE_DIR=$(pwd)
 
-# If no argument is passed we assume it to be launched pinned
-ARG1="${1:--lt}" #VARIVAVEL ESCOLHA
-ARG2="${2:-disk}" #VARIVAVEL ESCOLHA
+# Config function to parse arguments
+config_fishing(){
+    # Config file path
+    file_config="./config.json"
+
+    argument_line_nr="$(awk "/${1}/"'{ print NR; exit }' ${file_config})" # Stores the Row Nº where the config argument is written
+    default_arg="$(head -n ${argument_line_nr} ${file_config} | tail -1 | awk "/${1}/"'{print}')" # Stores the old setting of all config arguments
+    trimmed=$(echo ${default_arg} | cut -d ':' -f2 | cut -d ',' -f1)
+    echo ${trimmed} | cut -d '"' -f2 | cut -d '"' -f2
+}
+
+# Arguments fishing from config file:
+# Name of the Virtual machine (VM)
+ARG1=$(config_fishing "Name")
 
 # RAM for VM
-VD_RAM="${3:-10}" #VARIVAVEL ESCOLHA
+VD_RAM=$(config_fishing "RAM")
 
 # Defining Global Variable
 big_pages="1048576"
 small_pages="2048"
+grub_flag=""
 
 # Boot Logs file
 boot_logs_path="${BASE_DIR}/boot_logs.txt"
@@ -34,10 +41,10 @@ boot_logs_path="${BASE_DIR}/boot_logs.txt"
 # Check for sudo su
 check_su(){
 	if [[ ${UID} != 0 ]]; then
-		echo "${red}
+		echo "
 		This script must be run as sudo permissions.
 			Please run it as: 
-				${normal}sudo su ${0}
+				sudo su ${0}
 		"
 		exit 1
 	fi
@@ -52,21 +59,26 @@ set_variables(){
 
 	# QEMU name and OS --> Windows 10
 	OS_ISO="${ISO_DIR}/Tunned_VM/QFT/Win10_*.iso"
-	VD_NAME="${ARG2}.qcow2"
+	VD_NAME="${ARG1}.qcow2"
 	OS_IMG="${QEMU_VD}/${VD_NAME}"
 
+    #Grab disk size 
+    VSD_path="${BASE_DIR}/Tunned_VM/QFT/Virtual_Disks"
+    cd ${VSD_path}
+    Disk_Size=$(du -h ${VD_NAME} | awk '{print $1}' | cut -d 'G' -f1)
+    cd ${BASE_DIR}
+    
 	# Process clusters
 	process_cluster
 
     # CACHE CLEAN IN SECONDS
-	Cache_Clean_Interval="60" #VARIVAVEL ESCOLHA
-
+	Cache_Clean_Interval=$(config_fishing "Cache Clean")
 	# Pinned vCPU
 	vCPU_PINNED=$(cat /sys/devices/system/cpu/cpu*/topology/thread_siblings_list | sort | uniq | tail -1)
 
 	# Common Args
 	QEMU_ARGS=(
-				"-name" "${ARG2}" \
+				"-name" "${ARG1}" \
 				"-enable-kvm" \
 				"-m" "${VD_RAM}G" \
 	)
@@ -99,11 +111,10 @@ sched(){
             while IFS= read -r line; do
                 cur_bytes=$(echo ${line} | awk '{print $5}')
                 if [[ ${cur_bytes} != '512' ]]; then
-                    # get parent PID of QEMU VM                                
-                    PARENT_PID=$(pstree -pa $(pidof qemu-system-x86_64) | grep ${ARG2} | cut -d','  -f2 | cut -d' ' -f1)
-                    # set all threads of parent PID to SCHED_FIFO 99 priority
+                    # Get parent PID of QEMU VM                                
+                    PARENT_PID=$(pstree -pa $(pidof qemu-system-x86_64) | grep ${ARG1} | cut -d','  -f2 | cut -d' ' -f1)
+                    # Set all threads of parent PID to SCHED_FIFO 99 priority
                     pstree -pa $PARENT_PID | cut -d','  -f2 | cut -d' ' -f1 | xargs -L1 echo "chrt -f -p 99" | bash
-                    #echo "Changing to highest priority (99) done!"
                     exit 0
                 fi
             done < ${boot_logs_path}
@@ -113,21 +124,21 @@ sched(){
 
 # Process Cluster Sizes
 process_cluster(){
-	# Virtual Storage Device
-	Disk_Size="${5:-40}" #VARIVAVEL ESCOLHA
-	cluster_size_value="${6:-64}" #VARIVAVEL ESCOLHA
+    arr_cs_valid=("64","128","256","512","1024","2048")
+	# Virtual Storage Device (VSD) -- virtual hard drive size in GiB
+    # is automatically grabbed from QCOW2 file
+    # Cluster Size in KiB
+	cluster_size_value=$(config_fishing "VSD Cluster")
 	Cluster_Size="${cluster_size_value}K"
 	L2_calculated=0
-
-	arr_cs_valid=("64","128","256","512","1024","2048")
 	if [[ "${arr_cs_valid[@]}" =~ "${cluster_size_value}" ]]; then
 		auxiliar_calc=$(( ${cluster_size_value}/8 ))
 		L2_calculated=$(( ${Disk_Size}/${auxiliar_calc} + 1 ))
 	else
-		echo "Invalid Cluster Size."
-		exit 1
+		echo "Invalid Cluster Size. Edit value in config.json"
+        echo "64, 128, 256, 512, 1024, 2048"
+        exit 0
 	fi
-
 	L2_Cache_Size="${L2_calculated}M"
 }
 
@@ -136,34 +147,21 @@ page_size(){
     # Total page calculation
     total_pages=$(( ${VD_RAM} * ${big_pages} / ${small_pages} ))
     # Big pages
-    if [ "$(grep Hugepagesize /proc/meminfo | awk '{print $2}')" = "${big_pages}" ]; then
+    if [ "$(grep Hugepagesize /proc/meminfo | awk '{print $2}')" == "${big_pages}" ]; then
         hugepages "${big_pages}" "${VD_RAM}"
-        echo "HP_1 - ${big_pages} OK"
+        grubsm
+    # Small pages
+    elif [ "$(grep Hugepagesize /proc/meminfo | awk '{print $2}')" == "${small_pages}" ]; then 
+        hugepages "${small_pages}" "${total_pages}"
+        grubsm
     else
-        echo "HP_1 - ${big_pages} Not avalilable."
-        read -p "Update Grub (reboot and rerun is needed)? (yes/no) " yn
-        case $yn in 
-            yes ) 
-                grubsm tuned isolcpus;;
-            no ) 
-                # Small pages
-                if [ "$(grep Hugepagesize /proc/meminfo | awk '{print $2}')" = "${small_pages}" ]; then 
-                    hugepages "${small_pages}" "${total_pages}"
-                    echo "HP_2 - ${small_pages} OK"
-                else
-                    print_error "HP_2 - ${small_pages} Not avalilable"
-                fi;;
-            * ) 
-                echo "invalid response. Type 'yes' or 'no'.";
-                exit 1;;
-        esac
+        print_error "HP_2 - ${small_pages} Not avalilable"
     fi
 }
 
 # Allocate huge pages size
 hugepages(){
     sysctl -w vm.nr_hugepages="${2}"
-
     # Disable THP 
     echo "never" > "/sys/kernel/mm/transparent_hugepage/enabled"
     echo "never" > "/sys/kernel/mm/transparent_hugepage/defrag"
@@ -172,13 +170,11 @@ hugepages(){
     do
         echo "${2}" > "$i/hugepages/hugepages-${1}kB/nr_hugepages"    
     done
-    echo "HugePages - ${1} - successfully enabled!"
 }
 
 # Free allocated huge pages size
 free_hugepages(){
     sysctl -w vm.nr_hugepages="0"
-
     # Enable THP
     echo "always" > "/sys/kernel/mm/transparent_hugepage/enabled"
     echo "always" > "/sys/kernel/mm/transparent_hugepage/defrag"
@@ -188,54 +184,64 @@ free_hugepages(){
         echo 0 > "$i/hugepages/hugepages-${1}kB/nr_hugepages"
         echo 0 > "$i/hugepages/hugepages-${2}kB/nr_hugepages" 
     done
-    echo "HugePages successfully disabled."
 }
 
 # Set Grub File to Static Method:
 grubsm(){
+    update_grub=$(config_fishing "Update Grub")
+
     grub_path="/etc/default/grub"
     grub_default="GRUB_CMDLINE_LINUX_DEFAULT=\"quiet splash\""
-    if [[ ${1} == "tuned" ]]; then
-        if [[ ${2} =~ "isolcpus" ]]; then
-            grub_isol="isolcpus=${vCPU_PINNED}"
+    
+    argument_line_nr="$(awk "/GRUB_CMDLINE_LINUX_DEFAULT/"'{ print NR; exit }' ${grub_path})"
+    default_arg="$(head -n ${argument_line_nr} ${grub_path} | tail -1 | awk "/GRUB_CMDLINE_LINUX_DEFAULT/"'{print}')"
+
+    if [[ ${update_grub} == "yes" ]]; then
+        grub_tuned="GRUB_CMDLINE_LINUX_DEFAULT=\"quiet splash isolcpus=${vCPU_PINNED} intel_iommu=on preempt=voluntary hugepagesz=1G hugepages=${VD_RAM} default_hugepagesz=1G transparent_hugepage=never\""
+        if [[ ${default_arg} == ${grub_tuned} ]]; then #check if it is already in tunned mode
+            echo "Already updated."
         else
-            grub_isol=""
+            sudo sed -i "s/${grub_default}/${grub_tuned}/" ${grub_path}
+            sudo update-grub && shutdown -r now
         fi
-        grub_tuned="GRUB_CMDLINE_LINUX_DEFAULT=\"quiet splash ${grub_isol} intel_iommu=on preempt=voluntary hugepagesz=1G hugepages=${VD_RAM} default_hugepagesz=1G transparent_hugepage=never\""
-        sudo sed -i "s/${grub_default}/${grub_tuned}/" ${grub_path}
-    else
+    elif [[ ${update_grub} == "no" ]]; then
         grub_tuned=$(cat ${grub_path} | grep "GRUB_CMDLINE_LINUX_DEFAULT=")
-        sudo sed -i "s/${grub_tuned}/${grub_default}/" ${grub_path}
+        if [[ ${default_arg} == ${grub_default} ]]; then # Check if it is already in default mode
+            echo "Already default."
+        else
+            sudo sed -i "s/${grub_tuned}/${grub_default}/" ${grub_path}
+            sudo update-grub && shutdown -r now
+        fi
     fi
-    sudo update-grub && echo "${yellow}Rebooting..." && shutdown -r now
 }
 
 # LAUNCH QEMU-KVM ISOLATED AND PINNED
 os_launch_tuned(){
-	echo "${yellow}Launching tunned VM..."
+	echo "Launching tunned VM..."
 	# Set cpu as performance
 	for file in /sys/devices/system/cpu/cpu*/cpufreq/scaling_governor
     do 
         echo "performance" > $file
     done
 
-	# Allocate resources
-	page_size >/dev/null
-	sudo cset shield --cpu=${vCPU_PINNED} --threads --kthread=on >/dev/null
+    # Runnig in parallel process priority scheduler
+	sched &
 
 	# Sched_rt_runtime_us to 98%
 	sysctl kernel.sched_rt_runtime_us=980000 >/dev/null
 
-	# Runnig in parallel
-	sched &
-	
-	# RUN QEMU ARGS AND THEN FREE RESOURCES
-	# Run VM the -d is to detect when windows boots
-	sudo cset shield -e \
-	qemu-system-x86_64 -- ${QEMU_ARGS[@]} -d trace:qcow2_writev_done_part 2> ${boot_logs_path} >/dev/null
-	
+    # Call grub updater and run qemu with correct parameters
+    # Allocate resources
+	page_size >/dev/null
+
+    # Creating isolated set to launch qemu
+    sudo cset shield --cpu=${vCPU_PINNED} --threads --kthread=on >/dev/null 
+    # Run VM the -d is to detect when windows boots
+    sudo cset shield -e \
+    qemu-system-x86_64 -- ${QEMU_ARGS[@]} -d trace:qcow2_writev_done_part 2> ${boot_logs_path} >/dev/null
+
 	# Free resources
-	echo "${yellow}Freeing resources..."
+	echo "Freeing resources..."
 	# Back to 95% removing cset and freeing HP
 	sysctl kernel.sched_rt_runtime_us=950000 >/dev/null
 	delete_cset >/dev/null
@@ -251,19 +257,6 @@ os_launch_tuned(){
 
 	# Remove boot file
 	sudo rm -f ${boot_logs_path}
-
-    # Check Grub default or not
-    read -p "Set default Grub (reboot is needed)? (yes/no) " yn
-        case $yn in 
-            yes )
-                grubsm;;
-            no )    
-                echo "${yellow}Exit success!";
-                exit 1;;
-            * ) 
-                echo "invalid response. Type 'yes' or 'no'.";
-                exit 1;;
-        esac
 }
 
 #####################################################################################################################################
@@ -274,10 +267,12 @@ main(){
 	check_su
 	set_variables
 	os_launch_tuned
-	echo "${yellow}Exit success!"
+
+	echo "Exit success!"
 }
 
 #####################################################################################################################################
 ##### RUN #####
 #####################################################################################################################################
+
 main

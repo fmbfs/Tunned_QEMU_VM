@@ -11,14 +11,13 @@ It is a setup to allow the user to launch a tuned virtual machine based on the H
 This solution is built for Linux OS.
 If any package is missing, during execute it will prompt you to install it.
 This script has the purpose of beeing used to dynamically allocate resources,
-so you must run it as 'sudo su' because it is modifying some Kernel options.
+So you must run it as 'sudo su' because it is modifying some Kernel options.
 
 ## What actually happens when you execute the code above?
 
 ### Initial Configuration
 
-By default the ```./launcher.sh``` launches tuned. 
-Type ```./launcher.sh -h``` to see the options.
+By default the ```./launcher.sh``` launches tuned isolated VM. 
 
 ## Developing
 
@@ -35,7 +34,9 @@ cd your_project_folder/
 
 This will run a tuned qemu with isolated CPU's (the last group available in your host);
 It will change the Kernel scheduler runtime to 98%;
-After 20 seconds it will change the priority of all qemu processes to be the first in kernel.
+It will prioritize the running qemu process to RT;
+It will manages cluster size;
+It will set up Grub file for HugePages.
 
 ## Features
 
@@ -45,12 +46,11 @@ This project can perform?
 * It enables HugePages (with the max size provided by the Host Architecture)
 * Set sched_rt_runtime_us to 98%
 * It enables CPU Isolation via cset (it runs in parallel)
-* After 20seconds from execute it changes the qemu process priority to 99
+* It changes the qemu process priority to 99
 
 ## Configuration
 
-Here you should write what are all of the configurations a user can enter when
-using the project.
+To launch with 1Gib Huge Pages or Default.
 
 #### Argument 1
 `No args, just launched tunned by default`

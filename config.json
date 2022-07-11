@@ -1,0 +1,14 @@
+{
+    "ConfigVersion":"0.0.1",
+    "ConfigDefinition": "VDToptm",
+    "Description": "VDT Optimization Configuration",
+
+    "Arguments":
+    {
+        "Name":"disk",
+        "RAM":"10",
+        "VSD Cluster":"128",
+        "Cache Clean":"30",
+        "Update Grub":"yes"
+    }
+}
