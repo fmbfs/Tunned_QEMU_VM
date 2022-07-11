@@ -4,26 +4,32 @@
 ##### DEFAULTS #####
 #####################################################################################################################################
 
-# Defining Colors for text output
-red=$( tput setaf 1 );
-yellow=$( tput setaf 3 );
-normal=$( tput sgr 0 );
-
 # Defining base PATH
 BASE_DIR=$(dirname "${BASH_SOURCE[0]}")
 [[ "${BASE_DIR}" == "." ]] && BASE_DIR=$(pwd)
 
-# If no argument is passed we assume it to be launched pinned
-read -p "${red}Name your VSD ${yellow}[disk]${red}: ${normal}" ARG1
-ARG1="${ARG1:-disk}" #VARIVAVEL ESCOLHA
+# Config file
+file_config="./config.json"
+
+# Config function to parse arguments
+config_fishing(){
+    argument_line_nr="$(awk "/${1}/"'{ print NR; exit }' ${file_config})" # Stores the Row Nº where the config argument is written
+    default_arg="$(head -n ${argument_line_nr} ${file_config} | tail -1 | awk "/${1}/"'{print}')" # Stores the old setting of all config arguments
+    trimmed=$(echo ${default_arg} | cut -d ':' -f2 | cut -d ',' -f1)
+    echo ${trimmed} | cut -d '"' -f2 | cut -d '"' -f2
+}
+
+# Arguments fishing from config file:
+# Name of the Virtual machine (VM)
+ARG1=$(config_fishing "Name")
 
 # RAM for VM
-read -p "${red}Set your RAM in GiB ${yellow}[10]${red}: ${normal}" VD_RAM
-VD_RAM="${VD_RAM:-10}" #VARIVAVEL ESCOLHA
+VD_RAM=$(config_fishing "RAM")
 
 # Defining Global Variable
 big_pages="1048576"
 small_pages="2048"
+grub_flag=""
 
 # Boot Logs file
 boot_logs_path="${BASE_DIR}/boot_logs.txt"
@@ -35,10 +41,10 @@ boot_logs_path="${BASE_DIR}/boot_logs.txt"
 # Check for sudo su
 check_su(){
 	if [[ ${UID} != 0 ]]; then
-		echo "${red}
+		echo "
 		This script must be run as sudo permissions.
 			Please run it as: 
-				${normal}sudo su ${0}
+				sudo su ${0}
 		"
 		exit 1
 	fi
@@ -60,9 +66,7 @@ set_variables(){
 	process_cluster
 
     # CACHE CLEAN IN SECONDS
-    read -p "${red}Set your Interval for cache clean in sec. ${yellow}[60]${red}: ${normal}" Cache_Clean_Interval
-	Cache_Clean_Interval="${Cache_Clean_Interval:-60}" #VARIVAVEL ESCOLHA
-
+	Cache_Clean_Interval=$(config_fishing "Cache Clean")
 	# Pinned vCPU
 	vCPU_PINNED=$(cat /sys/devices/system/cpu/cpu*/topology/thread_siblings_list | sort | uniq | tail -1)
 
@@ -116,19 +120,20 @@ sched(){
 # Process Cluster Sizes
 process_cluster(){
     arr_cs_valid=("64","128","256","512","1024","2048")
-	# Virtual Storage Device
-    read -p "${red}Set your created VSD size in GiB ${yellow}[40]${red}: ${normal}" Disk_Size
-	Disk_Size="${Disk_Size:-40}"
-    read -p "${red}Set your VSD Cluster size in KiB ${yellow}[64]${red}. Possible values [${arr_cs_valid[@]}]: ${normal}" cluster_size_value
-	cluster_size_value="${cluster_size_value:-64}"
-	Cluster_Size="${cluster_size_valnue}K"
+	# Virtual Storage Device (VSD) -- virtual hard drive size in GiB
+    Disk_Size=$(config_fishing "VSD")
+    # Cluster Size in KiB
+	cluster_size_value=$(config_fishing "VSD Cluster")
+    echo ${cluster_size_value}
+	Cluster_Size="${cluster_size_value}K"
 	L2_calculated=0
 	if [[ "${arr_cs_valid[@]}" =~ "${cluster_size_value}" ]]; then
 		auxiliar_calc=$(( ${cluster_size_value}/8 ))
 		L2_calculated=$(( ${Disk_Size}/${auxiliar_calc} + 1 ))
 	else
-		echo "Invalid Cluster Size."
-        read -p "${red}Set your VSD Cluster Size in KiB ${yellow}[64]${red}. Possible values [${arr_cs_valid[@]}]: ${normal}" cluster_size_value
+		echo "Invalid Cluster Size. Edit value in config.json"
+        echo "64, 128, 256, 512, 1024, 2048"
+        exit 0
 	fi
 	L2_Cache_Size="${L2_calculated}M"
 }
@@ -141,11 +146,11 @@ page_size(){
     if [ "$(grep Hugepagesize /proc/meminfo | awk '{print $2}')" = "${big_pages}" ]; then
         hugepages "${big_pages}" "${VD_RAM}"
     else
-        read -p "Update Grub (${red}reboot will be done automatically and rerun is needed after${yellow})? (yes/no) ${normal}" yn
+        read -p "Update Grub (reboot will be done automatically and rerun is needed after)? (yes/no) " yn
         case $yn in 
             yes ) 
-                grubsm tuned isolcpus;
-                grub_flag="yes";;
+                grub_flag="yes"
+                grubsm tuned isolcpus;;
             no ) 
                 grub_flag="no"
                 # Small pages
@@ -190,28 +195,36 @@ free_hugepages(){
 
 # Set Grub File to Static Method:
 grubsm(){
+    update_grub=$(config_fishing "Update Grub")
+    echo "${update_grub}"
     grub_path="/etc/default/grub"
     grub_default="GRUB_CMDLINE_LINUX_DEFAULT=\"quiet splash\""
     
-    if [[ ${1} == "tuned" ]]; then
-        if [[ ${2} =~ "isolcpus" ]]; then
-            grub_isol="isolcpus=${vCPU_PINNED}"
+    argument_line_nr="$(awk "/GRUB_CMDLINE_LINUX_DEFAULT/"'{ print NR; exit }' ${grub_path})"
+    default_arg="$(head -n ${argument_line_nr} ${grub_path} | tail -1 | awk "/GRUB_CMDLINE_LINUX_DEFAULT/"'{print}')"
+
+    if [[ ${update_grub} == "yes" ]]; then
+        grub_tuned="GRUB_CMDLINE_LINUX_DEFAULT=\"quiet splash isolcpus=${vCPU_PINNED} intel_iommu=on preempt=voluntary hugepagesz=1G hugepages=${VD_RAM} default_hugepagesz=1G transparent_hugepage=never\""
+        if [[ ${default_arg} == ${grub_tuned} ]]; then #check if it is already in tunned mode
+            echo "already updated"
         else
-            grub_isol=""
+            sudo sed -i "s/${grub_default}/${grub_tuned}/" ${grub_path}
+            # sudo update-grub && shutdown -r now
         fi
-        grub_tuned="GRUB_CMDLINE_LINUX_DEFAULT=\"quiet splash ${grub_isol} intel_iommu=on preempt=voluntary hugepagesz=1G hugepages=${VD_RAM} default_hugepagesz=1G transparent_hugepage=never\""
-        sudo sed -i "s/${grub_default}/${grub_tuned}/" ${grub_path}
-    else
-        grub_flag="no"
+    elif [[ ${update_grub} == "no" ]]; then
         grub_tuned=$(cat ${grub_path} | grep "GRUB_CMDLINE_LINUX_DEFAULT=")
-        sudo sed -i "s/${grub_tuned}/${grub_default}/" ${grub_path}
+        if [[ ${default_arg} == ${grub_default} ]]; then # Check if it is already in default mode
+            echo "already default"
+        else
+            sudo sed -i "s/${grub_tuned}/${grub_default}/" ${grub_path}
+            # sudo update-grub && shutdown -r now
+        fi
     fi
-    sudo update-grub && echo "${yellow}Rebooting..." && shutdown -r now
 }
 
 # LAUNCH QEMU-KVM ISOLATED AND PINNED
 os_launch_tuned(){
-	echo "${yellow}Launching tunned VM..."
+	echo "Launching tunned VM..."
 	# Set cpu as performance
 	for file in /sys/devices/system/cpu/cpu*/cpufreq/scaling_governor
     do 
@@ -219,8 +232,8 @@ os_launch_tuned(){
     done
 
 	# Allocate resources
-	page_size >/dev/null
-	sudo cset shield --cpu=${vCPU_PINNED} --threads --kthread=on >/dev/null
+	page_size >/dev/null	
+    sudo cset shield --cpu=${vCPU_PINNED} --threads --kthread=on >/dev/null 
 
 	# Sched_rt_runtime_us to 98%
 	sysctl kernel.sched_rt_runtime_us=980000 >/dev/null
@@ -234,7 +247,7 @@ os_launch_tuned(){
 	qemu-system-x86_64 -- ${QEMU_ARGS[@]} -d trace:qcow2_writev_done_part 2> ${boot_logs_path} >/dev/null
 	
 	# Free resources
-	echo "${yellow}Freeing resources..."
+	echo "Freeing resources..."
 	# Back to 95% removing cset and freeing HP
 	sysctl kernel.sched_rt_runtime_us=950000 >/dev/null
 	delete_cset >/dev/null
@@ -250,24 +263,6 @@ os_launch_tuned(){
 
 	# Remove boot file
 	sudo rm -f ${boot_logs_path}
-
-    # Check Grub default or not
-    if [[ ${grub_flag} == "yes" ]]; then
-        read -p "Set to default Grub (${red}reboot will be done automatically${yellow})? (yes/no) ${normal}" yn
-        case $yn in 
-            yes )
-                grubsm;;
-            no )    
-                echo "${yellow}Exit success!";
-                exit 1;;
-            * ) 
-                echo "Invalid response. Type 'yes' or 'no'.";
-                exit 1;;
-        esac
-    else
-        echo "${yellow}Exit success!";
-        exit 1
-    fi
 }
 
 #####################################################################################################################################
@@ -278,10 +273,12 @@ main(){
 	check_su
 	set_variables
 	os_launch_tuned
-	echo "${yellow}Exit success!"
+
+	echo "Exit success!"
 }
 
 #####################################################################################################################################
 ##### RUN #####
 #####################################################################################################################################
+
 main
