@@ -17,7 +17,7 @@ check_su(){
 }
 
 # Config function to parse arguments
-config_fishing(){
+config_fetching(){
     # Config file path
     file_config="./config.json"
 
@@ -34,10 +34,10 @@ BASE_DIR=$(dirname "${BASH_SOURCE[0]}")
 
 # Arguments fishing from config file:
 # Name of the Virtual machine (VM)
-ARG1=$(config_fishing "Name")
+ARG1=$(config_fetching "Name")
 
 # RAM for VM
-VD_RAM=$(config_fishing "RAM")
+VD_RAM=$(config_fetching "RAM")
 
 # Defining HugePage default sizes
 big_pages="1048576"
@@ -60,7 +60,7 @@ set_variables(){
 	process_cluster
 
     # Cache Clean interval in seconds
-	Cache_Clean_Interval=$(config_fishing "Cache Clean")
+	Cache_Clean_Interval=$(config_fetching "Cache Clean")
 	# Pinned vCPU
 	vCPU_PINNED=$(cat /sys/devices/system/cpu/cpu*/topology/thread_siblings_list | sort | uniq | tail -1)
 
@@ -115,7 +115,7 @@ process_cluster(){
 	# Virtual Storage Device (VSD) -- virtual hard drive size in GiB
     # is automatically grabbed from QCOW2 file
     # Cluster Size in KiB
-	cluster_size_value=$(config_fishing "VSD Cluster")
+	cluster_size_value=$(config_fetching "VSD Cluster")
 	Cluster_Size="${cluster_size_value}K"
 	L2_calculated=0
 	if [[ "${arr_cs_valid[@]}" =~ "${cluster_size_value}" ]]; then
@@ -174,7 +174,7 @@ free_hugepages(){
 # Set Grub File to Static Method:
 grubsm(){
     
-    update_grub=$(config_fishing "Update Grub")
+    update_grub=$(config_fetching "Update Grub")
 
     grub_path="/etc/default/grub"
     grub_default="GRUB_CMDLINE_LINUX_DEFAULT=\"quiet splash\""
@@ -203,6 +203,7 @@ grubsm(){
 
 # LAUNCHER for VM
 os_launch_tuned(){
+    ################################ PART I ##############################
 	echo "Launching VM..."
 	# Set cpu as performance
 	for file in /sys/devices/system/cpu/cpu*/cpufreq/scaling_governor; do 
@@ -218,6 +219,7 @@ os_launch_tuned(){
     # Call grub updater set the HugePages and run qemu with correct parameters
 	page_size >/dev/null
 
+    ################################ PART II ##############################
     # If cset gives you mount error is because newer version of Linux:
     # Just add this to the grub file: GRUB_CMDLINE_LINUX="systemd.unified_cgroup_hierarchy=0"
     # Creating isolated set to launch qemu
@@ -226,6 +228,7 @@ os_launch_tuned(){
     sudo cset shield -e \
     qemu-system-x86_64 -- ${QEMU_ARGS[@]} -d trace:qcow2_writev_done_part 2> ${boot_logs_path} >/dev/null
 
+    ################################ PART III ##############################
 	# Free resources
 	echo "Freeing resources..."
 	# Back to 95% removing cset and freeing HP
