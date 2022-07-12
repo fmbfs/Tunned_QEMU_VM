@@ -10,7 +10,7 @@ check_su(){
 		echo "
 		This script must be run as sudo permissions.
 			Please run it as: 
-				sudo ${0}
+				sudo su ${0}
 		"
 		exit 1
 	fi
@@ -27,40 +27,34 @@ config_fishing(){
     echo ${trimmed} | cut -d '"' -f2 | cut -d '"' -f2
 }
 
+# GLOBAL VARIABLES
+# Defining base PATH
+BASE_DIR=$(dirname "${BASH_SOURCE[0]}")
+[[ "${BASE_DIR}" == "." ]] && BASE_DIR=$(pwd)
+
+# Arguments fishing from config file:
+# Name of the Virtual machine (VM)
+ARG1=$(config_fishing "Name")
+
+# RAM for VM
+VD_RAM=$(config_fishing "RAM")
+
+# Defining HugePage default sizes
+big_pages="1048576"
+small_pages="2048"
+# Boot Logs file
+boot_logs_path="${BASE_DIR}/boot_logs.txt"
+
+# Grab disk size 
+VSD_path="${BASE_DIR}/Tunned_VM/QFT/Virtual_Disks"
+cd ${VSD_path}
+Disk_Size=$(du -h ${VD_NAME} | awk '{print $1}' | cut -d 'G' -f1)
+cd ${BASE_DIR}
+
 set_variables(){
-    # Defining base PATH
-    BASE_DIR=$(dirname "${BASH_SOURCE[0]}")
-    [[ "${BASE_DIR}" == "." ]] && BASE_DIR=$(pwd)
-
-    # Arguments fishing from config file:
-    # Name of the Virtual machine (VM)
-    ARG1=$(config_fishing "Name")
-
-    # RAM for VM
-    VD_RAM=$(config_fishing "RAM")
-
-    # Defining HugePage default sizes
-    big_pages="1048576"
-    small_pages="2048"
-
-    # Boot Logs file
-    boot_logs_path="${BASE_DIR}/boot_logs.txt"
-
-	# OS .iso Paths
-	ISO_DIR="${BASE_DIR}/Tunned_VM/QFT/Iso_Images/Windows"
-
-	# Virtual disks (VD) path
-	QEMU_VD="${BASE_DIR}/Tunned_VM/QFT/Virtual_Disks"
-
 	# QEMU name
 	VD_NAME="${ARG1}.qcow2"
-	OS_IMG="${QEMU_VD}/${VD_NAME}"
-
-    # Grab disk size 
-    VSD_path="${BASE_DIR}/Tunned_VM/QFT/Virtual_Disks"
-    cd ${VSD_path}
-    Disk_Size=$(du -h ${VD_NAME} | awk '{print $1}' | cut -d 'G' -f1)
-    cd ${BASE_DIR}
+	OS_IMG="${VSD_path}/${VD_NAME}"
     
 	# Process clusters
 	process_cluster
@@ -179,6 +173,7 @@ free_hugepages(){
 
 # Set Grub File to Static Method:
 grubsm(){
+    
     update_grub=$(config_fishing "Update Grub")
 
     grub_path="/etc/default/grub"
@@ -192,7 +187,7 @@ grubsm(){
         if [[ ${default_arg} == ${grub_tuned} ]]; then #check if it is already in tunned mode
             echo "Already updated."
         else
-            sudo sed -i "s/${grub_default}/${grub_tuned}/" ${grub_path}
+            sudo sed -i "s/${default_arg}/${grub_tuned}/" ${grub_path}
             sudo update-grub && shutdown -r now
         fi
     elif [[ ${update_grub} == "no" ]]; then
@@ -219,10 +214,12 @@ os_launch_tuned(){
 
 	# Sched_rt_runtime_us to 98%
 	sysctl kernel.sched_rt_runtime_us=980000 >/dev/null
-
+    
     # Call grub updater set the HugePages and run qemu with correct parameters
 	page_size >/dev/null
 
+    # If cset gives you mount error is because newer version of Linux:
+    # Just add this to the grub file: GRUB_CMDLINE_LINUX="systemd.unified_cgroup_hierarchy=0"
     # Creating isolated set to launch qemu
     sudo cset shield --cpu=${vCPU_PINNED} --threads --kthread=on >/dev/null 
     # Run VM the -d is to detect when windows boots

@@ -6,7 +6,7 @@
     "Arguments":
     {
         "Name":"disk",
-        "RAM":"10",
+        "RAM":"8",
         "VSD Cluster":"64",
         "Cache Clean":"15",
         "Update Grub":"yes"
