@@ -1,40 +1,6 @@
 #!/bin/bash
 
 #####################################################################################################################################
-##### DEFAULTS #####
-#####################################################################################################################################
-
-# Defining base PATH
-BASE_DIR=$(dirname "${BASH_SOURCE[0]}")
-[[ "${BASE_DIR}" == "." ]] && BASE_DIR=$(pwd)
-
-# Config function to parse arguments
-config_fishing(){
-    # Config file path
-    file_config="./config.json"
-
-    argument_line_nr="$(awk "/${1}/"'{ print NR; exit }' ${file_config})" # Stores the Row Nº where the config argument is written
-    default_arg="$(head -n ${argument_line_nr} ${file_config} | tail -1 | awk "/${1}/"'{print}')" # Stores the old setting of all config arguments
-    trimmed=$(echo ${default_arg} | cut -d ':' -f2 | cut -d ',' -f1)
-    echo ${trimmed} | cut -d '"' -f2 | cut -d '"' -f2
-}
-
-# Arguments fishing from config file:
-# Name of the Virtual machine (VM)
-ARG1=$(config_fishing "Name")
-
-# RAM for VM
-VD_RAM=$(config_fishing "RAM")
-
-# Defining Global Variable
-big_pages="1048576"
-small_pages="2048"
-grub_flag=""
-
-# Boot Logs file
-boot_logs_path="${BASE_DIR}/boot_logs.txt"
-
-#####################################################################################################################################
 ##### FUNCTIONS #####
 #####################################################################################################################################
 
@@ -50,37 +16,59 @@ check_su(){
 	fi
 }
 
+# Config function to parse arguments
+config_fetching(){
+    # Config file path
+    file_config="./config.json"
+
+    argument_line_nr="$(awk "/${1}/"'{ print NR; exit }' ${file_config})" # Stores the Row Nº where the config argument is written
+    default_arg="$(head -n ${argument_line_nr} ${file_config} | tail -1 | awk "/${1}/"'{print}')" # Stores the old setting of all config arguments
+    trimmed=$(echo ${default_arg} | cut -d ':' -f2 | cut -d ',' -f1)
+    echo ${trimmed} | cut -d '"' -f2 | cut -d '"' -f2
+}
+
+# GLOBAL VARIABLES
+# Defining base PATH
+BASE_DIR=$(dirname "${BASH_SOURCE[0]}")
+[[ "${BASE_DIR}" == "." ]] && BASE_DIR=$(pwd)
+
+# Arguments fishing from config file:
+# Name of the Virtual machine (VM)
+ARG1=$(config_fetching "Name")
+
+# RAM for VM
+VD_RAM=$(config_fetching "RAM")
+
+# Defining HugePage default sizes
+big_pages="1048576"
+small_pages="2048"
+# Boot Logs file
+boot_logs_path="${BASE_DIR}/boot_logs.txt"
+
+# Grab disk size 
+VSD_path="${BASE_DIR}/Tunned_VM/QFT/Virtual_Disks"
+cd ${VSD_path}
+Disk_Size=$(du -h ${VD_NAME} | awk '{print $1}' | cut -d 'G' -f1)
+cd ${BASE_DIR}
+
 set_variables(){
-	# OS .iso Paths
-	ISO_DIR="${BASE_DIR}/Tunned_VM/QFT/Iso_Images/Windows"
-
-	# Virtual disks (VD) path
-	QEMU_VD="${BASE_DIR}/Tunned_VM/QFT/Virtual_Disks"
-
-	# QEMU name and OS --> Windows 10
-	OS_ISO="${ISO_DIR}/Tunned_VM/QFT/Win10_*.iso"
+	# QEMU name
 	VD_NAME="${ARG1}.qcow2"
-	OS_IMG="${QEMU_VD}/${VD_NAME}"
-
-    #Grab disk size 
-    VSD_path="${BASE_DIR}/Tunned_VM/QFT/Virtual_Disks"
-    cd ${VSD_path}
-    Disk_Size=$(du -h ${VD_NAME} | awk '{print $1}' | cut -d 'G' -f1)
-    cd ${BASE_DIR}
+	OS_IMG="${VSD_path}/${VD_NAME}"
     
 	# Process clusters
 	process_cluster
 
-    # CACHE CLEAN IN SECONDS
-	Cache_Clean_Interval=$(config_fishing "Cache Clean")
+    # Cache Clean interval in seconds
+	Cache_Clean_Interval=$(config_fetching "Cache Clean")
 	# Pinned vCPU
 	vCPU_PINNED=$(cat /sys/devices/system/cpu/cpu*/topology/thread_siblings_list | sort | uniq | tail -1)
 
 	# Common Args
 	QEMU_ARGS=(
-				"-name" "${ARG1}" \
-				"-enable-kvm" \
-				"-m" "${VD_RAM}G" \
+        "-name" "${ARG1}" \
+        "-enable-kvm" \
+        "-m" "${VD_RAM}G" \
 	)
 
 	# Specific Args
@@ -94,11 +82,10 @@ set_variables(){
 	)
 }
 
-# Delete_cset
+# Delete cset prevously created
 delete_cset(){
     sudo cset set -d system
-    while [[ $(sudo cset set -d system) =~ "done" ]] 
-    do 
+    while [[ $(sudo cset set -d system) =~ "done" ]]; do 
         sudo cset set -d system
     done
     sudo cset set -d user
@@ -128,7 +115,7 @@ process_cluster(){
 	# Virtual Storage Device (VSD) -- virtual hard drive size in GiB
     # is automatically grabbed from QCOW2 file
     # Cluster Size in KiB
-	cluster_size_value=$(config_fishing "VSD Cluster")
+	cluster_size_value=$(config_fetching "VSD Cluster")
 	Cluster_Size="${cluster_size_value}K"
 	L2_calculated=0
 	if [[ "${arr_cs_valid[@]}" =~ "${cluster_size_value}" ]]; then
@@ -166,8 +153,7 @@ hugepages(){
     echo "never" > "/sys/kernel/mm/transparent_hugepage/enabled"
     echo "never" > "/sys/kernel/mm/transparent_hugepage/defrag"
     
-    for i in $(find /sys/devices/system/node/node* -maxdepth 0 -type d);
-    do
+    for i in $(find /sys/devices/system/node/node* -maxdepth 0 -type d); do
         echo "${2}" > "$i/hugepages/hugepages-${1}kB/nr_hugepages"    
     done
 }
@@ -179,8 +165,7 @@ free_hugepages(){
     echo "always" > "/sys/kernel/mm/transparent_hugepage/enabled"
     echo "always" > "/sys/kernel/mm/transparent_hugepage/defrag"
 
-    for i in $(find /sys/devices/system/node/node* -maxdepth 0 -type d);
-    do
+    for i in $(find /sys/devices/system/node/node* -maxdepth 0 -type d); do
         echo 0 > "$i/hugepages/hugepages-${1}kB/nr_hugepages"
         echo 0 > "$i/hugepages/hugepages-${2}kB/nr_hugepages" 
     done
@@ -188,7 +173,8 @@ free_hugepages(){
 
 # Set Grub File to Static Method:
 grubsm(){
-    update_grub=$(config_fishing "Update Grub")
+    
+    update_grub=$(config_fetching "Update Grub")
 
     grub_path="/etc/default/grub"
     grub_default="GRUB_CMDLINE_LINUX_DEFAULT=\"quiet splash\""
@@ -201,7 +187,7 @@ grubsm(){
         if [[ ${default_arg} == ${grub_tuned} ]]; then #check if it is already in tunned mode
             echo "Already updated."
         else
-            sudo sed -i "s/${grub_default}/${grub_tuned}/" ${grub_path}
+            sudo sed -i "s/${default_arg}/${grub_tuned}/" ${grub_path}
             sudo update-grub && shutdown -r now
         fi
     elif [[ ${update_grub} == "no" ]]; then
@@ -215,12 +201,12 @@ grubsm(){
     fi
 }
 
-# LAUNCH QEMU-KVM ISOLATED AND PINNED
+# LAUNCHER for VM
 os_launch_tuned(){
-	echo "Launching tunned VM..."
+    ################################ PART I ##############################
+	echo "Launching VM..."
 	# Set cpu as performance
-	for file in /sys/devices/system/cpu/cpu*/cpufreq/scaling_governor
-    do 
+	for file in /sys/devices/system/cpu/cpu*/cpufreq/scaling_governor; do 
         echo "performance" > $file
     done
 
@@ -229,17 +215,20 @@ os_launch_tuned(){
 
 	# Sched_rt_runtime_us to 98%
 	sysctl kernel.sched_rt_runtime_us=980000 >/dev/null
-
-    # Call grub updater and run qemu with correct parameters
-    # Allocate resources
+    
+    # Call grub updater set the HugePages and run qemu with correct parameters
 	page_size >/dev/null
 
+    ################################ PART II ##############################
+    # If cset gives you mount error is because newer version of Linux:
+    # Just add this to the grub file: GRUB_CMDLINE_LINUX="systemd.unified_cgroup_hierarchy=0"
     # Creating isolated set to launch qemu
     sudo cset shield --cpu=${vCPU_PINNED} --threads --kthread=on >/dev/null 
     # Run VM the -d is to detect when windows boots
     sudo cset shield -e \
     qemu-system-x86_64 -- ${QEMU_ARGS[@]} -d trace:qcow2_writev_done_part 2> ${boot_logs_path} >/dev/null
 
+    ################################ PART III ##############################
 	# Free resources
 	echo "Freeing resources..."
 	# Back to 95% removing cset and freeing HP
@@ -249,8 +238,7 @@ os_launch_tuned(){
 
 	# Set cpu to powersave
 	set_powersave(){
-    for file in /sys/devices/system/cpu/cpu*/cpufreq/scaling_governor
-    do 
+    for file in /sys/devices/system/cpu/cpu*/cpufreq/scaling_governor; do 
         echo "powersave" > $file
     done
 	}

@@ -19,3 +19,5 @@ delete_cset(){
 
     sudo cset set -d user
 }
+
+delete_cset

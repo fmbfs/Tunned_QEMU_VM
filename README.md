@@ -9,15 +9,15 @@ It is a setup to allow the user to launch a tuned virtual machine based on the H
 ## Installing / Getting started
 
 This solution is built for Linux OS.
-If any package is missing, during execute it will prompt you to install it.
-This script has the purpose of beeing used to dynamically allocate resources,
-So you must run it as 'sudo su' because it is modifying some Kernel options.
+If any package is missing, during execute it will prompt you to install them.
+This script has the purpose of beeing used together with a "config.json" file.
+So you must run it as 'sudo' because it is modifying some Kernel options.
 
 ## What actually happens when you execute the code above?
 
 ### Initial Configuration
 
-By default the ```./launcher.sh``` launches tuned isolated VM. 
+By default the ```./launcher.sh``` launches the settings presented in the "config.json" file. 
 
 ## Developing
 
@@ -25,18 +25,12 @@ Here's a brief intro about what a developer must do in order to start developing
 the project further:
 
 ```shell
-git clone https://github.com/fmbfs/ctw.git
+git clone https://github.com/fmbfs/Tunned_QEMU_VM
 ```
 ```shell
 cd your_project_folder/
 ./launcher.sh
 ```
-
-This will run a tuned qemu with isolated CPU's (the last group available in your host);
-It will change the Kernel scheduler runtime to 98%;
-It will prioritize the running qemu process to RT;
-It will manages cluster size;
-It will set up Grub file for HugePages.
 
 ## Features
 
@@ -53,7 +47,25 @@ This project can perform?
 To launch with 1Gib Huge Pages or Default.
 
 #### Argument 1
-`No args, just launched tunned by default`
+
+"Name":"name of your VM. It must match the VSD that you want to run."
+
+#### Argument 2
+
+"RAM":"Total amount of RAM in GiB for your VM."
+
+#### Argument 3
+
+"VSD Cluster":"Set the value in KiB for the cluster size. ("64","128","256","512","1024","2048")."
+Note that VSD is for Virtual Storage Device (the hard drive associated for the VM to use.)
+
+#### Argument 4
+
+"Cache Clean":"Time interval in seconds to clear the cache."
+
+#### Argument 5
+
+"Update Grub":"Enable 1GiB HugePages and isolation. yes/no"
 
 ## Contributing
 
@@ -64,8 +76,8 @@ from Polytechnic Institute of Porto (ISEP) together with CriticalTechworks (CTW)
 
 ## Links
 
-- Project homepage: https://github.com/fmbfs/ctw.git
-- Repository: https://github.com/fmbfs/ctw.git
+- Project homepage: https://github.com/fmbfs/Tunned_QEMU_VM
+- Repository: https://github.com/fmbfs/Tunned_QEMU_VM
 - Issues:
   - In case of sensitive bugs like security vulnerabilities, please contact
     ctw02046@criticaltechworks.com directly. We value your effort
