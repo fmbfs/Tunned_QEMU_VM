@@ -199,7 +199,7 @@ process_args(){
         unsetup
 		shift
 		;;
-	"-h || --help")
+	"-h" | "--help")
 		show_help
 		shift
 		;;
