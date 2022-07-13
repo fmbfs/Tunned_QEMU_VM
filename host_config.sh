@@ -21,7 +21,8 @@ config_fetching(){
 BASE_DIR=$(dirname "${BASH_SOURCE[0]}")
 [[ "${BASE_DIR}" == "." ]] && BASE_DIR=$(pwd)
 
-# Arguments fishing from config file:
+# option
+ARG1="${1}"
 
 # RAM for VM
 VD_RAM=$(config_fetching "RAM")
@@ -166,19 +167,54 @@ unsetup(){
     echo "Exit success!"
 }
 
+echo "${flag_setup}"
+
+# HELP MENU
+show_help(){
+	echo ""
+    echo "${0} [OPTION] [CONFIG FILE PATH]"
+    echo "Options:"
+    echo "  --setup -----> Set up the environmet optimization"
+    echo "  --unsetup ---> Unsets the environment optimization"
+    echo "  -h -----> Show this help."
+    echo ""
+    exit 0
+}
+
+# SWITHC ARGUMENTS
+process_args(){
+	case "${ARG1}" in
+	"")
+		echo "No arguments provided,check below. "
+		show_help
+		shift
+		;;
+	"--setup")
+		echo "Setting environment..."
+        setup
+		shift
+		;;
+	"--unsetup")
+		echo "Unsetting environment..."
+        unsetup
+		shift
+		;;
+	"-h || --help")
+		show_help
+		shift
+		;;
+	*)
+		echo "Unrecognised option. -h for help."
+		shift
+		;;
+	esac	
+}
+
+
 #####################################################################################################################################
 ##### MAIN #####
 #####################################################################################################################################
 
-
-if [[ ${1} == "--setup" ]]; then
-    echo "Setting environment..."
-    setup
-elif [[ ${1} == "--unsetup" ]]; then
-    echo "Unsetting environment..."
-    unsetup
-else
-    echo "Error: Missing argument (--setup or --unsetup)."
-fi
+process_args
 
 
