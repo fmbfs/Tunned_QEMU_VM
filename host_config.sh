@@ -84,6 +84,7 @@ grubsm(){
 
     grub_path="/etc/default/grub"
     grub_cmdline="GRUB_CMDLINE_LINUX"
+    grub_tuned_ubuntu22="${grub_cmdline}=\"systemd.unified_cgroup_hierarchy=0\""
 
     grub_default="${grub_cmdline}_DEFAULT=\"quiet splash\""
     argument_line_nr="$(awk "/${grub_cmdline}/"'{ print NR; exit }' ${grub_path})"
@@ -94,16 +95,14 @@ grubsm(){
     argument_line_nr2="$(( ${argument_line_nr} + 1 ))"
     default_arg2="$(head -n ${argument_line_nr2} ${grub_path} | tail -1 | awk "/${grub_cmdline}/"'{print}')"
 
-    # Add comment for what ECU config was used
+    # Add comment for what ECU config was used and the a timestamp
     argument_line_nr3="$(( ${argument_line_nr} + 2 ))"
     sudo sed -i "${argument_line_nr3}d" ${grub_path}
     sudo sed -i "${argument_line_nr3}i\#${config_file_path} [$(date)]" ${grub_path}
 
     if [[ ${update_grub} == "yes" ]]; then
         grub_tuned="${grub_cmdline}_DEFAULT=\"quiet splash isolcpus=${vCPU_PINNED} intel_iommu=on preempt=voluntary hugepagesz=1G hugepages=${VD_RAM} default_hugepagesz=1G transparent_hugepage=never\""
-        grub_tuned_ubuntu22="${grub_cmdline}=\"systemd.unified_cgroup_hierarchy=0\""
-        
-        if [[ ${default_arg} == ${grub_tuned} ]]; then #check if it is already in tunned mode
+        if [ ${default_arg} == ${grub_tuned} ] && [ ${default_arg2} == ${grub_default_2} ]; then #check if it is already in tunned mode
             echo "Already updated."
         else
             sudo sed -i "s/${default_arg}/${grub_tuned}/" ${grub_path}
@@ -112,8 +111,8 @@ grubsm(){
         fi
     elif [[ ${update_grub} == "no" ]]; then
         grub_tuned=$(cat ${grub_path} | grep "${grub_cmdline}_DEFAULT=")
-
-        if [[ ${default_arg} == ${grub_default} ]]; then # Check if it is already in default mode
+        echo "${default_arg}"
+        if [ ${default_arg} == ${grub_default} && [ ${default_arg2} == ${grub_tuned_ubuntu22} ]; then # Check if it is already in default mode
             echo "Already default."
         else
             sudo sed -i "s/${grub_tuned}/${grub_default}/" ${grub_path}
@@ -162,12 +161,11 @@ unsetup(){
         echo "powersave" > $file
     done
 
+    echo "Note that to unset Grub file insert 'no' in the config file field"
 	# Remove boot file
 	sudo rm -f ${boot_logs_path}
     echo "Exit success!"
 }
-
-echo "${flag_setup}"
 
 # HELP MENU
 show_help(){
@@ -218,3 +216,4 @@ process_args(){
 process_args
 
 
+# should we add an isol no isol? since it can be made via taskset cset...and no performance improvments were achieved by it
