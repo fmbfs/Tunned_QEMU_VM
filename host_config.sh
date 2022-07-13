@@ -79,42 +79,44 @@ free_hugepages(){
 
 # Set Grub File to Static Method:
 grubsm(){
-    
-    # If cset gives you mount error is because newer version of Linux:
-    # Just add this to the grub file: 
-    #meter um comment com o path para  latest config
     update_grub=$(config_fetching "Update Grub")
-    
+
     grub_path="/etc/default/grub"
-    base=(
-        "GRUB_CMDLINE_LINUX"
-        )
-    base+=(
-        "_DEFAULT"
-        )
-    echo ${base}
+    grub_cmdline="GRUB_CMDLINE_LINUX"
 
-    grub_default="GRUB_CMDLINE_LINUX_DEFAULT=\"quiet splash\""
-    grub_default_2="GRUB_CMDLINE_LINUX=\"\""
+    grub_default="${grub_cmdline}_DEFAULT=\"quiet splash\""
+    argument_line_nr="$(awk "/${grub_cmdline}/"'{ print NR; exit }' ${grub_path})"
+    default_arg="$(head -n ${argument_line_nr} ${grub_path} | tail -1 | awk "/${grub_cmdline}_DEFAULT/"'{print}')"
 
-    argument_line_nr="$(awk "/GRUB_CMDLINE_LINUX_DEFAULT/"'{ print NR; exit }' ${grub_path})"
-    default_arg="$(head -n ${argument_line_nr} ${grub_path} | tail -1 | awk "/GRUB_CMDLINE_LINUX_DEFAULT/"'{print}')"
+    # Sets the condition for Ubuntu 22
+    grub_default_2="${grub_cmdline}=\"\""
+    argument_line_nr2="$(( ${argument_line_nr} + 1 ))"
+    default_arg2="$(head -n ${argument_line_nr2} ${grub_path} | tail -1 | awk "/${grub_cmdline}/"'{print}')"
+
+    # Add comment for what ECU config was used
+    argument_line_nr3="$(( ${argument_line_nr} + 2 ))"
+    sudo sed -i "${argument_line_nr3}d" ${grub_path}
+    sudo sed -i "${argument_line_nr3}i\#${config_file_path} [$(date)]" ${grub_path}
 
     if [[ ${update_grub} == "yes" ]]; then
-        grub_tuned="GRUB_CMDLINE_LINUX_DEFAULT=\"quiet splash isolcpus=${vCPU_PINNED} intel_iommu=on preempt=voluntary hugepagesz=1G hugepages=${VD_RAM} default_hugepagesz=1G transparent_hugepage=never\""
-        grub_tuned_ubuntu22="GRUB_CMDLINE_LINUX=\"systemd.unified_cgroup_hierarchy=0\""
+        grub_tuned="${grub_cmdline}_DEFAULT=\"quiet splash isolcpus=${vCPU_PINNED} intel_iommu=on preempt=voluntary hugepagesz=1G hugepages=${VD_RAM} default_hugepagesz=1G transparent_hugepage=never\""
+        grub_tuned_ubuntu22="${grub_cmdline}=\"systemd.unified_cgroup_hierarchy=0\""
+        
         if [[ ${default_arg} == ${grub_tuned} ]]; then #check if it is already in tunned mode
             echo "Already updated."
         else
             sudo sed -i "s/${default_arg}/${grub_tuned}/" ${grub_path}
+            sudo sed -i "s/${default_arg2}/${grub_tuned_ubuntu22}/" ${grub_path}
             sudo update-grub
         fi
     elif [[ ${update_grub} == "no" ]]; then
-        grub_tuned=$(cat ${grub_path} | grep "GRUB_CMDLINE_LINUX_DEFAULT=")
+        grub_tuned=$(cat ${grub_path} | grep "${grub_cmdline}_DEFAULT=")
+
         if [[ ${default_arg} == ${grub_default} ]]; then # Check if it is already in default mode
             echo "Already default."
         else
             sudo sed -i "s/${grub_tuned}/${grub_default}/" ${grub_path}
+            sudo sed -i "s/${grub_tuned_ubuntu22}/${grub_default_2}/" ${grub_path}
             sudo update-grub
         fi
     fi
@@ -140,7 +142,7 @@ setup(){
 	sysctl kernel.sched_rt_runtime_us=980000 >/dev/null
 
     # Call grub updater set the HugePages and run qemu with correct parameters
-	page_size #>/dev/null
+	page_size >/dev/null
 
     # Creating isolated set to launch qemu
     sudo cset shield --cpu=${vCPU_PINNED} --threads --kthread=on >/dev/null 
