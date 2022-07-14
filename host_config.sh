@@ -4,8 +4,8 @@
 #####################################################################################################################################
 ##### GLOBAL VARIABLES #####
 #####################################################################################################################################
-
-config_file_path=${2:-config.json}
+# Default error handling
+#set -euox pipefail
 
 # Defining base PATH
 BASE_DIR=$(dirname "${BASH_SOURCE[0]}")
@@ -15,34 +15,61 @@ BASE_DIR=$(dirname "${BASH_SOURCE[0]}")
 BIG_PAGES="1048576"
 SMALL_PAGES="2048"
 
+
+# HELP MENU
+show_help(){
+	echo ""
+    echo "${0} [OPTION] [CONFIG FILE PATH]"
+    echo "Options:"
+    echo "  --setup -----> Set up the environmet optimization"
+    echo "  --unsetup ---> Unsets the environment optimization"
+    echo "  -h | --help -> Show this help."
+    echo ""
+    exit 0
+}
+
+# SWITHC ARGUMENTS
+process_args(){
+    for i in "$@"; do
+        case "${i}" in
+            "")
+                echo "No arguments provided,check below. "
+                show_help
+                shift
+                ;;
+            --setup=*)
+                echo "Setting environment..."
+                config_file_path="${i#*=}"
+                setup
+                shift
+                ;;
+            "--unsetup")
+                echo "Unsetting environment..."
+                unsetup
+                shift
+                ;;
+            "-h" | "--help")
+                show_help
+                shift
+                ;;
+            *)
+                echo "Unrecognised option. -h or --help for help."
+                shift
+                ;;
+        esac
+    done
+}
+
 #####################################################################################################################################
 ##### FUNCTIONS #####
 #####################################################################################################################################
 
 # Config function to parse arguments
 config_fetching(){
-    # Config file path
-    file_config="${config_file_path}"
-    
-    argument_line_nr="$(awk "/${1}/"'{ print NR; exit }' ${file_config})" # Stores the Row Nº where the config argument is written
-    default_arg="$(head -n ${argument_line_nr} ${file_config} | tail -1 | awk "/${1}/"'{print}')" # Stores the old setting of all config arguments
+    argument_line_nr="$(awk "/${1}/"'{ print NR; exit }' ${config_file_path})" # Stores the Row Nº where the config argument is written
+    default_arg="$(head -n ${argument_line_nr} ${config_file_path} | tail -1 | awk "/${1}/"'{print}')" # Stores the old setting of all config arguments
     trimmed=$(echo ${default_arg} | cut -d ':' -f2 | cut -d ',' -f1)
     echo ${trimmed} | cut -d '"' -f2 | cut -d '"' -f2
-}
-
-# Set Variables
-set_variables(){
-    # option
-    ARG1="${1}"
-
-    # RAM for VM
-    VD_RAM=$(config_fetching "RAM")
-
-    # Boot Logs file
-    BOOT_LOGS_PATH="${BASE_DIR}/boot_logs.txt"
-
-    # Isolate vCPU
-    vCPU_PINNED=$(cat /sys/devices/system/cpu/cpu*/topology/thread_siblings_list | sort | uniq | tail -1)
 }
 
 # Huge Pages set-up.
@@ -89,7 +116,7 @@ free_hugepages(){
 
 # Set Grub File
 grubsm(){
-    update_grub=$(config_fetching "Update Grub")
+    update_grub=$(config_fetching "UPDATE GRUB")
 
     grub_path="/etc/default/grub"
     grub_cmdline="GRUB_CMDLINE_LINUX"
@@ -147,6 +174,16 @@ delete_cset(){
 
 # LAUNCHER for VM
 setup(){
+
+    # RAM for VM
+    VD_RAM=$(config_fetching "RAM")
+
+    # Boot Logs file
+    BOOT_LOGS_PATH="${BASE_DIR}/boot_logs.txt"
+
+    # Isolate vCPU
+    vCPU_PINNED=$(cat /sys/devices/system/cpu/cpu*/topology/thread_siblings_list | sort | uniq | tail -1)
+
 	# Set cpu as performance
 	for file in /sys/devices/system/cpu/cpu*/cpufreq/scaling_governor; do 
         echo "performance" > $file
@@ -183,50 +220,13 @@ unsetup(){
     echo "Exit success!"
 }
 
-# HELP MENU
-show_help(){
-	echo ""
-    echo "${0} [OPTION] [CONFIG FILE PATH]"
-    echo "Options:"
-    echo "  --setup -----> Set up the environmet optimization"
-    echo "  --unsetup ---> Unsets the environment optimization"
-    echo "  -h | --help -> Show this help."
-    echo ""
-    exit 0
-}
-
-# SWITHC ARGUMENTS
-process_args(){
-    case "${ARG1}" in
-    "")
-        echo "No arguments provided,check below. "
-        show_help
-        shift
-        ;;
-    "--setup")
-        echo "Setting environment..."
-        setup
-        shift
-        ;;
-    "--unsetup")
-        echo "Unsetting environment..."
-        unsetup
-        shift
-        ;;
-    "-h" | "--help")
-        show_help
-        shift
-        ;;
-    *)
-        echo "Unrecognised option. -h or --help for help."
-        shift
-        ;;
-    esac
-}
-
-
 #####################################################################################################################################
 ##### MAIN #####
 #####################################################################################################################################
 
-process_args
+process_args $@
+
+#####################################################################################################################################
+##### COMMAND TO RUN. EXAMPLE #####
+#####################################################################################################################################
+#sudo ./host_config.sh --setup=/home/franciscosantos/Desktop/git/Tunned_QEMU_VM/config_yes.json

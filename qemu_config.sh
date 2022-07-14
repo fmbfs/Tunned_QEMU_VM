@@ -3,13 +3,21 @@
 #####################################################################################################################################
 ##### GLOBAL VARIABLES #####
 #####################################################################################################################################
+# Default error handling
+#set -euox pipefail
 
 # Defining base PATH
 BASE_DIR=$(dirname "${BASH_SOURCE[0]}")
 [[ "${BASE_DIR}" != "." ]] || BASE_DIR=$(pwd)
 
 grub_path="/etc/default/grub"
-grub_cmdline="#*.json"
+grub_cmdline="#CONFIG_JSON="
+
+# No futuro meter CONFIG_JSON 
+argument_line_nr="$(awk "/${grub_cmdline}/"'{ print NR; exit }' ${grub_path})"
+raw_config_file_path="$(head -n ${argument_line_nr} ${grub_path} | tail -1 | awk "/${grub_cmdline}/"'{print}' | cut -d '#' -f2)"
+config_file_path=$(echo ${raw_config_file_path} | cut -d '=' -f2 )
+echo "${config_file_path}"
 
 #####################################################################################################################################
 ##### FUNCTIONS #####
@@ -47,9 +55,6 @@ set_variables(){
 	# Pinned vCPU
 	vCPU_PINNED=$(cat /sys/devices/system/cpu/cpu*/topology/thread_siblings_list | sort | uniq | tail -1)
 
-    # No futuro meter CONFIG_JSON and grab what is infront - TODO
-    argument_line_nr="$(awk "/${grub_cmdline}/"'{ print NR; exit }' ${grub_path})"
-    config_file_path="$(head -n ${argument_line_nr} ${grub_path} | tail -1 | awk "/#*.json/"'{print}' | cut -d '#' -f2)"
     # grub_tuned_ubuntu22="${grub_cmdline}=\"systemd.unified_cgroup_hierarchy=0\""
     # grub_default="${grub_cmdline}_DEFAULT=\"quiet splash\""
     # argument_line_nr="$(awk "/${grub_cmdline}/"'{ print NR; exit }' ${grub_path})"
@@ -70,22 +75,22 @@ show_help(){
 process_args(){
     for i in "$@"; do
         case "${i}" in
-        "-h" | "--help")
-            show_help
-            shift
-            ;;
-        "--disk-path")
-            VSD_path="${i#*=}"
-            shift
-            ;;
-        --boot-logs=*)
-            BOOT_LOGS_PATH="${i#*=}"
-            shift
-            ;;
-        *)
-            echo "Unrecognised option. -h or --help for help."
-            shift
-            ;;
+            "-h" | "--help")
+                show_help
+                shift
+                ;;
+            "--disk-path")
+                VSD_path="${i#*=}"
+                shift
+                ;;
+            --boot-logs=*)
+                BOOT_LOGS_PATH="${i#*=}"
+                shift
+                ;;
+            *)
+                echo "Unrecognised option. -h or --help for help."
+                shift
+                ;;
         esac
     done	
 }
