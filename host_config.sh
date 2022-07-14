@@ -1,9 +1,23 @@
 #!/bin/bash
 
+
+#####################################################################################################################################
+##### GLOBAL VARIABLES #####
+#####################################################################################################################################
+
+config_file_path=${2:-config.json}
+
+# Defining base PATH
+BASE_DIR=$(dirname "${BASH_SOURCE[0]}")
+[[ "${BASE_DIR}" == "." ]] && BASE_DIR=$(pwd)
+
+# Defining HugePage default sizes
+BIG_PAGES="1048576"
+SMALL_PAGES="2048"
+
 #####################################################################################################################################
 ##### FUNCTIONS #####
 #####################################################################################################################################
-config_file_path=${2:-config.json}
 
 # Config function to parse arguments
 config_fetching(){
@@ -16,25 +30,20 @@ config_fetching(){
     echo ${trimmed} | cut -d '"' -f2 | cut -d '"' -f2
 }
 
-# GLOBAL VARIABLES
-# Defining base PATH
-BASE_DIR=$(dirname "${BASH_SOURCE[0]}")
-[[ "${BASE_DIR}" == "." ]] && BASE_DIR=$(pwd)
+# Set Variables
+set_variables(){
+    # option
+    ARG1="${1}"
 
-# option
-ARG1="${1}"
+    # RAM for VM
+    VD_RAM=$(config_fetching "RAM")
 
-# RAM for VM
-VD_RAM=$(config_fetching "RAM")
+    # Boot Logs file
+    BOOT_LOGS_PATH="${BASE_DIR}/boot_logs.txt"
 
-# Defining HugePage default sizes
-BIG_PAGES="1048576"
-SMALL_PAGES="2048"
-# Boot Logs file
-BOOT_LOGS_PATH="${BASE_DIR}/boot_logs.txt"
-
-# Isolate vCPU
-vCPU_PINNED=$(cat /sys/devices/system/cpu/cpu*/topology/thread_siblings_list | sort | uniq | tail -1)
+    # Isolate vCPU
+    vCPU_PINNED=$(cat /sys/devices/system/cpu/cpu*/topology/thread_siblings_list | sort | uniq | tail -1)
+}
 
 # Huge Pages set-up.
 page_size(){
