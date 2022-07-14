@@ -28,32 +28,32 @@ ARG1="${1}"
 VD_RAM=$(config_fetching "RAM")
 
 # Defining HugePage default sizes
-big_pages="1048576"
-small_pages="2048"
+BIG_PAGES="1048576"
+SMALL_PAGES="2048"
 # Boot Logs file
-boot_logs_path="${BASE_DIR}/boot_logs.txt"
+BOOT_LOGS_PATH="${BASE_DIR}/boot_logs.txt"
 
-# Pinned vCPU
+# Isolate vCPU
 vCPU_PINNED=$(cat /sys/devices/system/cpu/cpu*/topology/thread_siblings_list | sort | uniq | tail -1)
 
 # Huge Pages set-up.
 page_size(){
     # Total page calculation
-    total_pages=$(( ${VD_RAM} * ${big_pages} / ${small_pages} ))
+    total_pages=$(( ${VD_RAM} * ${BIG_PAGES} / ${SMALL_PAGES} ))
     # Big pages
-    if [ "$(grep Hugepagesize /proc/meminfo | awk '{print $2}')" == "${big_pages}" ]; then
-        hugepages "${big_pages}" "${VD_RAM}"
+    if [ "$(grep Hugepagesize /proc/meminfo | awk '{print $2}')" == "${BIG_PAGES}" ]; then
+        hugepages "${BIG_PAGES}" "${VD_RAM}"
         grubsm
     # Small pages
-    elif [ "$(grep Hugepagesize /proc/meminfo | awk '{print $2}')" == "${small_pages}" ]; then 
-        hugepages "${small_pages}" "${total_pages}"
+    elif [ "$(grep Hugepagesize /proc/meminfo | awk '{print $2}')" == "${SMALL_PAGES}" ]; then 
+        hugepages "${SMALL_PAGES}" "${total_pages}"
         grubsm
     else
-        print_error "HP_2 - ${small_pages} Not avalilable"
+        print_error "HP_2 - ${SMALL_PAGES} Not avalilable"
     fi
 }
 
-# Allocate huge pages size
+# Allocate Huge Pages size
 hugepages(){
     sysctl -w vm.nr_hugepages="${2}"
     # Disable THP 
@@ -65,7 +65,7 @@ hugepages(){
     done
 }
 
-# Free allocated huge pages size
+# Free allocated Huge Pages size
 free_hugepages(){
     sysctl -w vm.nr_hugepages="0"
     # Enable THP
@@ -78,7 +78,7 @@ free_hugepages(){
     done
 }
 
-# Set Grub File to Static Method:
+# Set Grub File
 grubsm(){
     update_grub=$(config_fetching "Update Grub")
 
@@ -98,26 +98,31 @@ grubsm(){
     # Add comment for what ECU config was used and the a timestamp
     argument_line_nr3="$(( ${argument_line_nr} + 2 ))"
     sudo sed -i "${argument_line_nr3}d" ${grub_path}
-    sudo sed -i "${argument_line_nr3}i\#${config_file_path} [$(date)]" ${grub_path}
+    sudo sed -i "${argument_line_nr3}i\#${config_file_path}" ${grub_path}
+
+    # Add commented date
+    argument_line_nr4="$(( ${argument_line_nr} + 3 ))"
+    sudo sed -i "${argument_line_nr4}d" ${grub_path}
+    sudo sed -i "${argument_line_nr4}i\#[$(date)]" ${grub_path}
 
     if [[ ${update_grub} == "yes" ]]; then
         grub_tuned="${grub_cmdline}_DEFAULT=\"quiet splash isolcpus=${vCPU_PINNED} intel_iommu=on preempt=voluntary hugepagesz=1G hugepages=${VD_RAM} default_hugepagesz=1G transparent_hugepage=never\""
-        if [ ${default_arg} == ${grub_tuned} ] && [ ${default_arg2} == ${grub_default_2} ]; then #check if it is already in tunned mode
+        if [[ ${default_arg} == ${grub_tuned} && ${default_arg2} == ${grub_default_2} ]]; then #check if it is already in tunned mode
             echo "Already updated."
         else
             sudo sed -i "s/${default_arg}/${grub_tuned}/" ${grub_path}
             sudo sed -i "s/${default_arg2}/${grub_tuned_ubuntu22}/" ${grub_path}
-            sudo update-grub
+            sudo update-grub &>/dev/null
         fi
     elif [[ ${update_grub} == "no" ]]; then
         grub_tuned=$(cat ${grub_path} | grep "${grub_cmdline}_DEFAULT=")
         echo "${default_arg}"
-        if [ ${default_arg} == ${grub_default} && [ ${default_arg2} == ${grub_tuned_ubuntu22} ]; then # Check if it is already in default mode
+        if [[ ${default_arg} == ${grub_default} && ${default_arg2} == ${grub_tuned_ubuntu22} ]]; then # Check if it is already in default mode
             echo "Already default."
         else
             sudo sed -i "s/${grub_tuned}/${grub_default}/" ${grub_path}
             sudo sed -i "s/${grub_tuned_ubuntu22}/${grub_default_2}/" ${grub_path}
-            sudo update-grub
+            sudo update-grub &>/dev/null
         fi
     fi
 }
@@ -146,15 +151,18 @@ setup(){
 
     # Creating isolated set to launch qemu
     sudo cset shield --cpu=${vCPU_PINNED} --threads --kthread=on >/dev/null 
-
-    echo "Reboot to apply all the changes..."
+    if [[ ${update_grub} == "yes" ]]; then
+        echo "GRUB Updated. Reboot to apply all the changes..."
+        echo "Use the command below on terminal after you save your work for a fast reboot:"
+        echo "      shutdown -r now"
+    fi
 }
 
 unsetup(){
 	# Back to 95% removing cset and freeing HP
 	sysctl kernel.sched_rt_runtime_us=950000 >/dev/null
 	delete_cset >/dev/null
-	free_hugepages "${big_pages}" "${small_pages}" >/dev/null
+	free_hugepages "${BIG_PAGES}" "${SMALL_PAGES}" >/dev/null
 
 	# Set cpu to powersave
     for file in /sys/devices/system/cpu/cpu*/cpufreq/scaling_governor; do 
@@ -162,8 +170,7 @@ unsetup(){
     done
 
     echo "Note that to unset Grub file insert 'no' in the config file field"
-	# Remove boot file
-	sudo rm -f ${boot_logs_path}
+	
     echo "Exit success!"
 }
 
@@ -174,38 +181,38 @@ show_help(){
     echo "Options:"
     echo "  --setup -----> Set up the environmet optimization"
     echo "  --unsetup ---> Unsets the environment optimization"
-    echo "  -h -----> Show this help."
+    echo "  -h | --help -> Show this help."
     echo ""
     exit 0
 }
 
 # SWITHC ARGUMENTS
 process_args(){
-	case "${ARG1}" in
-	"")
-		echo "No arguments provided,check below. "
-		show_help
-		shift
-		;;
-	"--setup")
-		echo "Setting environment..."
+    case "${ARG1}" in
+    "")
+        echo "No arguments provided,check below. "
+        show_help
+        shift
+        ;;
+    "--setup")
+        echo "Setting environment..."
         setup
-		shift
-		;;
-	"--unsetup")
-		echo "Unsetting environment..."
+        shift
+        ;;
+    "--unsetup")
+        echo "Unsetting environment..."
         unsetup
-		shift
-		;;
-	"-h" | "--help")
-		show_help
-		shift
-		;;
-	*)
-		echo "Unrecognised option. -h for help."
-		shift
-		;;
-	esac	
+        shift
+        ;;
+    "-h" | "--help")
+        show_help
+        shift
+        ;;
+    *)
+        echo "Unrecognised option. -h or --help for help."
+        shift
+        ;;
+    esac
 }
 
 
@@ -214,6 +221,3 @@ process_args(){
 #####################################################################################################################################
 
 process_args
-
-
-# should we add an isol no isol? since it can be made via taskset cset...and no performance improvments were achieved by it

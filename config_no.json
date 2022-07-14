@@ -5,10 +5,11 @@
 
     "Arguments":
     {
-        "Name":"disk",
+        "NAME":"disk",
         "RAM":"8",
-        "VSD Cluster":"64",
-        "Cache Clean":"15",
-        "Update Grub":"no"
+        "VSD CLUSTER":"64",
+        "CACHE CLEAN":"15",
+        "UPDATE GRUB":"no",
+        "BOOT FLAG":"512"
     }
 }
