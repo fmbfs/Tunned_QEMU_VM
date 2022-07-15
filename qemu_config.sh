@@ -97,6 +97,7 @@ process_post_args() {
         sudo rm -f ${BOOT_LOGS_PATH}
     fi
     sudo touch ${BOOT_LOGS_PATH}
+    sudo chmod 666 ${BOOT_LOGS_PATH}
 }
 
 # Process Cluster Sizes
@@ -119,7 +120,6 @@ process_cluster() {
 	if [[ "${ARR_CS_VALID[@]}" =~ "${CS_VALUE}" ]]; then 
         if [[ "${DISK_SIZE}" -lt "${CHECK_MIN_VSD}" ]]; then
             L2_CACHE_SIZE="1M"
-            echo "aqui"
         else
 		aux_calc=$(( ${CS_VALUE}/8 ))
 		L2_CACHE_SIZE="$(( ${DISK_SIZE}/${aux_calc} + 1 ))M"

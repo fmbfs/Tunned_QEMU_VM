@@ -105,8 +105,9 @@ set_vars() {
     IMAGE_USERDATA=${ROOTFS_DIR}/userdata.ext4
     RAW_IMAGE_CONTAINER=${ROOTFS_DIR}/emmc.raw
     QCOW2_IMAGE_CONTAINER=${ROOTFS_DIR}/emmc.qcow2
+    
     if [ -z "${SNAPSHOT_IMG+x}" ] ; then
-        if [ "${WITH_PERFORMANCE}" ] ; then
+        if "${WITH_PERFORMANCE}" ; then
             IMAGE_CONTAINER="${QCOW2_IMAGE_CONTAINER}"
         else
             IMAGE_CONTAINER="${RAW_IMAGE_CONTAINER}"
@@ -122,7 +123,7 @@ set_vars() {
 
     KERNEL_PARAMS="root=/dev/vda1 ro mem=4G console=ttyAMA0,115200 console=tty loglevel=7 audit=0"
 
-    QEMU_ARGS_ORIGINAL=( \
+    QEMU_ARGS_ori1=( \
                 "-monitor" "null" \
                 "-object" "rng-random,filename=/dev/random,id=rng0" \
                 "-device" "virtio-rng-pci,rng=rng0" \
@@ -136,13 +137,30 @@ set_vars() {
                 "-drive" "file=${IMAGE_CONTAINER},id=disk0,format=${IMAGE_FORMAT},if=none,cache=none" \
                 "-device" "virtio-blk-pci,drive=disk0" \
                 )
+
     QEMU_ARGS=( \
                 "-monitor" "null" \
                 "-object" "rng-random,filename=/dev/random,id=rng0" \
                 "-device" "virtio-rng-pci,rng=rng0" \
-                "-cpu" "max,pdpe1gb,kvm=off,hv_relaxed,hv_spinlocks=0x1fff,hv_vapic,hv_time" \
+                "-cpu" "cortex-a57" \
                 "-smp" "3" \
-                "-machine" "accel=kvm,kernel_irqchip=on" \
+                "-machine" "type=virt" \
+                "-m" "4G" \
+                "-nodefaults" \
+                "-serial" "mon:stdio" \
+                "-kernel" "${KERNEL}" \
+                "-drive" "file=${IMAGE_CONTAINER},id=disk0,format=${IMAGE_FORMAT},if=none,cache=none" \
+                "-device" "virtio-blk-pci,drive=disk0" \
+                )
+
+    # ALTERAR NOME TODO
+    QEMU_ARGS_ORI2=( \
+                "-monitor" "null" \
+                "-object" "rng-random,filename=/dev/random,id=rng0" \
+                "-device" "virtio-rng-pci,rng=rng0" \
+                "-cpu" "max" \
+                "-smp" "3" \
+                "-machine" "type=virt" \
                 "-m" "4G" \
                 "-nodefaults" \
                 "-serial" "mon:stdio" \
@@ -313,7 +331,7 @@ process_post_args() {
         QEMU_ARGS+=("-snapshot")
     fi
 
-    if [ -z "${SNAPSHOT_IMG+x}" ] ; then
+    if [ -z "${SNAPSHOT_IMG+x}" ] && ! "${WITH_PERFORMANCE}" ; then
         QEMU_ARGS+=("-device" "virtio-keyboard-pci")
     fi
 
@@ -527,6 +545,8 @@ create_filesystem() {
 
             # Add systemd-udev-trigger.service to sysinit.target, so network devices can be triggered
             run_sudo ln -s "${unpacked_dir}/lib/systemd/system/systemd-udev-trigger.service" "${unpacked_dir}/lib/systemd/system/sysinit.target.wants/systemd-udev-trigger.service"
+            # Remove dependencies that are timing out
+            run_sudo sed -i "s/dev-kostal_intercore_kostalcapi.device//g" "${unpacked_dir}/etc/systemd/system/kostalcapi.service"
 
             echo "Creating ext4 image for rootfs"
             install_block_coldplug "${unpacked_dir}" "udev-early-trigger.service"
@@ -546,7 +566,7 @@ create_filesystem() {
     fi
 
     # PERFORMANCE
-    if [ "${WITH_PERFORMANCE}" ] && [ ! -d "${IMAGE_CONTAINER}" ] ; then
+    if "${WITH_PERFORMANCE}" && [ ! -f "${IMAGE_CONTAINER}" ] ; then
         convert_raw_2_format
     fi
 
@@ -646,7 +666,7 @@ disable_vcan() {
 
 performance_setup() {
     source "${QEMU_CONFIG_EXEC}" --disk-path="${IMAGE_CONTAINER}" --boot-logs="${BOOT_LOGS_PATH}"
-
+    
     size_args="${#QEMU_ARGS[@]}"
     for ((i=0;i<size_args;i++)) ; do
         [[ "${QEMU_ARGS[${i}]}" == "-m" ]] && QEMU_ARGS[((i+1))]="${VD_RAM}G"
@@ -704,13 +724,13 @@ stop_install_eng_token(){
 }
 
 run_vdt() {
-    # TODO: sched, check boot logs
     echo "${CMD_SUDO[@]} \"${QEMU_BIN}\" ${QEMU_ARGS[@]} -append \"${KERNEL_PARAMS}\""
-    if [ ! "${WITH_PERFORMANCE}" ] ; then
+
+    if ! "${WITH_PERFORMANCE}" ; then
         run_sudo "${QEMU_BIN}" "${QEMU_ARGS[@]}" "-append" "${KERNEL_PARAMS}"
     else
         run_sudo cset shield -e \
-        "${QEMU_BIN}" -- ${QEMU_ARGS[@]} > ${BOOT_LOGS_PATH}
+        "${QEMU_BIN}" -- ${QEMU_ARGS[@]} >&1 ${BOOT_LOGS_PATH}
         # Test if isolation helps or not- TODO
         #"${QEMU_BIN}" ${QEMU_ARGS[@]} > ${BOOT_LOGS_PATH}
     fi
@@ -773,7 +793,7 @@ create_filesystem
 echo "Filesystem created!"
 
 # Adapt QEMU to increase performance
-! "${WITH_PERFORMANCE}" || performance_setup
+#! "${WITH_PERFORMANCE}" || performance_setup
 
 # Check if tap device is set-up
 network_setup
