@@ -59,14 +59,14 @@ set_variables(){
     # Grab disk size 
     VSD_PATH="${BASE_DIR}/Tunned_VM/QFT/Virtual_Disks"
     cd ${VSD_PATH}
-    Disk_Size=$(du -h ${VD_NAME} | awk '{print $1}' | cut -d 'G' -f1)
+    DISK_SIZE=$(du -h ${VD_NAME} | awk '{print $1}' | cut -d 'G' -f1)
     cd ${BASE_DIR}
     
 	# Process clusters
 	process_cluster
 
     # Cache Clean interval in seconds
-	Cache_Clean_Interval=$(config_fishing "Cache Clean")
+	CCLEAN_INTERVAL=$(config_fishing "Cache Clean")
 	# Pinned vCPU
 	VCPU_PINNED=$(cat /sys/devices/system/cpu/cpu*/topology/thread_siblings_list | sort | uniq | tail -1)
 
@@ -84,7 +84,7 @@ set_variables(){
 		"-mem-prealloc" \
 		"-machine" "accel=kvm,kernel_irqchip=on" \
 		"-rtc" "base=localtime,clock=host" \
-		"-drive" "file=${OS_IMG},l2-cache-size=${L2_Cache_Size},cache=writethrough,cache-clean-interval=${Cache_Clean_Interval}" \
+		"-drive" "file=${OS_IMG},l2-cache-size=${L2_CACHE_SIZE},cache=writethrough,cache-clean-interval=${CCLEAN_INTERVAL}" \
 	)
 }
 
@@ -117,22 +117,22 @@ sched(){
 
 # Process Cluster Sizes
 process_cluster(){
-    arr_cs_valid=("64","128","256","512","1024","2048")
+    ARR_CS_VALID=("64","128","256","512","1024","2048")
 	# Virtual Storage Device (VSD) -- virtual hard drive size in GiB
     # is automatically grabbed from QCOW2 file
     # Cluster Size in KiB
-	cluster_size_value=$(config_fishing "VSD Cluster")
-	Cluster_Size="${cluster_size_value}K"
-	L2_calculated=0
-	if [[ "${arr_cs_valid[@]}" =~ "${cluster_size_value}" ]]; then
-		auxiliar_calc=$(( ${cluster_size_value}/8 ))
-		L2_calculated=$(( ${Disk_Size}/${auxiliar_calc} + 1 ))
+	CS_VALUE=$(config_fishing "VSD Cluster")
+	CLUTER_SIZE="${CS_VALUE}K"
+	L2_CALCULATED=0
+	if [[ "${ARR_CS_VALID[@]}" =~ "${CS_VALUE}" ]]; then
+		auxiliar_calc=$(( ${CS_VALUE}/8 ))
+		L2_CALCULATED=$(( ${DISK_SIZE}/${auxiliar_calc} + 1 ))
 	else
 		echo "Invalid Cluster Size. Edit value in config.json"
         echo "64, 128, 256, 512, 1024, 2048"
         exit 0
 	fi
-	L2_Cache_Size="${L2_calculated}M"
+	L2_CACHE_SIZE="${L2_CALCULATED}M"
 }
 
 # Huge Pages set-up.

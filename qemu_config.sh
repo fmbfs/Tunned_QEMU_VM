@@ -4,8 +4,8 @@
 ##### GLOBAL VARIABLES #####
 #####################################################################################################################################
 # Default error handling
-set -euox pipefail
-#set -euo pipefail
+#set -euox pipefail
+set -euo pipefail
 
 # Defining base PATH
 BASE_DIR=$(dirname "${BASH_SOURCE[0]}")
@@ -45,7 +45,7 @@ set_variables() {
     BOOT_FLAG=$(config_fetching "BOOT FLAG")
 
     # Cache Clean interval in seconds
-	Cache_Clean_Interval=$(config_fetching "CACHE CLEAN")
+	CCLEAN_INTERVAL=$(config_fetching "CACHE CLEAN")
 
 	# Process clusters
 	process_cluster
@@ -102,25 +102,34 @@ process_post_args() {
 # Process Cluster Sizes
 process_cluster() {
     # Grab VSD size
-    Disk_Size=$(du -h ${VSD_PATH} | awk '{print $1}' | cut -d 'G' -f1)
+    # TODO -- check qcow2 file if less than 1GiB?
+    DISK_SIZE=$(du -b ${VSD_PATH} | awk '{print $1}')
 
-    L2_calculated=0
+    L2_CALCULATED=0
 	# Virtual Storage Device (VSD) -- virtual hard drive size in GiB
     # is automatically grabbed from QCOW2 file
     # Cluster Size (cs) in KiB
-    arr_cs_valid=("64","128","256","512","1024","2048")
-    cluster_size_value=$(config_fetching "VSD CLUSTER")
+    #ARR_CS_VALID=("64","128","256","512","1024","2048")
+    ARR_CS_VALID=("65536","131072","262144","524288","1048576","2097152")
+    CS_VALUE=$(config_fetching "VSD CLUSTER")
 
-	if [[ "${arr_cs_valid[@]}" =~ "${cluster_size_value}" ]]; then 
-        Cluster_Size="${cluster_size_value}K"
-		aux_calc=$(( ${cluster_size_value}/8 ))
-		L2_calculated="$(( ${Disk_Size}/${aux_calc} + 1 ))M"
-        echo ${L2_calculated}
+    # minimum value of VSD 8GiB before doing calculation
+    CHECK_MIN_VSD="8589934592"
+
+	if [[ "${ARR_CS_VALID[@]}" =~ "${CS_VALUE}" ]]; then 
+        if [[ "${DISK_SIZE}" -lt "${CHECK_MIN_VSD}" ]]; then
+            L2_CACHE_SIZE="1M"
+            echo "aqui"
+        else
+		aux_calc=$(( ${CS_VALUE}/8 ))
+		L2_CACHE_SIZE="$(( ${DISK_SIZE}/${aux_calc} + 1 ))M"
+        fi
 	else
 		echo "Invalid Cluster Size. Edit value in the file: ${CONFIG_FILE_PATH}"
-        echo "64, 128, 256, 512, 1024, 2048"
+        #echo "64, 128, 256, 512, 1024, 2048"
+        echo "65536, 131072, 262144, 524288, 1048576, 202097152"
 	fi
-	L2_Cache_Size="${L2_calculated}M"
+
 }
 
 # Set the qemu process priority to RT on Kernel
@@ -155,13 +164,6 @@ schedule() {
     done 
 }
 
-# LAUNCHER for VM
-config() {
-    schedule &
-    # Creating isolated set to launch qemu
-    sudo cset shield --cpu=${VCPU_PINNED} --threads --kthread=on >/dev/null 
-}
-
 #####################################################################################################################################
 ##### MAIN #####
 #####################################################################################################################################
@@ -174,7 +176,7 @@ process_post_args
 
 set_variables
 
-config
+schedule &
 
 #####################################################################################################################################
 ##### COMMAND TO RUN. EXAMPLE #####

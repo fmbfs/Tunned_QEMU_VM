@@ -7,7 +7,7 @@
     {
         "NAME":"disk",
         "RAM":"8",
-        "VSD CLUSTER":"64",
+        "VSD CLUSTER":"65536",
         "CACHE CLEAN":"15",
         "UPDATE GRUB":"no",
         "BOOT FLAG":"512"

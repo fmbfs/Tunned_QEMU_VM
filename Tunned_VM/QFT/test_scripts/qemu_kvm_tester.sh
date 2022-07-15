@@ -48,7 +48,7 @@ ARG1="${1:--lt}"
 ARG2="${2:-disk}"
 
 # Defining Global Variable
-L2_Cache_Size=""
+L2_CACHE_SIZE=""
 
 # Boot Logs file
 boot_logs_path="${BASE_DIR}/boot_logs.txt"
@@ -76,7 +76,7 @@ set_variables(){
 	THREADS="4"
 
     # CACHE CLEAN IN SECONDS
-	Cache_Clean_Interval="60"
+	CCLEAN_INTERVAL="60"
 
 	# Pinned vCPU
 	VCPU_PINNED=$(cat /sys/devices/system/cpu/cpu*/topology/thread_siblings_list | sort | uniq | tail -1)
@@ -100,7 +100,7 @@ set_variables(){
 			"-mem-prealloc" \
 			"-machine" "accel=kvm,kernel_irqchip=on" \
 			"-rtc" "base=localtime,clock=host" \
-			"-drive" "file=${OS_IMG},l2-cache-size=${L2_Cache_Size},cache=writethrough,cache-clean-interval=${Cache_Clean_Interval}" \
+			"-drive" "file=${OS_IMG},l2-cache-size=${L2_CACHE_SIZE},cache=writethrough,cache-clean-interval=${CCLEAN_INTERVAL}" \
 		)
 	elif [ ${ARG1} == "-l" ]; then
 		QEMU_ARGS+=(
@@ -121,26 +121,26 @@ set_variables(){
 # Process Cluster Sizes
 process_cluster(){
 	# IMAGE
-	Disk_Size="${5:-40}"
-	cluster_size_value="${6:-64}"
-	Cluster_Size="${cluster_size_value}K"
-	L2_calculated=0
+	DISK_SIZE="${5:-40}"
+	CS_VALUE="${6:-64}"
+	CLUTER_SIZE="${CS_VALUE}K"
+	L2_CALCULATED=0
 	# 1Mb for 8Gb using 64Kb. Make it cluster size fit no decimals.
 	# The value that is beeing divided by is the range that 1Mb of that 
 	# cluster size can reach
-	arr_cs_valid=("64","128","256","512","1024","2048")
-	if [[ "${arr_cs_valid[@]}" =~ "${cluster_size_value}" ]]; then
-		auxiliar_calc=$(( ${cluster_size_value}/8 ))
-		L2_calculated=$(( ${Disk_Size}/${auxiliar_calc} + 1 ))
+	ARR_CS_VALID=("64","128","256","512","1024","2048")
+	if [[ "${ARR_CS_VALID[@]}" =~ "${CS_VALUE}" ]]; then
+		auxiliar_calc=$(( ${CS_VALUE}/8 ))
+		L2_CALCULATED=$(( ${DISK_SIZE}/${auxiliar_calc} + 1 ))
 		#echo "${auxiliar_calc}"
-		#echo "${L2_calculated}"
+		#echo "${L2_CALCULATED}"
 		#exit 0
 	else
 		echo "Invalid Cluster Size."
 		exit 1
 	fi
 
-	L2_Cache_Size="${L2_calculated}M"
+	L2_CACHE_SIZE="${L2_CALCULATED}M"
 }
 
 # HELP MENU
@@ -196,7 +196,7 @@ process_args(){
 # CREATE VIRTUAL DISK IMAGE
 create_image_os(){
 	echo "Creating Virtual Hard Drive...";
-	qemu-img create -f qcow2 -o cluster_size=${Cluster_Size},lazy_refcounts=on ${OS_IMG} ${Disk_Size}G
+	qemu-img create -f qcow2 -o CLUTER_SIZE=${CLUTER_SIZE},lazy_refcounts=on ${OS_IMG} ${DISK_SIZE}G
 }
 
 # LAUNCH QEMU-KVM
