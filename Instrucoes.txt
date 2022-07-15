@@ -37,7 +37,7 @@ Caminho run-vdt.sh
 
 
 Run environment bmt:
-/opt/bmt/vdt/scripts
+/opt/bmt/
 . en...tab
 
 Run vdt with performance:

@@ -24,7 +24,7 @@ SMALL_PAGES="2048"
 #####################################################################################################################################
 
 # HELP MENU
-show_help(){
+show_help() {
 	echo ""
     echo "${0} [OPTION] [CONFIG FILE PATH]"
     echo "Options:"
@@ -36,7 +36,7 @@ show_help(){
 }
 
 # SWITHC ARGUMENTS
-process_args(){
+process_args() {
     for i in "$@"; do
         case "${i}" in
             "")
@@ -68,7 +68,7 @@ process_args(){
 }
 
 # Config function to parse arguments
-config_fetching(){
+config_fetching() {
     ARG_LINE_NR="$(awk "/${1}/"'{ print NR; exit }' ${CONFIG_FILE_PATH})" # Stores the Row Nº where the config argument is written
     OLD_CONFIG="$(head -n ${ARG_LINE_NR} ${CONFIG_FILE_PATH} | tail -1 | awk "/${1}/"'{print}')" # Stores the old setting of all config arguments
     TRIMMED=$(echo ${OLD_CONFIG} | cut -d ':' -f2 | cut -d ',' -f1)
@@ -76,7 +76,7 @@ config_fetching(){
 }
 
 # Huge Pages set-up.
-page_size(){
+page_size() {
     # Total page calculation
     TOTAL_PAGES=$(( ${VD_RAM} * ${BIG_PAGES} / ${SMALL_PAGES} ))
     # Big pages
@@ -93,7 +93,7 @@ page_size(){
 }
 
 # Allocate Huge Pages size
-hugepages(){
+hugepages() {
     sysctl -w vm.nr_hugepages="${2}"
     # Disable THP 
     echo "never" > "/sys/kernel/mm/transparent_hugepage/enabled"
@@ -105,7 +105,7 @@ hugepages(){
 }
 
 # Free allocated Huge Pages size
-free_hugepages(){
+free_hugepages() {
     sysctl -w vm.nr_hugepages="0"
     # Enable THP
     echo "always" > "/sys/kernel/mm/transparent_hugepage/enabled"
@@ -118,7 +118,7 @@ free_hugepages(){
 }
 
 # Set Grub File
-grubsm(){
+grubsm() {
     GRUB_CMDLINE="GRUB_CMDLINE_LINUX"
     GRUB_UBU22="${GRUB_CMDLINE}=\"systemd.unified_cgroup_hierarchy=0\""
 
@@ -166,10 +166,8 @@ grubsm(){
     fi
 }
 
-
-
 # Delete cset prevously created
-delete_cset(){
+delete_cset() {
     sudo cset set -d system
     while [[ $(sudo cset set -d system) =~ "done" ]]; do 
         sudo cset set -d system
@@ -178,7 +176,7 @@ delete_cset(){
 }
 
 # LAUNCHER for VM
-setup(){
+setup() {
     # RAM for VM
     VD_RAM=$(config_fetching "RAM")
 
@@ -205,7 +203,7 @@ setup(){
     fi
 }
 
-unsetup(){
+unsetup() {
     grubsm
 	# Back to 95% removing cset and freeing HP
 	sysctl kernel.sched_rt_runtime_us=950000 >/dev/null

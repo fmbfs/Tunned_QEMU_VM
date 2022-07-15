@@ -25,7 +25,7 @@ CONFIG_FILE_PATH=$(echo ${RAW_CONFIG_FILE_PATH} | cut -d '=' -f2 )
 #####################################################################################################################################
 
 # Config function to parse arguments
-config_fetching(){
+config_fetching() {
     ARG_LINE_NR="$(awk "/${1}/"'{ print NR; exit }' ${CONFIG_FILE_PATH})" # Stores the Row Nº where the config argument is written
     OLD_CONFIG="$(head -n ${ARG_LINE_NR} ${CONFIG_FILE_PATH} | tail -1 | awk "/${1}/"'{print}')" # Stores the old setting of all config arguments
     TRIMMED=$(echo ${OLD_CONFIG} | cut -d ':' -f2 | cut -d ',' -f1)
@@ -33,7 +33,7 @@ config_fetching(){
 }
 
 # Set Variables
-set_variables(){
+set_variables() {
     # Arguments fishing from config file:
     # Name of the Virtual machine (VM)
     VSD_NAME=$(basename ${VSD_PATH})
@@ -56,7 +56,7 @@ set_variables(){
 }
 
 # HELP MENU
-show_help(){
+show_help() {
 	echo ""
     echo "${0} [CONFIG FILE PATH]"
     echo "Options:"
@@ -68,7 +68,7 @@ show_help(){
 }
 
 # SWITCH ARGUMENTS
-process_args(){
+process_args() {
     for i in "$@"; do
         case "${i}" in
             "-h" | "--help")
@@ -100,7 +100,7 @@ process_post_args() {
 }
 
 # Process Cluster Sizes
-process_cluster(){
+process_cluster() {
     # Grab VSD size
     Disk_Size=$(du -h ${VSD_PATH} | awk '{print $1}' | cut -d 'G' -f1)
 
@@ -133,7 +133,8 @@ set_proc_priority() {
 }
 
 # Schedules the process priority on the kernel via Boot Flag
-schedule(){
+# VLAB flag value is: 512
+schedule() {
     REACHED_LOGIN=false
     while :; do
         if [ -f  ${BOOT_LOGS_PATH} ]; then
@@ -155,14 +156,10 @@ schedule(){
 }
 
 # LAUNCHER for VM
-config(){
+config() {
     schedule &
-
     # Creating isolated set to launch qemu
     sudo cset shield --cpu=${VCPU_PINNED} --threads --kthread=on >/dev/null 
-    # Run VM the -d is to detect when windows boots
-    #sudo cset shield -e \
-    #qemu-system-x86_64 -- ${QEMU_ARGS[@]} -d trace:qcow2_writev_done_part 2> ${BOOT_LOGS_PATH} >/dev/null
 }
 
 #####################################################################################################################################
