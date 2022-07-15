@@ -5,9 +5,15 @@
 #####################################################################################################################################
 # Default error handling
 set -euox pipefail
+#set -euo pipefail
 
-# SOURCES
-source /opt/bmt/vdt/scripts/host_config.sh
+# Defining base PATH
+BASE_DIR=$(dirname "${BASH_SOURCE[0]}")
+[[ "${BASE_DIR}" == "." ]] && BASE_DIR=$(pwd)
+
+# Grub path
+GRUB_PATH="/etc/default/grub"
+GRUB_JSON="#CONFIG_JSON="
 
 # Grab the config file path
 ARG_LINE_NR="$(awk "/${GRUB_JSON}/"'{ print NR; exit }' ${GRUB_PATH})"
@@ -54,6 +60,8 @@ show_help(){
 	echo ""
     echo "${0} [CONFIG FILE PATH]"
     echo "Options:"
+    echo "--disk-path ---> Demands VSD full path as an argument."
+    echo "--boot-logs ---> Demands .txt file full path to store boot logs."
     echo "  -h | --help -> Show this help."
     echo ""
     exit 0

@@ -31,6 +31,4 @@ GRUB_CMDLINE_LINUX=""
 
 # Uncomment to get a beep at grub start
 #GRUB_INIT_TUNE="480 440 1"
-#DO NOT CHANGE THE TWO LINES BELOW:
-#CONFIG_JSON=/home/franciscosantos/Desktop/git/Tunned_QEMU_VM/config_yes.json
-#CONFIG_DATE=sex 15 jul 2022 10:27:32 WEST
+

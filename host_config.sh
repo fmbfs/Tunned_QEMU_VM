@@ -5,14 +5,15 @@
 #####################################################################################################################################
 # Default error handling
 #set -euox pipefail
+#set -euo pipefail
 
 # Defining base PATH
 BASE_DIR=$(dirname "${BASH_SOURCE[0]}")
 [[ "${BASE_DIR}" == "." ]] && BASE_DIR=$(pwd)
 
 # Grub path
-#GRUB_PATH="/etc/default/grub"
-GRUB_PATH="/home/franciscosantos/Desktop/git/Tunned_QEMU_VM/grubi.txt"
+GRUB_PATH="/etc/default/grub"
+#GRUB_PATH="/home/franciscosantos/Desktop/git/Tunned_QEMU_VM/grubi.txt"
 
 # Defining HugePage default sizes
 BIG_PAGES="1048576"
@@ -118,8 +119,6 @@ free_hugepages(){
 
 # Set Grub File
 grubsm(){
-    UPDATE_GRUB=$(config_fetching "UPDATE GRUB")
-
     GRUB_CMDLINE="GRUB_CMDLINE_LINUX"
     GRUB_UBU22="${GRUB_CMDLINE}=\"systemd.unified_cgroup_hierarchy=0\""
 
@@ -132,10 +131,25 @@ grubsm(){
     ARG_LINE_NR2="$(( ${ARG_LINE_NR} + 1 ))"
     OLD_CONFIG2="$(head -n ${ARG_LINE_NR2} ${GRUB_PATH} | tail -1 | awk "/${GRUB_CMDLINE}/"'{print}')"
 
+    if [ -z ${CONFIG_FILE_PATH+x} ]; then
+        GRUB_TUNED=$(cat ${GRUB_PATH} | grep "${GRUB_CMDLINE}_DEFAULT=")
+        echo "AQUI"
+        if [[ ${OLD_CONFIG} == ${GRUB_DEFAULT} && ${OLD_CONFIG2} == ${GRUB_UBU22} ]]; then
+            echo "Already default."
+        else
+            sudo sed -i "s/${GRUB_TUNED}/${GRUB_DEFAULT}/" ${GRUB_PATH}
+            sudo sed -i "s/${GRUB_UBU22}/${GRUB_DEFAULT_2}/" ${GRUB_PATH}
+            sudo sed -i "/#DO NOT CHANGE THE TWO LINES BELOW:/d" ${GRUB_PATH}
+            sudo sed -i "/#CONFIG_JSON=/d" ${GRUB_PATH}
+            sudo sed -i "/#CONFIG_DATE=/d" ${GRUB_PATH}
+            sudo update-grub &>/dev/null
+        fi
+        return
+    fi
+
+    UPDATE_GRUB=$(config_fetching "UPDATE GRUB")
     if [[ ${UPDATE_GRUB} == "yes" ]]; then
-        
         GRUB_TUNED="${GRUB_CMDLINE}_DEFAULT=\"quiet splash isolcpus=${VCPU_PINNED} intel_iommu=on preempt=voluntary hugepagesz=1G hugepages=${VD_RAM} default_hugepagesz=1G transparent_hugepage=never\""
-        
         if [[ ${OLD_CONFIG} == ${GRUB_TUNED} && ${OLD_CONFIG2} == ${GRUB_DEFAULT_2} ]]; then
             echo "Already updated."
         else
@@ -149,23 +163,10 @@ grubsm(){
 
             sudo update-grub &>/dev/null
         fi
-    elif [[ ${UPDATE_GRUB} == "no" ]]; then
-        GRUB_TUNED=$(cat ${GRUB_PATH} | grep "${GRUB_CMDLINE}_DEFAULT=")
-
-        if [[ ${OLD_CONFIG} == ${GRUB_DEFAULT} && ${OLD_CONFIG2} == ${GRUB_UBU22} ]]; then
-            echo "Already default."
-        else
-            sudo sed -i "s/${GRUB_TUNED}/${GRUB_DEFAULT}/" ${GRUB_PATH}
-            sudo sed -i "s/${GRUB_UBU22}/${GRUB_DEFAULT_2}/" ${GRUB_PATH}
-            i=0
-            while [ ${i} < 4 ]; do
-                sed '$d' ${GRUB_PATH}
-                $(( i++ ))
-            done
-            sudo update-grub &>/dev/null
-        fi
     fi
 }
+
+
 
 # Delete cset prevously created
 delete_cset(){
@@ -205,6 +206,7 @@ setup(){
 }
 
 unsetup(){
+    grubsm
 	# Back to 95% removing cset and freeing HP
 	sysctl kernel.sched_rt_runtime_us=950000 >/dev/null
 	delete_cset >/dev/null
@@ -216,6 +218,7 @@ unsetup(){
     done
 
     echo "Note that to unset Grub file insert 'no' in the config file field"
+    
 }
 
 #####################################################################################################################################
