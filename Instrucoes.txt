@@ -1,0 +1,44 @@
+Ligar a VPN.
+cd ascgit407.testing/vdt/helper-scripts/
+
+Para mostrar o help menu:
+./get_vdt_artifacts.sh --help
+
+Exemplo: 
+./get_vdt_artifacts.sh --ecu-branch=MGU22
+
+Each time you wish to use the SDK in a new shell session, you need to source the environment setup script e.g.
+ $ . /opt/mgu22/environment-setup-aarch64-poky-linux
+
+Se nao der merda correr aqui
+senao cd opt/mgu22 . env tab
+~/Desktop/git/ascgit407.testing/vdt/helper-scripts$ . /opt/mgu22/environment-setup-aarch64-poky-linux
+
+para 1a vez meter o install
+run-vdt.sh --no-graphics --install-tar=/home/franciscosantos/Downloads/mgu22-MGU22_22w27.4-1-78-vdt-image-mgu22_highf.tar.gz 
+--no
+depois é sem isso
+
+correr dentro do envirnment com performance:
+run-vdt.sh --performance
+
+./opkg-enabler.sh --> instala uma tool para instalar packages dentro do VDT
+
+
+sudo rm -rf /home/franciscosantos/temp/ /home/franciscosantos/Downloads/opkg-enabler/
+
+se quisermos correr novamente o pkg correr o codigo acima de remover
+
+ctr+a x para sair do opt/mgu22 environment
+
+
+Caminho run-vdt.sh
+/opt/bmt/vdt/scripts
+
+
+Run environment bmt:
+/opt/bmt/vdt/scripts
+. en...tab
+
+Run vdt with performance:
+run-vdt.sh --performance

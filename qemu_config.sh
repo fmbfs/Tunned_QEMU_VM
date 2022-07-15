@@ -4,20 +4,15 @@
 ##### GLOBAL VARIABLES #####
 #####################################################################################################################################
 # Default error handling
-#set -euox pipefail
+set -euox pipefail
 
-# Defining base PATH
-BASE_DIR=$(dirname "${BASH_SOURCE[0]}")
-[[ "${BASE_DIR}" != "." ]] || BASE_DIR=$(pwd)
+# SOURCES
+source /opt/bmt/vdt/scripts/host_config.sh
 
-grub_path="/etc/default/grub"
-grub_cmdline="#CONFIG_JSON="
-
-# No futuro meter CONFIG_JSON 
-argument_line_nr="$(awk "/${grub_cmdline}/"'{ print NR; exit }' ${grub_path})"
-raw_config_file_path="$(head -n ${argument_line_nr} ${grub_path} | tail -1 | awk "/${grub_cmdline}/"'{print}' | cut -d '#' -f2)"
-config_file_path=$(echo ${raw_config_file_path} | cut -d '=' -f2 )
-echo "${config_file_path}"
+# Grab the config file path
+ARG_LINE_NR="$(awk "/${GRUB_JSON}/"'{ print NR; exit }' ${GRUB_PATH})"
+RAW_CONFIG_FILE_PATH="$(head -n ${ARG_LINE_NR} ${GRUB_PATH} | tail -1 | awk "/${GRUB_JSON}/"'{print}' | cut -d '#' -f2)"
+CONFIG_FILE_PATH=$(echo ${RAW_CONFIG_FILE_PATH} | cut -d '=' -f2 )
 
 #####################################################################################################################################
 ##### FUNCTIONS #####
@@ -25,20 +20,17 @@ echo "${config_file_path}"
 
 # Config function to parse arguments
 config_fetching(){
-    # Config file path
-    file_config="${config_file_path}"
-    
-    argument_line_nr="$(awk "/${1}/"'{ print NR; exit }' ${file_config})" # Stores the Row Nº where the config argument is written
-    default_arg="$(head -n ${argument_line_nr} ${file_config} | tail -1 | awk "/${1}/"'{print}')" # Stores the old setting of all config arguments
-    trimmed=$(echo ${default_arg} | cut -d ':' -f2 | cut -d ',' -f1)
-    echo ${trimmed} | cut -d '"' -f2 | cut -d '"' -f2
+    ARG_LINE_NR="$(awk "/${1}/"'{ print NR; exit }' ${CONFIG_FILE_PATH})" # Stores the Row Nº where the config argument is written
+    OLD_CONFIG="$(head -n ${ARG_LINE_NR} ${CONFIG_FILE_PATH} | tail -1 | awk "/${1}/"'{print}')" # Stores the old setting of all config arguments
+    TRIMMED=$(echo ${OLD_CONFIG} | cut -d ':' -f2 | cut -d ',' -f1)
+    echo ${TRIMMED} | cut -d '"' -f2 | cut -d '"' -f2
 }
 
 # Set Variables
 set_variables(){
     # Arguments fishing from config file:
     # Name of the Virtual machine (VM)
-    VSD_name=$(basename ${VSD_path})
+    VSD_NAME=$(basename ${VSD_PATH})
 
     # RAM for VM
     VD_RAM=$(config_fetching "RAM")
@@ -53,12 +45,8 @@ set_variables(){
 	process_cluster
 
 	# Pinned vCPU
-	vCPU_PINNED=$(cat /sys/devices/system/cpu/cpu*/topology/thread_siblings_list | sort | uniq | tail -1)
+	VCPU_PINNED=$(cat /sys/devices/system/cpu/cpu*/topology/thread_siblings_list | sort | uniq | tail -1)
 
-    # grub_tuned_ubuntu22="${grub_cmdline}=\"systemd.unified_cgroup_hierarchy=0\""
-    # grub_default="${grub_cmdline}_DEFAULT=\"quiet splash\""
-    # argument_line_nr="$(awk "/${grub_cmdline}/"'{ print NR; exit }' ${grub_path})"
-    # default_arg="$(head -n ${argument_line_nr} ${grub_path} | tail -1 | awk "/${grub_cmdline}_DEFAULT/"'{print}')"
 }
 
 # HELP MENU
@@ -79,8 +67,8 @@ process_args(){
                 show_help
                 shift
                 ;;
-            "--disk-path")
-                VSD_path="${i#*=}"
+            --disk-path=*)
+                VSD_PATH="${i#*=}"
                 shift
                 ;;
             --boot-logs=*)
@@ -106,7 +94,7 @@ process_post_args() {
 # Process Cluster Sizes
 process_cluster(){
     # Grab VSD size
-    Disk_Size=$(du -h ${VSD_name} | awk '{print $1}' | cut -d 'G' -f1)
+    Disk_Size=$(du -h ${VSD_PATH} | awk '{print $1}' | cut -d 'G' -f1)
 
     L2_calculated=0
 	# Virtual Storage Device (VSD) -- virtual hard drive size in GiB
@@ -121,7 +109,7 @@ process_cluster(){
 		L2_calculated="$(( ${Disk_Size}/${aux_calc} + 1 ))M"
         echo ${L2_calculated}
 	else
-		echo "Invalid Cluster Size. Edit value in the file: ${config_file_path}"
+		echo "Invalid Cluster Size. Edit value in the file: ${CONFIG_FILE_PATH}"
         echo "64, 128, 256, 512, 1024, 2048"
 	fi
 	L2_Cache_Size="${L2_calculated}M"
@@ -130,7 +118,7 @@ process_cluster(){
 # Set the qemu process priority to RT on Kernel
 set_proc_priority() {
     # Get parent PID of QEMU VM
-    PARENT_PID=$(pstree -pa $(pidof qemu-system-x86_64) | grep ${VSD_name} | cut -d','  -f2 | cut -d' ' -f1)
+    PARENT_PID=$(pstree -pa $(pidof qemu-system-x86_64) | grep ${VSD_NAME} | cut -d','  -f2 | cut -d' ' -f1)
     # Set all threads of parent PID to SCHED_FIFO 99 priority
     pstree -pa $PARENT_PID | cut -d','  -f2 | cut -d' ' -f1 | xargs -L1 echo "chrt -f -p 99" | bash
     exit 0
@@ -163,7 +151,7 @@ config(){
     schedule &
 
     # Creating isolated set to launch qemu
-    sudo cset shield --cpu=${vCPU_PINNED} --threads --kthread=on >/dev/null 
+    sudo cset shield --cpu=${VCPU_PINNED} --threads --kthread=on >/dev/null 
     # Run VM the -d is to detect when windows boots
     #sudo cset shield -e \
     #qemu-system-x86_64 -- ${QEMU_ARGS[@]} -d trace:qcow2_writev_done_part 2> ${BOOT_LOGS_PATH} >/dev/null
@@ -173,6 +161,8 @@ config(){
 ##### MAIN #####
 #####################################################################################################################################
 
+# TODO -- alert when no arguments are passed
+
 process_args $@
 
 process_post_args
@@ -180,3 +170,8 @@ process_post_args
 set_variables
 
 config
+
+#####################################################################################################################################
+##### COMMAND TO RUN. EXAMPLE #####
+#####################################################################################################################################
+#sudo ./qemu_config.sh --disk-path=/home/franciscosantos/Desktop/git/Tunned_QEMU_VM/Tunned_VM/QFT/Virtual_Disks/disk.qcow2 --boot-logs=/home/franciscosantos/Desktop/git/Tunned_QEMU_VM/boot_logs.txt

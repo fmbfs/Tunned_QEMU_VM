@@ -20,7 +20,7 @@ VD_RAM="${3:-8}"
 # It is recommended to use the largest supported hugepage size for the best performance.
 page_size(){
     # Total page calculation
-    total_pages=$(( ${VD_RAM} * ${big_pages} / ${small_pages} ))
+    TOTAL_PAGES=$(( ${VD_RAM} * ${big_pages} / ${small_pages} ))
     #big pages
     if [ "$(grep Hugepagesize /proc/meminfo | awk '{print $2}')" = "${big_pages}" ]; then
         hugepages "${big_pages}" "${VD_RAM}"
@@ -29,7 +29,7 @@ page_size(){
         echo "HP_1 - ${big_pages} Not avalilable"
         #small pages
         if [ "$(grep Hugepagesize /proc/meminfo | awk '{print $2}')" = "${small_pages}" ]; then 
-                hugepages "${small_pages}" "${total_pages}"
+                hugepages "${small_pages}" "${TOTAL_PAGES}"
                 echo "HP_2 - ${small_pages} OK"
         else
             print_error "HP_2 - ${small_pages} Not avalilable"

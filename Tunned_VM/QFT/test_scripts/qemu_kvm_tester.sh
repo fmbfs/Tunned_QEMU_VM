@@ -79,7 +79,7 @@ set_variables(){
 	Cache_Clean_Interval="60"
 
 	# Pinned vCPU
-	vCPU_PINNED=$(cat /sys/devices/system/cpu/cpu*/topology/thread_siblings_list | sort | uniq | tail -1)
+	VCPU_PINNED=$(cat /sys/devices/system/cpu/cpu*/topology/thread_siblings_list | sort | uniq | tail -1)
 
 	# Common Args
 	QEMU_ARGS=(

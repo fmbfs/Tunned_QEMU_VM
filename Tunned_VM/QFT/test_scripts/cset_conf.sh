@@ -5,7 +5,7 @@
 
 # Create cpu set
 create_cset(){
-    sudo cset shield --cpu=${vCPU_PINNED} --threads --kthread=on >/dev/null
+    sudo cset shield --cpu=${VCPU_PINNED} --threads --kthread=on >/dev/null
 }
 
 # Delete_cset

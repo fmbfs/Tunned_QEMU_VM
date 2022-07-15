@@ -21,10 +21,10 @@ config_fishing(){
     # Config file path
     file_config="./config.json"
 
-    argument_line_nr="$(awk "/${1}/"'{ print NR; exit }' ${file_config})" # Stores the Row Nº where the config argument is written
-    default_arg="$(head -n ${argument_line_nr} ${file_config} | tail -1 | awk "/${1}/"'{print}')" # Stores the old setting of all config arguments
-    trimmed=$(echo ${default_arg} | cut -d ':' -f2 | cut -d ',' -f1)
-    echo ${trimmed} | cut -d '"' -f2 | cut -d '"' -f2
+    ARG_LINE_NR="$(awk "/${1}/"'{ print NR; exit }' ${file_config})" # Stores the Row Nº where the config argument is written
+    OLD_CONFIG="$(head -n ${ARG_LINE_NR} ${file_config} | tail -1 | awk "/${1}/"'{print}')" # Stores the old setting of all config arguments
+    TRIMMED=$(echo ${OLD_CONFIG} | cut -d ':' -f2 | cut -d ',' -f1)
+    echo ${TRIMMED} | cut -d '"' -f2 | cut -d '"' -f2
 }
 
 set_variables(){
@@ -57,8 +57,8 @@ set_variables(){
 	OS_IMG="${QEMU_VD}/${VD_NAME}"
 
     # Grab disk size 
-    VSD_path="${BASE_DIR}/Tunned_VM/QFT/Virtual_Disks"
-    cd ${VSD_path}
+    VSD_PATH="${BASE_DIR}/Tunned_VM/QFT/Virtual_Disks"
+    cd ${VSD_PATH}
     Disk_Size=$(du -h ${VD_NAME} | awk '{print $1}' | cut -d 'G' -f1)
     cd ${BASE_DIR}
     
@@ -68,7 +68,7 @@ set_variables(){
     # Cache Clean interval in seconds
 	Cache_Clean_Interval=$(config_fishing "Cache Clean")
 	# Pinned vCPU
-	vCPU_PINNED=$(cat /sys/devices/system/cpu/cpu*/topology/thread_siblings_list | sort | uniq | tail -1)
+	VCPU_PINNED=$(cat /sys/devices/system/cpu/cpu*/topology/thread_siblings_list | sort | uniq | tail -1)
 
 	# Common Args
 	QEMU_ARGS=(
@@ -138,14 +138,14 @@ process_cluster(){
 # Huge Pages set-up.
 page_size(){
     # Total page calculation
-    total_pages=$(( ${VD_RAM} * ${big_pages} / ${small_pages} ))
+    TOTAL_PAGES=$(( ${VD_RAM} * ${big_pages} / ${small_pages} ))
     # Big pages
     if [ "$(grep Hugepagesize /proc/meminfo | awk '{print $2}')" == "${big_pages}" ]; then
         hugepages "${big_pages}" "${VD_RAM}"
         grubsm
     # Small pages
     elif [ "$(grep Hugepagesize /proc/meminfo | awk '{print $2}')" == "${small_pages}" ]; then 
-        hugepages "${small_pages}" "${total_pages}"
+        hugepages "${small_pages}" "${TOTAL_PAGES}"
         grubsm
     else
         print_error "HP_2 - ${small_pages} Not avalilable"
@@ -179,28 +179,28 @@ free_hugepages(){
 
 # Set Grub File to Static Method:
 grubsm(){
-    update_grub=$(config_fishing "Update Grub")
+    UPDATE_GRUB=$(config_fishing "Update Grub")
 
-    grub_path="/etc/default/grub"
-    grub_default="GRUB_CMDLINE_LINUX_DEFAULT=\"quiet splash\""
+    GRUB_PATH="/etc/default/grub"
+    GRUB_DEFAULT="GRUB_CMDLINE_LINUX_DEFAULT=\"quiet splash\""
     
-    argument_line_nr="$(awk "/GRUB_CMDLINE_LINUX_DEFAULT/"'{ print NR; exit }' ${grub_path})"
-    default_arg="$(head -n ${argument_line_nr} ${grub_path} | tail -1 | awk "/GRUB_CMDLINE_LINUX_DEFAULT/"'{print}')"
+    ARG_LINE_NR="$(awk "/GRUB_CMDLINE_LINUX_DEFAULT/"'{ print NR; exit }' ${GRUB_PATH})"
+    OLD_CONFIG="$(head -n ${ARG_LINE_NR} ${GRUB_PATH} | tail -1 | awk "/GRUB_CMDLINE_LINUX_DEFAULT/"'{print}')"
 
-    if [[ ${update_grub} == "yes" ]]; then
-        grub_tuned="GRUB_CMDLINE_LINUX_DEFAULT=\"quiet splash isolcpus=${vCPU_PINNED} intel_iommu=on preempt=voluntary hugepagesz=1G hugepages=${VD_RAM} default_hugepagesz=1G transparent_hugepage=never\""
-        if [[ ${default_arg} == ${grub_tuned} ]]; then #check if it is already in tunned mode
+    if [[ ${UPDATE_GRUB} == "yes" ]]; then
+        GRUB_TUNED="GRUB_CMDLINE_LINUX_DEFAULT=\"quiet splash isolcpus=${VCPU_PINNED} intel_iommu=on preempt=voluntary hugepagesz=1G hugepages=${VD_RAM} default_hugepagesz=1G transparent_hugepage=never\""
+        if [[ ${OLD_CONFIG} == ${GRUB_TUNED} ]]; then #check if it is already in tunned mode
             echo "Already updated."
         else
-            sudo sed -i "s/${grub_default}/${grub_tuned}/" ${grub_path}
+            sudo sed -i "s/${GRUB_DEFAULT}/${GRUB_TUNED}/" ${GRUB_PATH}
             sudo update-grub && shutdown -r now
         fi
-    elif [[ ${update_grub} == "no" ]]; then
-        grub_tuned=$(cat ${grub_path} | grep "GRUB_CMDLINE_LINUX_DEFAULT=")
-        if [[ ${default_arg} == ${grub_default} ]]; then # Check if it is already in default mode
+    elif [[ ${UPDATE_GRUB} == "no" ]]; then
+        GRUB_TUNED=$(cat ${GRUB_PATH} | grep "GRUB_CMDLINE_LINUX_DEFAULT=")
+        if [[ ${OLD_CONFIG} == ${GRUB_DEFAULT} ]]; then # Check if it is already in default mode
             echo "Already default."
         else
-            sudo sed -i "s/${grub_tuned}/${grub_default}/" ${grub_path}
+            sudo sed -i "s/${GRUB_TUNED}/${GRUB_DEFAULT}/" ${GRUB_PATH}
             sudo update-grub && shutdown -r now
         fi
     fi
@@ -224,7 +224,7 @@ os_launch_tuned(){
 	page_size >/dev/null
 
     # Creating isolated set to launch qemu
-    sudo cset shield --cpu=${vCPU_PINNED} --threads --kthread=on >/dev/null 
+    sudo cset shield --cpu=${VCPU_PINNED} --threads --kthread=on >/dev/null 
     # Run VM the -d is to detect when windows boots
     sudo cset shield -e \
     qemu-system-x86_64 -- ${QEMU_ARGS[@]} -d trace:qcow2_writev_done_part 2> ${boot_logs_path} >/dev/null

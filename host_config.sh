@@ -1,6 +1,5 @@
 #!/bin/bash
 
-
 #####################################################################################################################################
 ##### GLOBAL VARIABLES #####
 #####################################################################################################################################
@@ -11,10 +10,17 @@
 BASE_DIR=$(dirname "${BASH_SOURCE[0]}")
 [[ "${BASE_DIR}" == "." ]] && BASE_DIR=$(pwd)
 
+# Grub path
+#GRUB_PATH="/etc/default/grub"
+GRUB_PATH="/home/franciscosantos/Desktop/git/Tunned_QEMU_VM/grubi.txt"
+
 # Defining HugePage default sizes
 BIG_PAGES="1048576"
 SMALL_PAGES="2048"
 
+#####################################################################################################################################
+##### FUNCTIONS #####
+#####################################################################################################################################
 
 # HELP MENU
 show_help(){
@@ -39,7 +45,7 @@ process_args(){
                 ;;
             --setup=*)
                 echo "Setting environment..."
-                config_file_path="${i#*=}"
+                CONFIG_FILE_PATH="${i#*=}"
                 setup
                 shift
                 ;;
@@ -60,32 +66,28 @@ process_args(){
     done
 }
 
-#####################################################################################################################################
-##### FUNCTIONS #####
-#####################################################################################################################################
-
 # Config function to parse arguments
 config_fetching(){
-    argument_line_nr="$(awk "/${1}/"'{ print NR; exit }' ${config_file_path})" # Stores the Row Nº where the config argument is written
-    default_arg="$(head -n ${argument_line_nr} ${config_file_path} | tail -1 | awk "/${1}/"'{print}')" # Stores the old setting of all config arguments
-    trimmed=$(echo ${default_arg} | cut -d ':' -f2 | cut -d ',' -f1)
-    echo ${trimmed} | cut -d '"' -f2 | cut -d '"' -f2
+    ARG_LINE_NR="$(awk "/${1}/"'{ print NR; exit }' ${CONFIG_FILE_PATH})" # Stores the Row Nº where the config argument is written
+    OLD_CONFIG="$(head -n ${ARG_LINE_NR} ${CONFIG_FILE_PATH} | tail -1 | awk "/${1}/"'{print}')" # Stores the old setting of all config arguments
+    TRIMMED=$(echo ${OLD_CONFIG} | cut -d ':' -f2 | cut -d ',' -f1)
+    echo ${TRIMMED} | cut -d '"' -f2 | cut -d '"' -f2
 }
 
 # Huge Pages set-up.
 page_size(){
     # Total page calculation
-    total_pages=$(( ${VD_RAM} * ${BIG_PAGES} / ${SMALL_PAGES} ))
+    TOTAL_PAGES=$(( ${VD_RAM} * ${BIG_PAGES} / ${SMALL_PAGES} ))
     # Big pages
     if [ "$(grep Hugepagesize /proc/meminfo | awk '{print $2}')" == "${BIG_PAGES}" ]; then
         hugepages "${BIG_PAGES}" "${VD_RAM}"
         grubsm
     # Small pages
     elif [ "$(grep Hugepagesize /proc/meminfo | awk '{print $2}')" == "${SMALL_PAGES}" ]; then 
-        hugepages "${SMALL_PAGES}" "${total_pages}"
+        hugepages "${SMALL_PAGES}" "${TOTAL_PAGES}"
         grubsm
     else
-        print_error "HP_2 - ${SMALL_PAGES} Not avalilable"
+        echo "HP_2 - ${SMALL_PAGES} Not avalilable"
     fi
 }
 
@@ -116,48 +118,50 @@ free_hugepages(){
 
 # Set Grub File
 grubsm(){
-    update_grub=$(config_fetching "UPDATE GRUB")
+    UPDATE_GRUB=$(config_fetching "UPDATE GRUB")
 
-    grub_path="/etc/default/grub"
-    grub_cmdline="GRUB_CMDLINE_LINUX"
-    grub_tuned_ubuntu22="${grub_cmdline}=\"systemd.unified_cgroup_hierarchy=0\""
+    GRUB_CMDLINE="GRUB_CMDLINE_LINUX"
+    GRUB_UBU22="${GRUB_CMDLINE}=\"systemd.unified_cgroup_hierarchy=0\""
 
-    grub_default="${grub_cmdline}_DEFAULT=\"quiet splash\""
-    argument_line_nr="$(awk "/${grub_cmdline}/"'{ print NR; exit }' ${grub_path})"
-    default_arg="$(head -n ${argument_line_nr} ${grub_path} | tail -1 | awk "/${grub_cmdline}_DEFAULT/"'{print}')"
+    GRUB_DEFAULT="${GRUB_CMDLINE}_DEFAULT=\"quiet splash\""
+    ARG_LINE_NR="$(awk "/${GRUB_CMDLINE}/"'{ print NR; exit }' ${GRUB_PATH})"
+    OLD_CONFIG="$(head -n ${ARG_LINE_NR} ${GRUB_PATH} | tail -1 | awk "/${GRUB_CMDLINE}_DEFAULT/"'{print}')"
 
     # Sets the condition for Ubuntu 22
-    grub_default_2="${grub_cmdline}=\"\""
-    argument_line_nr2="$(( ${argument_line_nr} + 1 ))"
-    default_arg2="$(head -n ${argument_line_nr2} ${grub_path} | tail -1 | awk "/${grub_cmdline}/"'{print}')"
+    GRUB_DEFAULT_2="${GRUB_CMDLINE}=\"\""
+    ARG_LINE_NR2="$(( ${ARG_LINE_NR} + 1 ))"
+    OLD_CONFIG2="$(head -n ${ARG_LINE_NR2} ${GRUB_PATH} | tail -1 | awk "/${GRUB_CMDLINE}/"'{print}')"
 
-    # Add comment for what ECU config was used and the a timestamp
-    argument_line_nr3="$(( ${argument_line_nr} + 2 ))"
-    sudo sed -i "${argument_line_nr3}d" ${grub_path}
-    sudo sed -i "${argument_line_nr3}i\#${config_file_path}" ${grub_path}
-
-    # Add commented date
-    argument_line_nr4="$(( ${argument_line_nr} + 3 ))"
-    sudo sed -i "${argument_line_nr4}d" ${grub_path}
-    sudo sed -i "${argument_line_nr4}i\#[$(date)]" ${grub_path}
-
-    if [[ ${update_grub} == "yes" ]]; then
-        grub_tuned="${grub_cmdline}_DEFAULT=\"quiet splash isolcpus=${vCPU_PINNED} intel_iommu=on preempt=voluntary hugepagesz=1G hugepages=${VD_RAM} default_hugepagesz=1G transparent_hugepage=never\""
-        if [[ ${default_arg} == ${grub_tuned} && ${default_arg2} == ${grub_default_2} ]]; then #check if it is already in tunned mode
+    if [[ ${UPDATE_GRUB} == "yes" ]]; then
+        
+        GRUB_TUNED="${GRUB_CMDLINE}_DEFAULT=\"quiet splash isolcpus=${VCPU_PINNED} intel_iommu=on preempt=voluntary hugepagesz=1G hugepages=${VD_RAM} default_hugepagesz=1G transparent_hugepage=never\""
+        
+        if [[ ${OLD_CONFIG} == ${GRUB_TUNED} && ${OLD_CONFIG2} == ${GRUB_DEFAULT_2} ]]; then
             echo "Already updated."
         else
-            sudo sed -i "s/${default_arg}/${grub_tuned}/" ${grub_path}
-            sudo sed -i "s/${default_arg2}/${grub_tuned_ubuntu22}/" ${grub_path}
+            sudo sed -i "s/${OLD_CONFIG}/${GRUB_TUNED}/" ${GRUB_PATH}
+            sudo sed -i "s/${OLD_CONFIG2}/${GRUB_UBU22}/" ${GRUB_PATH}
+
+            # Add comment to the end of the file for what ECU config was used and the a timestamp
+            sudo echo -e "\n\n#DO NOT CHANGE THE TWO LINES BELOW:" >> ${GRUB_PATH}
+            sudo echo "#CONFIG_JSON=${CONFIG_FILE_PATH}" >> ${GRUB_PATH}
+            sudo echo "#CONFIG_DATE=$(date)" >> ${GRUB_PATH}
+
             sudo update-grub &>/dev/null
         fi
-    elif [[ ${update_grub} == "no" ]]; then
-        grub_tuned=$(cat ${grub_path} | grep "${grub_cmdline}_DEFAULT=")
-        echo "${default_arg}"
-        if [[ ${default_arg} == ${grub_default} && ${default_arg2} == ${grub_tuned_ubuntu22} ]]; then # Check if it is already in default mode
+    elif [[ ${UPDATE_GRUB} == "no" ]]; then
+        GRUB_TUNED=$(cat ${GRUB_PATH} | grep "${GRUB_CMDLINE}_DEFAULT=")
+
+        if [[ ${OLD_CONFIG} == ${GRUB_DEFAULT} && ${OLD_CONFIG2} == ${GRUB_UBU22} ]]; then
             echo "Already default."
         else
-            sudo sed -i "s/${grub_tuned}/${grub_default}/" ${grub_path}
-            sudo sed -i "s/${grub_tuned_ubuntu22}/${grub_default_2}/" ${grub_path}
+            sudo sed -i "s/${GRUB_TUNED}/${GRUB_DEFAULT}/" ${GRUB_PATH}
+            sudo sed -i "s/${GRUB_UBU22}/${GRUB_DEFAULT_2}/" ${GRUB_PATH}
+            i=0
+            while [ ${i} < 4 ]; do
+                sed '$d' ${GRUB_PATH}
+                $(( i++ ))
+            done
             sudo update-grub &>/dev/null
         fi
     fi
@@ -174,15 +178,11 @@ delete_cset(){
 
 # LAUNCHER for VM
 setup(){
-
     # RAM for VM
     VD_RAM=$(config_fetching "RAM")
 
-    # Boot Logs file
-    BOOT_LOGS_PATH="${BASE_DIR}/boot_logs.txt"
-
     # Isolate vCPU
-    vCPU_PINNED=$(cat /sys/devices/system/cpu/cpu*/topology/thread_siblings_list | sort | uniq | tail -1)
+    VCPU_PINNED=$(cat /sys/devices/system/cpu/cpu*/topology/thread_siblings_list | sort | uniq | tail -1)
 
 	# Set cpu as performance
 	for file in /sys/devices/system/cpu/cpu*/cpufreq/scaling_governor; do 
@@ -196,8 +196,8 @@ setup(){
 	page_size >/dev/null
 
     # Creating isolated set to launch qemu
-    sudo cset shield --cpu=${vCPU_PINNED} --threads --kthread=on >/dev/null 
-    if [[ ${update_grub} == "yes" ]]; then
+    sudo cset shield --cpu=${VCPU_PINNED} --threads --kthread=on >/dev/null 
+    if [[ ${UPDATE_GRUB} == "yes" ]]; then
         echo "GRUB Updated. Reboot to apply all the changes..."
         echo "Use the command below on terminal after you save your work for a fast reboot:"
         echo "      shutdown -r now"
@@ -216,8 +216,6 @@ unsetup(){
     done
 
     echo "Note that to unset Grub file insert 'no' in the config file field"
-	
-    echo "Exit success!"
 }
 
 #####################################################################################################################################

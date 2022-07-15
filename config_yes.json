@@ -10,7 +10,6 @@
         "VSD CLUSTER":"64",
         "CACHE CLEAN":"15",
         "UPDATE GRUB":"yes",
-        "BOOT FLAG":"login: root",
-        "VLAB BOOT FLAG":"512"
+        "BOOT FLAG":"login: root"
     }
 }

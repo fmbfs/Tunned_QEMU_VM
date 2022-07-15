@@ -50,11 +50,11 @@ vlab_configs(){
 
     while [[ ${i:-0} != ${#config_args_list[@]} ]]
     do 
-        argument_line_nr="$(awk "/${config_args_list[i]}/"'{ print NR; exit }' ${file_config})" # Stores the Row Nº where the config argument is written
-        default_arg[i]="$(head -n ${argument_line_nr} ${file_config} | tail -1)" # Stores the old setting of all config arguments
+        ARG_LINE_NR="$(awk "/${config_args_list[i]}/"'{ print NR; exit }' ${file_config})" # Stores the Row Nº where the config argument is written
+        OLD_CONFIG[i]="$(head -n ${ARG_LINE_NR} ${file_config} | tail -1)" # Stores the old setting of all config arguments
     
         new_arg="        \"${config_args_list[i]}\":\"${new_config_values[i]}\","
-        sed -i "${argument_line_nr}s/${default_arg[i]}/${new_arg}/" ${file_config}
+        sed -i "${ARG_LINE_NR}s/${OLD_CONFIG[i]}/${new_arg}/" ${file_config}
 
         ((i++))
     done
