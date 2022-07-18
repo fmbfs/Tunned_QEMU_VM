@@ -4,7 +4,6 @@
 ##### GLOBAL VARIABLES #####
 #####################################################################################################################################
 # Default error handling
-#set -euox pipefail
 set -euo pipefail
 
 # Defining base PATH
@@ -46,13 +45,6 @@ set_variables() {
 
     # Cache Clean interval in seconds
 	CCLEAN_INTERVAL=$(config_fetching "CACHE CLEAN")
-
-	# Process clusters
-	process_cluster
-
-	# Pinned vCPU
-	VCPU_PINNED=$(cat /sys/devices/system/cpu/cpu*/topology/thread_siblings_list | sort | uniq | tail -1)
-
 }
 
 # HELP MENU
@@ -60,15 +52,17 @@ show_help() {
 	echo ""
     echo "${0} [CONFIG FILE PATH]"
     echo "Options:"
-    echo "--disk-path ---> Demands VSD full path as an argument."
-    echo "--boot-logs ---> Demands .txt file full path to store boot logs."
-    echo "  -h | --help -> Show this help."
+    echo -e "\t--disk-path ---> Demands VSD full path as an argument."
+    echo -e "\t--boot-logs ---> Demands .txt file full path to store boot logs."
+    echo -e "\t-h | --help -> Show this help."
     echo ""
     exit 0
 }
 
 # SWITCH ARGUMENTS
 process_args() {
+    [ $# == 0 ] && echo "ERROR: No options were provided."
+
     for i in "$@"; do
         case "${i}" in
             "-h" | "--help")
@@ -121,15 +115,14 @@ process_cluster() {
         if [[ "${DISK_SIZE}" -lt "${CHECK_MIN_VSD}" ]]; then
             L2_CACHE_SIZE="1M"
         else
-		aux_calc=$(( ${CS_VALUE}/8 ))
-		L2_CACHE_SIZE="$(( ${DISK_SIZE}/${aux_calc} + 1 ))M"
+		AUX_CALC=$(( ${CS_VALUE}/8 ))
+		L2_CACHE_SIZE="$(( ${DISK_SIZE}/${AUX_CALC} + 1 ))M"
         fi
 	else
 		echo "Invalid Cluster Size. Edit value in the file: ${CONFIG_FILE_PATH}"
         #echo "64, 128, 256, 512, 1024, 2048"
         echo "65536, 131072, 262144, 524288, 1048576, 202097152"
 	fi
-
 }
 
 # Set the qemu process priority to RT on Kernel
@@ -175,6 +168,11 @@ process_args $@
 process_post_args
 
 set_variables
+
+process_cluster
+
+#create the shield
+sudo cset shield --cpu=${VCPU_PINNED} --threads --kthread=on >/dev/null
 
 schedule &
 

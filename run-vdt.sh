@@ -1,7 +1,6 @@
 #!/bin/bash
 
 # Default error handling
-#set -euox pipefail
 set -euo pipefail
 
 # Traps
@@ -38,7 +37,7 @@ print_warning() {
 }
 
 # Check we are really bash, since this script has many bashisms
-if [ ! "$BASH_VERSINFO" ] ; then
+if [ ! "${BASH_VERSINFO}" ] ; then
     print_error "Script must run with bash"
 fi
 
@@ -48,21 +47,9 @@ fi
 [ -z "${SDKTARGETSYSROOT}" ] && print_error "SDK environment needs to be initialised first."
 
 # VARS
-QEMU_BIN=$(which qemu-system-aarch64)
-QEMU_DIR=$(dirname "${CONFIG_SITE}")/vdt
-MKFS_BIN=$(which mkfs.ext4)
-if [ -z "$(which docker)" ] ; then
-    print_warning "docker could not be found"
-else
-    DOCKER_BIN=$(which docker)
-fi
-if [ -z "$(which qemu-img)" ] ; then
-    print_warning "qemu-img could not be found"
-else
-    QEMU_IMG_BIN=$(which qemu-img)
-fi
 USER_ID=$(id -u)
 TMP_DIR="${HOME}/vdt_tmp"
+QEMU_DIR=$(dirname "${CONFIG_SITE}")/vdt
 KERNEL=$(2> /dev/null find "${QEMU_DIR}/kernel" -name "Image*.bin" | head -1)
 ROOTFS_DIR=${QEMU_DIR}/rootfs
 SNAPSHOTS_DIR=${ROOTFS_DIR}/snapshots
@@ -88,6 +75,12 @@ PRINT_HELP=false
 
 # FUNCTIONS
 set_vars() {
+    # Binaries
+    QEMU_BIN=$(which qemu-system-aarch64)
+    MKFS_BIN=$(which mkfs.ext4)
+    QEMU_IMG_BIN=$(which qemu-img)
+    [ ! -z "$(which docker)" ] && DOCKER_BIN=$(which docker)
+
     # Avoid having to re-set permissions
     run_sudo chown -R "${USER}":"${USER}" "${QEMU_DIR}"
 
@@ -105,7 +98,6 @@ set_vars() {
     IMAGE_USERDATA=${ROOTFS_DIR}/userdata.ext4
     RAW_IMAGE_CONTAINER=${ROOTFS_DIR}/emmc.raw
     QCOW2_IMAGE_CONTAINER=${ROOTFS_DIR}/emmc.qcow2
-    
     if [ -z "${SNAPSHOT_IMG+x}" ] ; then
         if "${WITH_PERFORMANCE}" ; then
             IMAGE_CONTAINER="${QCOW2_IMAGE_CONTAINER}"
@@ -123,54 +115,23 @@ set_vars() {
 
     KERNEL_PARAMS="root=/dev/vda1 ro mem=4G console=ttyAMA0,115200 console=tty loglevel=7 audit=0"
 
-    QEMU_ARGS_ori1=( \
-                "-monitor" "null" \
-                "-object" "rng-random,filename=/dev/random,id=rng0" \
-                "-device" "virtio-rng-pci,rng=rng0" \
-                "-cpu" "cortex-a57" \
-                "-smp" "3" \
-                "-machine" "type=virt" \
-                "-m" "4G" \
-                "-nodefaults" \
-                "-serial" "mon:stdio" \
-                "-kernel" "${KERNEL}" \
-                "-drive" "file=${IMAGE_CONTAINER},id=disk0,format=${IMAGE_FORMAT},if=none,cache=none" \
-                "-device" "virtio-blk-pci,drive=disk0" \
-                )
-
     QEMU_ARGS=( \
                 "-monitor" "null" \
                 "-object" "rng-random,filename=/dev/random,id=rng0" \
                 "-device" "virtio-rng-pci,rng=rng0" \
-                "-cpu" "cortex-a57" \
+                "-cpu" "max,pdpe1gb,kvm=off,hv_relaxed,hv_spinlocks=0x1fff,hv_vapic,hv_time" \
                 "-smp" "3" \
                 "-machine" "type=virt" \
                 "-m" "4G" \
                 "-nodefaults" \
                 "-serial" "mon:stdio" \
                 "-kernel" "${KERNEL}" \
-                "-drive" "file=${IMAGE_CONTAINER},id=disk0,format=${IMAGE_FORMAT},if=none,cache=none" \
-                "-device" "virtio-blk-pci,drive=disk0" \
-                )
-
-    # ALTERAR NOME TODO
-    QEMU_ARGS_ORI2=( \
-                "-monitor" "null" \
-                "-object" "rng-random,filename=/dev/random,id=rng0" \
-                "-device" "virtio-rng-pci,rng=rng0" \
-                "-cpu" "max" \
-                "-smp" "3" \
-                "-machine" "type=virt" \
-                "-m" "4G" \
-                "-nodefaults" \
-                "-serial" "mon:stdio" \
-                "-kernel" "${KERNEL}" \
-                "-drive" "file=${IMAGE_CONTAINER},id=disk0,format=${IMAGE_FORMAT},if=none,cache=none" \
+                "-drive" "file=${IMAGE_CONTAINER},id=disk0,format=${IMAGE_FORMAT},if=none,cache=writethrough" \
                 "-device" "virtio-blk-pci,drive=disk0" \
                 "-mem-path" "/dev/hugepages" \
                 "-mem-prealloc" \
                 "-rtc" "base=localtime,clock=host" \
-                ) # check problems using different archs because kvm is being used
+                )
 
     VCAR_ARGS=( \
                 "--telnet" "2000" \
@@ -217,6 +178,25 @@ request_input() {
     done
 }
 
+install_dependency() {
+    APT_GET="$(which apt-get)"
+    for p_name in "$@"
+    do
+        echo "Checking for ${p_name}"
+        PKG_OK=$(dpkg -l | grep ${p_name} || true)
+        if [ "${PKG_OK}" = "" ]; then
+            [ -z "${DO_UPDATE+x}" ] && { run_sudo "${APT_GET}" update; DO_UPDATE=true; }
+            echo "${p_name} is not installed. I'll install it for you."
+            print_warning "sudo permission might be requested to install ${p_name}"
+            if request_input "Proceed?" ; then
+                run_sudo "${APT_GET}" --yes install "${p_name}"
+            else
+                print_error "Dependency ${p_name} was not installed. Exiting..."
+            fi
+        fi
+    done
+}
+
 process_requirements() {
     # test for root or sudo
     if cat /proc/1/cgroup | grep -q "docker\|lxc" ; then
@@ -229,6 +209,11 @@ process_requirements() {
     else
         unset CMD_SUDO
     fi
+
+    # install missing dependencies
+    [ ! -z "$(which qemu-system-aarch64)" ] || install_dependency "qemu-system-arm"
+    [ ! -z "$(which mkfs.ext4)" ]           || install_dependency "e2fsprogs"
+    [ ! -z "$(which qemu-img)" ]            || install_dependency "qemu-utils"
 }
 
 run_sudo() {
@@ -242,7 +227,7 @@ run_sudo() {
 process_args() {
     # process all input arguments
     for i in "$@"; do
-        case "$i" in
+        case "${i}" in
         "-h"|"--help")
             PRINT_HELP=true
             print_help
@@ -297,7 +282,7 @@ process_args() {
             shift
             ;;
         *)
-            print_error "Unrecognised option: $i"
+            print_error "Unrecognised option: ${i}"
             shift
             ;;
         esac
@@ -311,9 +296,7 @@ process_post_args() {
                     "${QEMU_ARGS[@]}");
     fi
 
-    if ! ${WITH_X11}; then
-        QEMU_ARGS=("-display" "none" "${QEMU_ARGS[@]}");
-    fi
+    ${WITH_X11} || QEMU_ARGS=("-display" "none" "${QEMU_ARGS[@]}");
 
     if ${WITH_SDK_ROOTFS}; then
         IMAGE_SIZE_MULTIPLIER=2
@@ -323,21 +306,20 @@ process_post_args() {
         WITH_YOCTO_ROOTFS=true
     fi
 
-    if [ ! -z "${SNAPSHOT_IMG+x}" ] || "${WITH_PERFORMANCE}" ; then
-        [ ! -f "${RAW_IMAGE_CONTAINER}" ] || WITH_STALE_ROOTFS=true
-    fi
-
-    if "${WITH_TMP_SNAPSHOT}" ; then
-        QEMU_ARGS+=("-snapshot")
-    fi
-
-    if [ -z "${SNAPSHOT_IMG+x}" ] && ! "${WITH_PERFORMANCE}" ; then
+    if [[ "${IMAGE_CONTAINER}" == "${RAW_IMAGE_CONTAINER}" ]] ; then
         QEMU_ARGS+=("-device" "virtio-keyboard-pci")
+    else
+        if [ ! -f "${IMAGE_CONTAINER}" ] && [ ! -f "${RAW_IMAGE_CONTAINER}" ] ; then
+            print_error "VDT image does not exist"
+        fi
+        WITH_STALE_ROOTFS=true
     fi
 
-    if [ ! -z "${LOADVM+x}" ] ; then
-        QEMU_ARGS+=("-loadvm" "${LOADVM}")
-    fi
+    ! "${WITH_TMP_SNAPSHOT}" || QEMU_ARGS+=("-snapshot")
+
+    [ -z "${LOADVM+x}" ] || QEMU_ARGS+=("-loadvm" "${LOADVM}")
+
+    ! "${WITH_PERFORMANCE}" || [ -f "${QEMU_CONFIG_EXEC}" ] || print_error "${QEMU_CONFIG_EXEC} does not exist!"
 
     if [ ! -z "${IN_AARCH64+x}" ] ; then
         size_args="${#QEMU_ARGS[@]}"
@@ -345,10 +327,6 @@ process_post_args() {
             [[ "${QEMU_ARGS[${i}]}" == "-cpu" ]] && QEMU_ARGS[((i+1))]="host" && break
         done
         QEMU_ARGS+=("-enable-kvm")
-    fi
-
-    if "${WITH_PERFORMANCE}" ; then
-        [ -f "${QEMU_CONFIG_EXEC}" ] || print_error "${QEMU_CONFIG_EXEC} does not exist!"
     fi
 }
 
@@ -466,7 +444,6 @@ create_filesystem() {
 
     if ${WITH_STALE_ROOTFS}; then
         echo "Skipping rootfs generation because --stale-rootfs is set"
-        [ -f "${RAW_IMAGE_CONTAINER}" ] || print_error "VDT image does not exist"
     else
         echo "Generating image container"
         create_image_container
@@ -545,6 +522,7 @@ create_filesystem() {
 
             # Add systemd-udev-trigger.service to sysinit.target, so network devices can be triggered
             run_sudo ln -s "${unpacked_dir}/lib/systemd/system/systemd-udev-trigger.service" "${unpacked_dir}/lib/systemd/system/sysinit.target.wants/systemd-udev-trigger.service"
+
             # Remove dependencies that are timing out
             run_sudo sed -i "s/dev-kostal_intercore_kostalcapi.device//g" "${unpacked_dir}/etc/systemd/system/kostalcapi.service"
 
@@ -666,13 +644,12 @@ disable_vcan() {
 
 performance_setup() {
     source "${QEMU_CONFIG_EXEC}" --disk-path="${IMAGE_CONTAINER}" --boot-logs="${BOOT_LOGS_PATH}"
-    
+
     size_args="${#QEMU_ARGS[@]}"
     for ((i=0;i<size_args;i++)) ; do
         [[ "${QEMU_ARGS[${i}]}" == "-m" ]] && QEMU_ARGS[((i+1))]="${VD_RAM}G"
         if [[ "${QEMU_ARGS[${i}]}" == "-drive" ]] ; then
             QEMU_ARGS[((i+1))]=${QEMU_ARGS[((i+1))]}",l2-cache-size=${L2_CACHE_SIZE},cache-clean-interval=${CCLEAN_INTERVAL}"
-            QEMU_ARGS[((i+1))]=${QEMU_ARGS[((i+1))]/,cache=none/,cache=writethrough}
         fi
     done
 }
@@ -729,10 +706,7 @@ run_vdt() {
     if ! "${WITH_PERFORMANCE}" ; then
         run_sudo "${QEMU_BIN}" "${QEMU_ARGS[@]}" "-append" "${KERNEL_PARAMS}"
     else
-        run_sudo cset shield -e \
-        "${QEMU_BIN}" -- ${QEMU_ARGS[@]} >&1 ${BOOT_LOGS_PATH}
-        # Test if isolation helps or not- TODO
-        #"${QEMU_BIN}" ${QEMU_ARGS[@]} > ${BOOT_LOGS_PATH}
+        run_sudo cset shield -e "${QEMU_BIN}" -- ${QEMU_ARGS[@]} >&1 ${BOOT_LOGS_PATH}
     fi
     echo "QEMU exited with $?"
 }
@@ -790,10 +764,9 @@ print_vars
 
 # create filesystem
 create_filesystem
-echo "Filesystem created!"
 
 # Adapt QEMU to increase performance
-#! "${WITH_PERFORMANCE}" || performance_setup
+! "${WITH_PERFORMANCE}" || performance_setup
 
 # Check if tap device is set-up
 network_setup

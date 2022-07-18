@@ -1,0 +1,6 @@
+make --dry-run --always-make --keep-going --print-directory
+make: Entering directory '/home/franciscosantos/Desktop/git/Tunned_QEMU_VM'
+make: Leaving directory '/home/franciscosantos/Desktop/git/Tunned_QEMU_VM'
+ 
+make: *** No targets specified and no makefile found.  Stop.
+

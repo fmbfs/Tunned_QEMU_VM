@@ -4,8 +4,7 @@
 ##### GLOBAL VARIABLES #####
 #####################################################################################################################################
 # Default error handling
-#set -euox pipefail
-#set -euo pipefail
+set -euo pipefail
 
 # Defining base PATH
 BASE_DIR=$(dirname "${BASH_SOURCE[0]}")
@@ -13,7 +12,6 @@ BASE_DIR=$(dirname "${BASH_SOURCE[0]}")
 
 # Grub path
 GRUB_PATH="/etc/default/grub"
-#GRUB_PATH="/home/franciscosantos/Desktop/git/Tunned_QEMU_VM/grubi.txt"
 
 # Defining HugePage default sizes
 BIG_PAGES="1048576"
@@ -25,18 +23,19 @@ SMALL_PAGES="2048"
 
 # HELP MENU
 show_help() {
-	echo ""
-    echo "${0} [OPTION] [CONFIG FILE PATH]"
+    echo -e "\n${0} [OPTION] [CONFIG FILE PATH]\n"
+    echo -e "Note: Run this script using 'sudo'.\n"
     echo "Options:"
-    echo "  --setup -----> Set up the environmet optimization"
-    echo "  --unsetup ---> Unsets the environment optimization"
-    echo "  -h | --help -> Show this help."
-    echo ""
+    echo -e "\t--setup=* -----> Set up the environmet optimization"
+    echo -e "\t--unsetup ---> Unsets the environment optimization"
+    echo -e "\t-h | --help -> Show this help.\n"
     exit 0
 }
 
 # SWITHC ARGUMENTS
 process_args() {
+    [ $# == 0 ] && echo "ERROR: No options were provided."
+
     for i in "$@"; do
         case "${i}" in
             "")
@@ -133,7 +132,6 @@ grubsm() {
 
     if [ -z ${CONFIG_FILE_PATH+x} ]; then
         GRUB_TUNED=$(cat ${GRUB_PATH} | grep "${GRUB_CMDLINE}_DEFAULT=")
-        echo "AQUI"
         if [[ ${OLD_CONFIG} == ${GRUB_DEFAULT} && ${OLD_CONFIG2} == ${GRUB_UBU22} ]]; then
             echo "Already default."
         else
@@ -194,8 +192,6 @@ setup() {
     # Call grub updater set the HugePages and run qemu with correct parameters
 	page_size >/dev/null
 
-    # Creating isolated set to launch qemu
-    sudo cset shield --cpu=${VCPU_PINNED} --threads --kthread=on >/dev/null 
     if [[ ${UPDATE_GRUB} == "yes" ]]; then
         echo "GRUB Updated. Reboot to apply all the changes..."
         echo "Use the command below on terminal after you save your work for a fast reboot:"
